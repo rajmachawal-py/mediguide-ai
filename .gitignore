@@ -253,6 +253,90 @@ pids
 .vscode/
 .idea/
 
-# Temporary files
-*.tmp
-*.temp
+# ============================================================
+# MediGuide AI — Confidential & Sensitive Files
+# ============================================================
+
+# ── Environment Variable Files ───────────────────────────────
+# Backend
+backend/.env
+backend/.env.*
+backend/.env.local
+backend/.env.production
+backend/.env.staging
+
+# Frontend
+frontend/.env
+frontend/.env.*
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+frontend/.env.test.local
+
+# ── Firebase / FCM Credentials ───────────────────────────────
+# Firebase Admin SDK service account JSON files (contain private keys)
+*-firebase-adminsdk-*.json
+firebase-adminsdk*.json
+*serviceAccountKey*.json
+*service-account*.json
+mediguide-ai-239a5-firebase-adminsdk-fbsvc-19d7770c71.json
+google-services.json
+GoogleService-Info.plist
+
+# ── Google Cloud / Maps API Keys ─────────────────────────────
+# Any Google Cloud service account or credential file
+*-credentials.json
+gcp-credentials.json
+google-cloud-key.json
+keyfile.json
+
+# ── Supabase ─────────────────────────────────────────────────
+# Supabase local development config (contains db password)
+supabase/.branches/
+supabase/.temp/
+.supabase/
+
+# ── SSL / TLS Certificates ───────────────────────────────────
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# ── Python Virtual Environments ──────────────────────────────
+backend/mediguide-Venv/
+backend/mediguide-venv/
+backend/venv/
+backend/.venv/
+**/mediguide-Venv/
+
+# ── Build Artifacts ──────────────────────────────────────────
+frontend/dist/
+frontend/build/
+backend/dist/
+
+# ── Python Cache ─────────────────────────────────────────────
+backend/**/__pycache__/
+backend/**/*.pyc
+backend/**/*.pyo
+
+# ── Secrets & Keys (catch-all patterns) ─────────────────────
+# Any file with "secret", "key", "token", "credential" in the name
+*secret*
+*secrets*
+*private_key*
+*api_key*
+*apikey*
+*.token
+
+# ── Render / Deployment ──────────────────────────────────────
+# Render.com internal config (if generated locally)
+.render/
+
+# ── Logs ─────────────────────────────────────────────────────
+backend/logs/
+frontend/logs/
+*.log
+uvicorn*.log
+gunicorn*.log

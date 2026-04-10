@@ -2,6 +2,7 @@
 -- MediGuide AI — Government Healthcare Schemes Seed Data
 -- Run AFTER schema.sql
 -- Covers: All-India + Maharashtra-specific schemes
+-- UUID pattern: schemes = 20000000-0000-0000-0000-00000000000x
 -- ============================================================
 
 INSERT INTO schemes (
@@ -19,7 +20,7 @@ INSERT INTO schemes (
 
 -- ── 1. Ayushman Bharat PM-JAY (All India) ────────────────────
 (
-    'sch00000-0000-0000-0000-000000000001',
+    '20000000-0000-0000-0000-000000000001',
     'Ayushman Bharat PM-JAY',
     'आयुष्मान भारत प्रधानमंत्री जन आरोग्य योजना',
     'आयुष्मान भारत पंतप्रधान जन आरोग्य योजना',
@@ -41,7 +42,7 @@ INSERT INTO schemes (
 
 -- ── 2. Mahatma Jyotirao Phule Jan Arogya Yojana (Maharashtra) ─
 (
-    'sch00000-0000-0000-0000-000000000002',
+    '20000000-0000-0000-0000-000000000002',
     'Mahatma Jyotirao Phule Jan Arogya Yojana (MJPJAY)',
     'महात्मा जोतीराव फुले जन आरोग्य योजना',
     'महात्मा जोतीराव फुले जन आरोग्य योजना',
@@ -63,7 +64,7 @@ INSERT INTO schemes (
 
 -- ── 3. Pradhan Mantri Matru Vandana Yojana — PMMVY (All India) ─
 (
-    'sch00000-0000-0000-0000-000000000003',
+    '20000000-0000-0000-0000-000000000003',
     'Pradhan Mantri Matru Vandana Yojana (PMMVY)',
     'प्रधानमंत्री मातृ वंदना योजना',
     'प्रधानमंत्री मातृ वंदना योजना',
@@ -85,7 +86,7 @@ INSERT INTO schemes (
 
 -- ── 4. Rashtriya Bal Swasthya Karyakram — RBSK (All India) ────
 (
-    'sch00000-0000-0000-0000-000000000004',
+    '20000000-0000-0000-0000-000000000004',
     'Rashtriya Bal Swasthya Karyakram (RBSK)',
     'राष्ट्रीय बाल स्वास्थ्य कार्यक्रम',
     'राष्ट्रीय बालस्वास्थ्य कार्यक्रम',
@@ -107,7 +108,7 @@ INSERT INTO schemes (
 
 -- ── 5. PM National Dialysis Programme (All India) ─────────────
 (
-    'sch00000-0000-0000-0000-000000000005',
+    '20000000-0000-0000-0000-000000000005',
     'PM National Dialysis Programme',
     'प्रधानमंत्री राष्ट्रीय डायलिसिस कार्यक्रम',
     'पंतप्रधान राष्ट्रीय डायलिसिस कार्यक्रम',
@@ -129,7 +130,7 @@ INSERT INTO schemes (
 
 -- ── 6. Janani Suraksha Yojana — JSY (All India) ──────────────
 (
-    'sch00000-0000-0000-0000-000000000006',
+    '20000000-0000-0000-0000-000000000006',
     'Janani Suraksha Yojana (JSY)',
     'जननी सुरक्षा योजना',
     'जननी सुरक्षा योजना',
@@ -151,7 +152,7 @@ INSERT INTO schemes (
 
 -- ── 7. Senior Citizen Health Insurance Scheme — Maharashtra ───
 (
-    'sch00000-0000-0000-0000-000000000007',
+    '20000000-0000-0000-0000-000000000007',
     'Maharashtra Senior Citizen Health Scheme',
     'महाराष्ट्र वरिष्ठ नागरिक स्वास्थ्य योजना',
     'महाराष्ट्र ज्येष्ठ नागरिक आरोग्य योजना',
@@ -173,7 +174,7 @@ INSERT INTO schemes (
 
 -- ── 8. National Mental Health Programme (All India) ───────────
 (
-    'sch00000-0000-0000-0000-000000000008',
+    '20000000-0000-0000-0000-000000000008',
     'National Mental Health Programme (NMHP)',
     'राष्ट्रीय मानसिक स्वास्थ्य कार्यक्रम',
     'राष्ट्रीय मानसिक आरोग्य कार्यक्रम',

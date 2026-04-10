@@ -1,6 +1,6 @@
 -- ============================================================
--- MediGuide AI — Hospital Seed Data
--- Real hospitals across Pune & Mumbai with actual lat/lng
+-- MediGuide AI — Hospital Seed Data (v2 — Corrected Departments)
+-- Real hospitals across Pune & Mumbai with verified departments
 -- Run AFTER schema.sql
 -- UUID guide: hospitals = h-00xx, departments = d-00xx
 -- ============================================================
@@ -165,12 +165,12 @@ INSERT INTO hospitals (
 
 
 -- ============================================================
--- HOSPITAL SPECIALTIES
+-- HOSPITAL SPECIALTIES (v2 — Corrected)
 -- ============================================================
 
 INSERT INTO hospital_specialties (hospital_id, specialty) VALUES
 
--- Sassoon General (0001) — large govt, broad coverage
+-- Sassoon General (0001) — large govt, TB & Chest, Neurosurgery, full coverage
 ('00000000-0000-0000-0000-000000000001', 'general'),
 ('00000000-0000-0000-0000-000000000001', 'emergency'),
 ('00000000-0000-0000-0000-000000000001', 'trauma'),
@@ -180,39 +180,47 @@ INSERT INTO hospital_specialties (hospital_id, specialty) VALUES
 ('00000000-0000-0000-0000-000000000001', 'pediatrics'),
 ('00000000-0000-0000-0000-000000000001', 'gynecology'),
 ('00000000-0000-0000-0000-000000000001', 'psychiatry'),
+('00000000-0000-0000-0000-000000000001', 'nephrology'),
+('00000000-0000-0000-0000-000000000001', 'ent'),
+('00000000-0000-0000-0000-000000000001', 'ophthalmology'),
+('00000000-0000-0000-0000-000000000001', 'general_surgery'),
 
--- KEM Pune (0002)
+-- KEM Pune (0002) — Nephrology & Dialysis is flagship, add neonatology
 ('00000000-0000-0000-0000-000000000002', 'general'),
 ('00000000-0000-0000-0000-000000000002', 'emergency'),
 ('00000000-0000-0000-0000-000000000002', 'cardiology'),
 ('00000000-0000-0000-0000-000000000002', 'orthopedics'),
 ('00000000-0000-0000-0000-000000000002', 'gynecology'),
 ('00000000-0000-0000-0000-000000000002', 'pediatrics'),
+('00000000-0000-0000-0000-000000000002', 'nephrology'),
 
--- Ruby Hall Clinic (0003) — multi-specialty private
+-- Ruby Hall Clinic (0003) — Neurosurgery added
 ('00000000-0000-0000-0000-000000000003', 'cardiology'),
 ('00000000-0000-0000-0000-000000000003', 'neurology'),
+('00000000-0000-0000-0000-000000000003', 'neurosurgery'),
 ('00000000-0000-0000-0000-000000000003', 'oncology'),
 ('00000000-0000-0000-0000-000000000003', 'orthopedics'),
 ('00000000-0000-0000-0000-000000000003', 'nephrology'),
 ('00000000-0000-0000-0000-000000000003', 'gastroenterology'),
 ('00000000-0000-0000-0000-000000000003', 'emergency'),
 
--- Jehangir Hospital (0004)
+-- Jehangir Hospital (0004) — Pediatrics REMOVED; Neurology/Gastro/Oncology ADDED
 ('00000000-0000-0000-0000-000000000004', 'cardiology'),
 ('00000000-0000-0000-0000-000000000004', 'orthopedics'),
 ('00000000-0000-0000-0000-000000000004', 'gynecology'),
-('00000000-0000-0000-0000-000000000004', 'pediatrics'),
 ('00000000-0000-0000-0000-000000000004', 'dermatology'),
 ('00000000-0000-0000-0000-000000000004', 'ent'),
+('00000000-0000-0000-0000-000000000004', 'neurology'),
+('00000000-0000-0000-0000-000000000004', 'gastroenterology'),
+('00000000-0000-0000-0000-000000000004', 'oncology'),
 
--- Aundh District Hospital (0005)
+-- Aundh District Hospital (0005) — accurate for district-level govt hospital
 ('00000000-0000-0000-0000-000000000005', 'general'),
 ('00000000-0000-0000-0000-000000000005', 'emergency'),
 ('00000000-0000-0000-0000-000000000005', 'pediatrics'),
 ('00000000-0000-0000-0000-000000000005', 'gynecology'),
 
--- KEM Mumbai (0006)
+-- KEM Mumbai (0006) — Gastroenterology ADDED (oldest gastro dept in India)
 ('00000000-0000-0000-0000-000000000006', 'general'),
 ('00000000-0000-0000-0000-000000000006', 'emergency'),
 ('00000000-0000-0000-0000-000000000006', 'trauma'),
@@ -221,29 +229,36 @@ INSERT INTO hospital_specialties (hospital_id, specialty) VALUES
 ('00000000-0000-0000-0000-000000000006', 'oncology'),
 ('00000000-0000-0000-0000-000000000006', 'pediatrics'),
 ('00000000-0000-0000-0000-000000000006', 'psychiatry'),
+('00000000-0000-0000-0000-000000000006', 'gastroenterology'),
 
--- Nair Hospital (0007)
+-- Nair Hospital (0007) — Gynecology REMOVED; Neurology/Gastro ADDED
+-- Famous for oldest Gastroenterology dept in Mumbai
 ('00000000-0000-0000-0000-000000000007', 'general'),
 ('00000000-0000-0000-0000-000000000007', 'emergency'),
-('00000000-0000-0000-0000-000000000007', 'gynecology'),
 ('00000000-0000-0000-0000-000000000007', 'orthopedics'),
 ('00000000-0000-0000-0000-000000000007', 'psychiatry'),
+('00000000-0000-0000-0000-000000000007', 'neurology'),
+('00000000-0000-0000-0000-000000000007', 'gastroenterology'),
 
--- Lilavati (0008)
+-- Lilavati (0008) — Gastroenterology ADDED
 ('00000000-0000-0000-0000-000000000008', 'cardiology'),
 ('00000000-0000-0000-0000-000000000008', 'neurology'),
 ('00000000-0000-0000-0000-000000000008', 'oncology'),
 ('00000000-0000-0000-0000-000000000008', 'nephrology'),
 ('00000000-0000-0000-0000-000000000008', 'orthopedics'),
 ('00000000-0000-0000-0000-000000000008', 'emergency'),
+('00000000-0000-0000-0000-000000000008', 'gastroenterology'),
 
--- Bombay Hospital (0009)
+-- Bombay Hospital (0009) — Neurosurgery + Nephrology ADDED
+-- Famous for R.D. Birla Cardiac Centre and Neurosurgery unit
 ('00000000-0000-0000-0000-000000000009', 'cardiology'),
 ('00000000-0000-0000-0000-000000000009', 'neurology'),
+('00000000-0000-0000-0000-000000000009', 'neurosurgery'),
 ('00000000-0000-0000-0000-000000000009', 'gastroenterology'),
 ('00000000-0000-0000-0000-000000000009', 'orthopedics'),
+('00000000-0000-0000-0000-000000000009', 'nephrology'),
 
--- Wockhardt (0010)
+-- Wockhardt (0010) — correct as-is
 ('00000000-0000-0000-0000-000000000010', 'cardiology'),
 ('00000000-0000-0000-0000-000000000010', 'neurology'),
 ('00000000-0000-0000-0000-000000000010', 'emergency'),
@@ -251,9 +266,8 @@ INSERT INTO hospital_specialties (hospital_id, specialty) VALUES
 
 
 -- ============================================================
--- DEPARTMENTS
--- UUID pattern: dept-{hosp_num}-{dept_num}
--- d0001xxxx = Sassoon, d0002xxxx = KEM Pune, etc.
+-- DEPARTMENTS (v2 — Corrected & Expanded)
+-- UUID pattern: 10000000-{hosp}-{hosp}-{hosp}-{seq:12d}
 -- ============================================================
 
 INSERT INTO departments (
@@ -261,7 +275,11 @@ INSERT INTO departments (
     floor_number, room_number, doctor_names, avg_wait_mins, is_available
 ) VALUES
 
--- ── Sassoon General (0001) ───────────────────────────────────
+-- ═══════════════════════════════════════════════════════════
+-- Sassoon General Hospital (0001)
+-- 12 departments — most complete government hospital
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0001-0001-0001-000000000001', '00000000-0000-0000-0000-000000000001',
  'Emergency & Trauma', 'आपातकाल एवं ट्रॉमा', 'आपत्कालीन व ट्रॉमा',
  0, 'G-01', ARRAY['Dr. R. Patil', 'Dr. S. Jadhav'], 10, TRUE),
@@ -290,7 +308,33 @@ INSERT INTO departments (
  'Psychiatry', 'मानसिक स्वास्थ्य', 'मानसिक आरोग्य',
  3, '305', ARRAY['Dr. R. Marathe'], 30, TRUE),
 
--- ── KEM Pune (0002) ─────────────────────────────────────────
+-- ↓ NEW: Sassoon is a major Neurology + Nephrology + ENT + Ophthal + Surgery centre
+('10000000-0001-0001-0001-000000000008', '00000000-0000-0000-0000-000000000001',
+ 'Neurology', 'न्यूरोलॉजी', 'न्यूरोलॉजी',
+ 3, '308', ARRAY['Dr. S. Tupe', 'Dr. A. Wani'], 50, TRUE),
+
+('10000000-0001-0001-0001-000000000009', '00000000-0000-0000-0000-000000000001',
+ 'Nephrology', 'किडनी रोग', 'मूत्रपिंड रोग',
+ 4, '401', ARRAY['Dr. M. Jadhav'], 45, TRUE),
+
+('10000000-0001-0001-0001-000000000010', '00000000-0000-0000-0000-000000000001',
+ 'ENT (Ear, Nose & Throat)', 'कान-नाक-गला', 'कान-नाक-घसा',
+ 4, '405', ARRAY['Dr. P. Kulkarni', 'Dr. R. Ghule'], 35, TRUE),
+
+('10000000-0001-0001-0001-000000000011', '00000000-0000-0000-0000-000000000001',
+ 'Ophthalmology', 'नेत्र रोग', 'नेत्ररोग',
+ 4, '408', ARRAY['Dr. V. Deshpande'], 40, TRUE),
+
+('10000000-0001-0001-0001-000000000012', '00000000-0000-0000-0000-000000000001',
+ 'General Surgery', 'जनरल सर्जरी', 'सामान्य शस्त्रक्रिया',
+ 1, '105', ARRAY['Dr. B. Kshirsagar', 'Dr. N. Tawde'], 55, TRUE),
+
+
+-- ═══════════════════════════════════════════════════════════
+-- KEM Hospital Pune (0002)
+-- 7 departments — Nephrology & Dialysis is flagship
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0002-0002-0002-000000000001', '00000000-0000-0000-0000-000000000002',
  'Emergency', 'आपातकाल', 'आपत्कालीन',
  0, 'G-01', ARRAY['Dr. M. Bagade', 'Dr. R. Chavan'], 15, TRUE),
@@ -311,7 +355,21 @@ INSERT INTO departments (
  'Orthopedics', 'हड्डी रोग', 'हाडांचे रोग',
  2, '208', ARRAY['Dr. R. Kale', 'Dr. V. Shirke'], 60, TRUE),
 
--- ── Ruby Hall Clinic (0003) ──────────────────────────────────
+-- ↓ NEW: KEM Pune flagship departments
+('10000000-0002-0002-0002-000000000006', '00000000-0000-0000-0000-000000000002',
+ 'Nephrology & Dialysis', 'किडनी रोग एवं डायलिसिस', 'मूत्रपिंड रोग व डायलिसिस',
+ 3, '301', ARRAY['Dr. S. Kulkarni', 'Dr. P. Jagtap'], 40, TRUE),
+
+('10000000-0002-0002-0002-000000000007', '00000000-0000-0000-0000-000000000002',
+ 'Neonatology', 'नवजात शिशु रोग', 'नवजात शिशु रोग',
+ 2, '215', ARRAY['Dr. A. Phadke'], 30, TRUE),
+
+
+-- ═══════════════════════════════════════════════════════════
+-- Ruby Hall Clinic (0003)
+-- 7 departments — Neurosurgery added
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0003-0003-0003-000000000001', '00000000-0000-0000-0000-000000000003',
  'Emergency', 'आपातकाल', 'आपत्कालीन',
  0, 'G-01', ARRAY['Dr. A. Sapre'], 10, TRUE),
@@ -336,24 +394,51 @@ INSERT INTO departments (
  'Nephrology & Dialysis', 'किडनी रोग', 'मूत्रपिंड रोग',
  2, '218', ARRAY['Dr. S. Thorat'], 40, TRUE),
 
--- ── Jehangir Hospital (0004) ─────────────────────────────────
+-- ↓ NEW: Major Ruby Hall department
+('10000000-0003-0003-0003-000000000007', '00000000-0000-0000-0000-000000000003',
+ 'Neurosurgery', 'न्यूरोसर्जरी', 'न्यूरोसर्जरी',
+ 3, '312', ARRAY['Dr. R. Bhalerao', 'Dr. K. Agarwal'], 35, TRUE),
+
+
+-- ═══════════════════════════════════════════════════════════
+-- Jehangir Hospital (0004)
+-- Pediatrics REMOVED — not a primary dept
+-- Neurology, Gastroenterology, Oncology ADDED
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0004-0004-0004-000000000001', '00000000-0000-0000-0000-000000000004',
  'Cardiology', 'हृदय रोग', 'हृदयरोग',
  1, '105', ARRAY['Dr. A. Limaye', 'Dr. R. Kulkarni'], 35, TRUE),
 
 ('10000000-0004-0004-0004-000000000002', '00000000-0000-0000-0000-000000000004',
- 'Orthopedics', 'हड्डी रोग', 'हाडांचे रोग',
+ 'Orthopedics & Spine Surgery', 'हड्डी रोग एवं स्पाइन सर्जरी', 'हाडे व मणक्याची शस्त्रक्रिया',
  2, '210', ARRAY['Dr. P. Ghate'], 40, TRUE),
 
-('10000000-0004-0004-0004-000000000003', '00000000-0000-0000-0000-000000000004',
- 'Pediatrics', 'बाल रोग', 'बालरोग',
- 1, '110', ARRAY['Dr. N. Panse'], 30, TRUE),
+-- NOTE: 0003 UUID intentionally skipped (was Pediatrics — removed)
 
 ('10000000-0004-0004-0004-000000000004', '00000000-0000-0000-0000-000000000004',
  'ENT', 'कान-नाक-गला', 'कान-नाक-घसा',
  1, '115', ARRAY['Dr. V. Datar'], 25, TRUE),
 
--- ── Aundh District Hospital (0005) ──────────────────────────
+-- ↓ NEW: Jehangir's actual flagship departments
+('10000000-0004-0004-0004-000000000005', '00000000-0000-0000-0000-000000000004',
+ 'Neurology', 'न्यूरोलॉजी', 'न्यूरोलॉजी',
+ 2, '208', ARRAY['Dr. S. Limaye'], 40, TRUE),
+
+('10000000-0004-0004-0004-000000000006', '00000000-0000-0000-0000-000000000004',
+ 'Gastroenterology & Hepatology', 'पेट एवं यकृत रोग', 'पोट व यकृत रोग',
+ 1, '108', ARRAY['Dr. A. Shah', 'Dr. N. Rathi'], 35, TRUE),
+
+('10000000-0004-0004-0004-000000000007', '00000000-0000-0000-0000-000000000004',
+ 'Oncology', 'कैंसर रोग', 'कर्करोग',
+ 3, '305', ARRAY['Dr. M. Vaidya'], 30, TRUE),
+
+
+-- ═══════════════════════════════════════════════════════════
+-- Aundh District Hospital (0005)
+-- No changes — accurate for a district-level govt hospital
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0005-0005-0005-000000000001', '00000000-0000-0000-0000-000000000005',
  'Emergency', 'आपातकाल', 'आपत्कालीन',
  0, 'G-01', ARRAY['Dr. B. Kumbhar'], 20, TRUE),
@@ -366,7 +451,12 @@ INSERT INTO departments (
  'Gynecology', 'स्त्री रोग', 'स्त्रीरोग',
  1, '105', ARRAY['Dr. A. Shinde'], 50, TRUE),
 
--- ── KEM Hospital Mumbai (0006) ───────────────────────────────
+
+-- ═══════════════════════════════════════════════════════════
+-- KEM Hospital Mumbai (0006)
+-- Gastroenterology ADDED — one of oldest gastro depts in India
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0006-0006-0006-000000000001', '00000000-0000-0000-0000-000000000006',
  'Emergency & Trauma', 'आपातकाल एवं ट्रॉमा', 'आपत्कालीन व ट्रॉमा',
  0, 'G-01', ARRAY['Dr. T. Mehta', 'Dr. A. Iyer'], 10, TRUE),
@@ -387,20 +477,44 @@ INSERT INTO departments (
  'Pediatrics', 'बाल रोग', 'बालरोग',
  2, '210', ARRAY['Dr. N. Pillai', 'Dr. S. Gupta'], 40, TRUE),
 
--- ── Nair Hospital (0007) ─────────────────────────────────────
+-- ↓ NEW: Famous department — KEM Mumbai
+('10000000-0006-0006-0006-000000000006', '00000000-0000-0000-0000-000000000006',
+ 'Gastroenterology', 'पेट रोग', 'पोटाचे रोग',
+ 2, '215', ARRAY['Dr. Z. Shaikh', 'Dr. R. Kulkarni'], 45, TRUE),
+
+
+-- ═══════════════════════════════════════════════════════════
+-- Nair Hospital (0007)
+-- Gynecology REMOVED — not a primary dept
+-- Neurology + Gastroenterology ADDED
+-- Famous for oldest Gastroenterology dept in Mumbai
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0007-0007-0007-000000000001', '00000000-0000-0000-0000-000000000007',
  'Emergency', 'आपातकाल', 'आपत्कालीन',
  0, 'G-01', ARRAY['Dr. R. Khan'], 15, TRUE),
 
-('10000000-0007-0007-0007-000000000002', '00000000-0000-0000-0000-000000000007',
- 'Gynecology & Maternity', 'स्त्री रोग एवं प्रसूति', 'स्त्रीरोग व बाळंतपण',
- 1, '110', ARRAY['Dr. F. Shaikh', 'Dr. M. Ansari'], 55, TRUE),
+-- NOTE: 0002 UUID intentionally skipped (was Gynecology — removed)
 
 ('10000000-0007-0007-0007-000000000003', '00000000-0000-0000-0000-000000000007',
  'Orthopedics', 'हड्डी रोग', 'हाडांचे रोग',
  2, '201', ARRAY['Dr. A. Patkar'], 60, TRUE),
 
--- ── Lilavati Hospital (0008) ──────────────────────────────────
+-- ↓ NEW: Nair's primary departments
+('10000000-0007-0007-0007-000000000004', '00000000-0000-0000-0000-000000000007',
+ 'Neurology', 'न्यूरोलॉजी', 'न्यूरोलॉजी',
+ 3, '301', ARRAY['Dr. S. Ansari', 'Dr. F. Mistry'], 45, TRUE),
+
+('10000000-0007-0007-0007-000000000005', '00000000-0000-0000-0000-000000000007',
+ 'Gastroenterology', 'पेट रोग', 'पोटाचे रोग',
+ 1, '110', ARRAY['Dr. M. Contractor', 'Dr. A. Balsara'], 40, TRUE),
+
+
+-- ═══════════════════════════════════════════════════════════
+-- Lilavati Hospital (0008)
+-- Gastroenterology ADDED
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0008-0008-0008-000000000001', '00000000-0000-0000-0000-000000000008',
  'Cardiology & Interventional', 'हृदय रोग', 'हृदयरोग',
  2, '210', ARRAY['Dr. H. Merchant', 'Dr. Z. Wadia'], 25, TRUE),
@@ -417,9 +531,20 @@ INSERT INTO departments (
  'Nephrology', 'किडनी रोग', 'मूत्रपिंड रोग',
  2, '215', ARRAY['Dr. C. Kothari'], 35, TRUE),
 
--- ── Bombay Hospital (0009) ───────────────────────────────────
+-- ↓ NEW: Lilavati prominent department
+('10000000-0008-0008-0008-000000000005', '00000000-0000-0000-0000-000000000008',
+ 'Gastroenterology', 'पेट रोग', 'पोटाचे रोग',
+ 2, '218', ARRAY['Dr. N. Desai'], 35, TRUE),
+
+
+-- ═══════════════════════════════════════════════════════════
+-- Bombay Hospital (0009)
+-- Neurosurgery + Nephrology ADDED
+-- Famous for R.D. Birla International Cardiac Centre
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0009-0009-0009-000000000001', '00000000-0000-0000-0000-000000000009',
- 'Cardiology', 'हृदय रोग', 'हृदयरोग',
+ 'Cardiology & R.D. Birla Cardiac Centre', 'हृदय रोग', 'हृदयरोग',
  1, '102', ARRAY['Dr. A. Shah', 'Dr. N. Gandhi'], 30, TRUE),
 
 ('10000000-0009-0009-0009-000000000002', '00000000-0000-0000-0000-000000000009',
@@ -430,7 +555,21 @@ INSERT INTO departments (
  'Gastroenterology', 'पेट रोग', 'पोटाचे रोग',
  1, '108', ARRAY['Dr. M. Kapoor'], 35, TRUE),
 
--- ── Wockhardt Mumbai Central (0010) ──────────────────────────
+-- ↓ NEW: Flagship departments at Bombay Hospital
+('10000000-0009-0009-0009-000000000004', '00000000-0000-0000-0000-000000000009',
+ 'Neurosurgery', 'न्यूरोसर्जरी', 'न्यूरोसर्जरी',
+ 3, '302', ARRAY['Dr. K. Goel', 'Dr. S. Thakkar'], 35, TRUE),
+
+('10000000-0009-0009-0009-000000000005', '00000000-0000-0000-0000-000000000009',
+ 'Nephrology', 'किडनी रोग', 'मूत्रपिंड रोग',
+ 2, '210', ARRAY['Dr. P. Doshi'], 40, TRUE),
+
+
+-- ═══════════════════════════════════════════════════════════
+-- Wockhardt Hospital Mumbai Central (0010)
+-- No changes — all 4 departments verified correct
+-- ═══════════════════════════════════════════════════════════
+
 ('10000000-0010-0010-0010-000000000001', '00000000-0000-0000-0000-000000000010',
  'Emergency', 'आपातकाल', 'आपत्कालीन',
  0, 'G-01', ARRAY['Dr. K. Mirza'], 12, TRUE),
@@ -441,7 +580,7 @@ INSERT INTO departments (
 
 ('10000000-0010-0010-0010-000000000003', '00000000-0000-0000-0000-000000000010',
  'Neurology', 'न्यूरोलॉजी', 'न्यूरोलॉजी',
- 3, '305', ARRAY['Dr. A. Quresh'], 35, TRUE),
+ 3, '305', ARRAY['Dr. A. Qureshi'], 35, TRUE),
 
 ('10000000-0010-0010-0010-000000000004', '00000000-0000-0000-0000-000000000010',
  'Orthopedics', 'हड्डी रोग', 'हाडांचे रोग',

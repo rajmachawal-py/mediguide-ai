@@ -100,8 +100,7 @@
 
 
 -- ============================================================
--- HOSPITAL & DEPARTMENT UUID REFERENCE CARD
--- (for use when creating appointments via app or manual seed)
+-- HOSPITAL & DEPARTMENT UUID REFERENCE CARD (v2 — Corrected)
 -- ============================================================
 
 -- HOSPITALS
@@ -116,7 +115,7 @@
 -- 00000000-0000-0000-0000-000000000009  → Bombay Hospital, Mumbai
 -- 00000000-0000-0000-0000-000000000010  → Wockhardt Hospital, Mumbai Central
 
--- DEPARTMENTS — Sassoon General (0001)
+-- DEPARTMENTS — Sassoon General (0001) — 12 departments
 -- 10000000-0001-0001-0001-000000000001  → Emergency & Trauma
 -- 10000000-0001-0001-0001-000000000002  → Cardiology OPD
 -- 10000000-0001-0001-0001-000000000003  → General Medicine
@@ -124,57 +123,74 @@
 -- 10000000-0001-0001-0001-000000000005  → Gynecology & Obstetrics
 -- 10000000-0001-0001-0001-000000000006  → Orthopedics
 -- 10000000-0001-0001-0001-000000000007  → Psychiatry
+-- 10000000-0001-0001-0001-000000000008  → Neurology           [NEW]
+-- 10000000-0001-0001-0001-000000000009  → Nephrology           [NEW]
+-- 10000000-0001-0001-0001-000000000010  → ENT                  [NEW]
+-- 10000000-0001-0001-0001-000000000011  → Ophthalmology        [NEW]
+-- 10000000-0001-0001-0001-000000000012  → General Surgery      [NEW]
 
--- DEPARTMENTS — KEM Pune (0002)
+-- DEPARTMENTS — KEM Pune (0002) — 7 departments
 -- 10000000-0002-0002-0002-000000000001  → Emergency
 -- 10000000-0002-0002-0002-000000000002  → Cardiology
 -- 10000000-0002-0002-0002-000000000003  → General Medicine
 -- 10000000-0002-0002-0002-000000000004  → Gynecology
 -- 10000000-0002-0002-0002-000000000005  → Orthopedics
+-- 10000000-0002-0002-0002-000000000006  → Nephrology & Dialysis [NEW — flagship]
+-- 10000000-0002-0002-0002-000000000007  → Neonatology           [NEW]
 
--- DEPARTMENTS — Ruby Hall (0003)
+-- DEPARTMENTS — Ruby Hall (0003) — 7 departments
 -- 10000000-0003-0003-0003-000000000001  → Emergency
 -- 10000000-0003-0003-0003-000000000002  → Cardiology & Cardiac Surgery
 -- 10000000-0003-0003-0003-000000000003  → Neurology
 -- 10000000-0003-0003-0003-000000000004  → Oncology
 -- 10000000-0003-0003-0003-000000000005  → Orthopedics & Joint Replacement
 -- 10000000-0003-0003-0003-000000000006  → Nephrology & Dialysis
+-- 10000000-0003-0003-0003-000000000007  → Neurosurgery          [NEW]
 
--- DEPARTMENTS — Jehangir (0004)
+-- DEPARTMENTS — Jehangir (0004) — 6 departments
 -- 10000000-0004-0004-0004-000000000001  → Cardiology
--- 10000000-0004-0004-0004-000000000002  → Orthopedics
--- 10000000-0004-0004-0004-000000000003  → Pediatrics
+-- 10000000-0004-0004-0004-000000000002  → Orthopedics & Spine Surgery
+-- 10000000-0004-0004-0004-000000000003  → [REMOVED — was Pediatrics, not a primary dept]
 -- 10000000-0004-0004-0004-000000000004  → ENT
+-- 10000000-0004-0004-0004-000000000005  → Neurology             [NEW]
+-- 10000000-0004-0004-0004-000000000006  → Gastroenterology & Hepatology [NEW]
+-- 10000000-0004-0004-0004-000000000007  → Oncology              [NEW]
 
--- DEPARTMENTS — Aundh District (0005)
+-- DEPARTMENTS — Aundh District (0005) — 3 departments (correct for district-level)
 -- 10000000-0005-0005-0005-000000000001  → Emergency
 -- 10000000-0005-0005-0005-000000000002  → General Medicine
 -- 10000000-0005-0005-0005-000000000003  → Gynecology
 
--- DEPARTMENTS — KEM Mumbai (0006)
+-- DEPARTMENTS — KEM Mumbai (0006) — 6 departments
 -- 10000000-0006-0006-0006-000000000001  → Emergency & Trauma
 -- 10000000-0006-0006-0006-000000000002  → Cardiology
 -- 10000000-0006-0006-0006-000000000003  → Neurology
 -- 10000000-0006-0006-0006-000000000004  → Psychiatry
 -- 10000000-0006-0006-0006-000000000005  → Pediatrics
+-- 10000000-0006-0006-0006-000000000006  → Gastroenterology      [NEW — oldest in India]
 
--- DEPARTMENTS — Nair Hospital (0007)
+-- DEPARTMENTS — Nair Hospital (0007) — 4 departments
 -- 10000000-0007-0007-0007-000000000001  → Emergency
--- 10000000-0007-0007-0007-000000000002  → Gynecology & Maternity
+-- 10000000-0007-0007-0007-000000000002  → [REMOVED — was Gynecology, not a primary dept]
 -- 10000000-0007-0007-0007-000000000003  → Orthopedics
+-- 10000000-0007-0007-0007-000000000004  → Neurology             [NEW]
+-- 10000000-0007-0007-0007-000000000005  → Gastroenterology      [NEW — oldest in Mumbai]
 
--- DEPARTMENTS — Lilavati (0008)
+-- DEPARTMENTS — Lilavati (0008) — 5 departments
 -- 10000000-0008-0008-0008-000000000001  → Cardiology & Interventional
 -- 10000000-0008-0008-0008-000000000002  → Neurology & Neurosurgery
 -- 10000000-0008-0008-0008-000000000003  → Oncology
 -- 10000000-0008-0008-0008-000000000004  → Nephrology
+-- 10000000-0008-0008-0008-000000000005  → Gastroenterology      [NEW]
 
--- DEPARTMENTS — Bombay Hospital (0009)
--- 10000000-0009-0009-0009-000000000001  → Cardiology
+-- DEPARTMENTS — Bombay Hospital (0009) — 5 departments
+-- 10000000-0009-0009-0009-000000000001  → Cardiology (R.D. Birla Cardiac Centre)
 -- 10000000-0009-0009-0009-000000000002  → Neurology
 -- 10000000-0009-0009-0009-000000000003  → Gastroenterology
+-- 10000000-0009-0009-0009-000000000004  → Neurosurgery          [NEW — flagship]
+-- 10000000-0009-0009-0009-000000000005  → Nephrology            [NEW — flagship]
 
--- DEPARTMENTS — Wockhardt (0010)
+-- DEPARTMENTS — Wockhardt (0010) — 4 departments (verified correct)
 -- 10000000-0010-0010-0010-000000000001  → Emergency
 -- 10000000-0010-0010-0010-000000000002  → Cardiology
 -- 10000000-0010-0010-0010-000000000003  → Neurology
