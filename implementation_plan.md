@@ -11,7 +11,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | Phase | Status | Completed By |
 |---|---|---|
 | **Phase 1 — Backend Foundation** | ✅ 100% Complete | Lakshay |
-| **Phase 2 — Core Feature APIs** | ⬜ Not Started | — |
+| **Phase 2 — Core Feature APIs** | [\/] In Progress | Antigravity |
 | **Phase 3 — Frontend Core** | ⬜ Not Started | — |
 | **Phase 4 — Advanced Features** | ⬜ Not Started | — |
 
@@ -35,8 +35,8 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | `backend/app/models/chat_models.py` | ✅ Done | All Pydantic models for chat/triage/summary |
 | `backend/app/routers/triage.py` | ✅ Done | POST /api/triage |
 | `backend/app/routers/chat.py` | ✅ Done | POST /api/chat + POST /api/chat/summary |
-| `backend/app/routers/voice.py` | 🔲 Stub | Empty — Phase 2 work |
-| `backend/app/routers/hospital.py` | 🔲 Stub | Empty — Phase 2 work |
+| `backend/app/routers/voice.py` | ✅ Done | STT/TTS endpoints via Sarvam AI |
+| `backend/app/routers/hospital.py` | ✅ Done | Nearby search, hospital detail, departments |
 | `backend/app/routers/scheme.py` | 🔲 Stub | Empty — Phase 2 work |
 | `backend/app/routers/caregiver.py` | 🔲 Stub | Empty — Phase 4 work |
 | `backend/app/routers/navigation.py` | 🔲 Stub | Empty — Phase 4 work |
@@ -147,30 +147,30 @@ uvicorn main:app --reload
 
 > Voice first, then hospitals, then scheme matching.
 
-### Step 5 · Voice — Sarvam AI Integration *(Voice before Hospitals)*
-#### [MODIFY] `backend/app/services/sarvam_service.py`
+### ✅ Step 5 · Voice — Sarvam AI Integration *(DONE - Voice before Hospitals)*
+#### [DONE] `backend/app/services/sarvam_service.py`
 - `speech_to_text(audio_bytes, language_code)` → transcribed text (Hindi: `hi-IN`, Marathi: `mr-IN`, English: `en-IN`)
 - `text_to_speech(text, language_code)` → returns audio bytes (MP3/WAV)
 - Wraps [Sarvam AI REST API](https://sarvam.ai)
 
-#### [MODIFY] `backend/app/routers/voice.py`
+#### [DONE] `backend/app/routers/voice.py`
 - `POST /api/voice/stt` — accepts audio file upload, returns transcribed text in detected language
 - `POST /api/voice/tts` — accepts text + language, returns audio stream
 
 ---
 
-### Step 6 · Hospital Discovery
-#### [MODIFY] `backend/app/services/hospital_service.py`
+### ✅ Step 6 · Hospital Discovery *(DONE)*
+#### [DONE] `backend/app/services/hospital_service.py`
 - `find_nearby_hospitals(lat, lng, radius_km, specialty?)` — calls `get_nearby_hospitals()` SQL function (Haversine, no PostGIS needed)
 - `get_hospital_departments(hospital_id)` — fetches departments, doctors, availability
 - `get_hospital_by_id(hospital_id)` — returns single hospital with full detail including `google_maps_url`
 
-#### [MODIFY] `backend/app/routers/hospital.py`
+#### [DONE] `backend/app/routers/hospital.py`
 - `GET /api/hospitals/nearby?lat=&lng=&radius_km=&specialty=` — returns hospitals sorted by distance
 - `GET /api/hospitals/{id}` — single hospital detail (used before opening map)
 - `GET /api/hospitals/{id}/departments` — departments list with floor numbers
 
-#### [MODIFY] `backend/app/models/hospital_models.py`
+#### [DONE] `backend/app/models/hospital_models.py`
 - Pydantic models: `Hospital`, `Department`, `HospitalListResponse`
 
 ---

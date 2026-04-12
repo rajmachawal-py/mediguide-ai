@@ -340,3 +340,14 @@ frontend/logs/
 *.log
 uvicorn*.log
 gunicorn*.log
+
+# ── Temporary Test Scripts & Audio ──────────────────────────
+# Scripts used to manually test the API or services
+backend/test_*.py
+test_*.py
+scratch/
+
+# TTS generated audio
+*.wav
+*.mp3
+tts_output.wav
