@@ -351,3 +351,24 @@ scratch/
 *.wav
 *.mp3
 tts_output.wav
+
+# ── Frontend / Vite ──────────────────────────────────────────
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
+package-lock.json
+frontend/package-lock.json
+yarn.lock
+frontend/yarn.lock
+pnpm-lock.yaml
+frontend/pnpm-lock.yaml
+
+# ── IDE & Editor ─────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Antigravity / Gemini Agent ───────────────────────────────
+.gemini/

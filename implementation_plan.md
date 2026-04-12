@@ -6,13 +6,13 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 
 ## 📊 Team Progress Dashboard
 
-> Last updated: 2026-04-10 | Updated by: Lakshay
+> Last updated: 2026-04-12 | Updated by: Antigravity
 
 | Phase | Status | Completed By |
 |---|---|---|
 | **Phase 1 — Backend Foundation** | ✅ 100% Complete | Lakshay |
-| **Phase 2 — Core Feature APIs** | [\/] In Progress | Antigravity |
-| **Phase 3 — Frontend Core** | ⬜ Not Started | — |
+| **Phase 2 — Core Feature APIs** | ✅ 100% Complete (Backend) | Lakshay + Antigravity |
+| **Phase 3 — Frontend Core** | ✅ 100% Complete | Antigravity |
 | **Phase 4 — Advanced Features** | ⬜ Not Started | — |
 
 ### ✅ Completed Files — DO NOT re-create or overwrite these
@@ -37,9 +37,17 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | `backend/app/routers/chat.py` | ✅ Done | POST /api/chat + POST /api/chat/summary |
 | `backend/app/routers/voice.py` | ✅ Done | STT/TTS endpoints via Sarvam AI |
 | `backend/app/routers/hospital.py` | ✅ Done | Nearby search, hospital detail, departments |
-| `backend/app/routers/scheme.py` | 🔲 Stub | Empty — Phase 2 work |
+| `backend/app/routers/scheme.py` | ✅ Done | 3 endpoints: eligible, detail, AI explain |
 | `backend/app/routers/caregiver.py` | 🔲 Stub | Empty — Phase 4 work |
-| `backend/app/routers/navigation.py` | 🔲 Stub | Empty — Phase 4 work |
+| `backend/app/routers/navigation.py` | ✅ Done | 2 endpoints: map graph, BFS route |
+| `backend/app/services/navigation_service.py` | ✅ Done | BFS pathfinding, graph queries |
+| `backend/app/services/scheme_service.py` | ✅ Done | Eligibility matching + Gemini explain |
+| `backend/app/models/navigation_models.py` | ✅ Done | MapNode, MapEdge, RouteStep, RouteResponse |
+| `backend/app/models/scheme_models.py` | ✅ Done | Scheme, SchemeListResponse, SchemeExplainResponse |
+| `backend/app/models/hospital_models.py` | ✅ Done | Hospital, Department, HospitalListResponse |
+| `backend/app/services/hospital_service.py` | ✅ Done | Nearby search, detail, departments |
+| `backend/app/services/sarvam_service.py` | ✅ Done | STT/TTS via Sarvam AI |
+| `supabase/seed_indoor_map.sql` | ✅ Done | 14 nodes + 14 edges for Sassoon Hospital |
 | `backend/app/routers/appointment.py` | 🔲 Stub | Empty — Phase 4 work |
 | `.gitignore` | ✅ Done | All secrets, venv, Firebase, certs covered |
 
@@ -143,11 +151,11 @@ uvicorn main:app --reload
 
 ---
 
-## Phase 2 — Core Feature APIs
+## ✅ Phase 2 — Core Feature APIs *(COMPLETE — backend done, frontend in Phase 3)*
 
 > Voice first, then hospitals, then scheme matching.
 
-### ✅ Step 5 · Voice — Sarvam AI Integration *(DONE - Voice before Hospitals)*
+### ✅ Step 5 · Voice — Sarvam AI Integration *(DONE)*
 #### [DONE] `backend/app/services/sarvam_service.py`
 - `speech_to_text(audio_bytes, language_code)` → transcribed text (Hindi: `hi-IN`, Marathi: `mr-IN`, English: `en-IN`)
 - `text_to_speech(text, language_code)` → returns audio bytes (MP3/WAV)
@@ -160,6 +168,7 @@ uvicorn main:app --reload
 ---
 
 ### ✅ Step 6 · Hospital Discovery *(DONE)*
+
 #### [DONE] `backend/app/services/hospital_service.py`
 - `find_nearby_hospitals(lat, lng, radius_km, specialty?)` — calls `get_nearby_hospitals()` SQL function (Haversine, no PostGIS needed)
 - `get_hospital_departments(hospital_id)` — fetches departments, doctors, availability
@@ -175,7 +184,7 @@ uvicorn main:app --reload
 
 ---
 
-### Step 6.5 · Maps & Location *(Outdoor + Indoor)*
+### ✅ Step 6.5 · Maps & Location *(Backend DONE — Frontend in Phase 3)*
 
 > Two distinct map layers: **Outdoor** (getting TO the hospital) and **Indoor** (navigating INSIDE the hospital).
 
@@ -190,26 +199,26 @@ uvicorn main:app --reload
   - **Directions API** — in-app route drawing
   - **Geocoding API** (optional) — fallback lat/lng from city name
 
-#### [MODIFY] `frontend/src/hooks/useGeolocation.js`
+#### [DONE] `frontend/src/hooks/useGeolocation.js`
 - Wraps browser `navigator.geolocation.getCurrentPosition()`
 - Returns `{ lat, lng, accuracy, error, loading }`
 - Falls back to city-level defaults if permission denied (Pune: 18.5204, 73.8567 / Mumbai: 19.0760, 72.8777)
 - Persists last known location in `localStorage`
 
-#### [NEW] `frontend/src/components/map/HospitalMapView.jsx`
+#### [DONE] `frontend/src/components/map/HospitalMapView.jsx`
 - `GoogleMap` component from `@react-google-maps/api` centred on user's location
 - Custom `Marker` per hospital (color-coded: red = emergency, blue = private, green = government)
 - `InfoWindow` on marker click: hospital name, distance, specialty tags, Directions + Indoor Map buttons
 - `Marker` for user location with pulsing CSS animation
 - Map type toggle: Road / Satellite
 
-#### [MODIFY] `frontend/src/components/hospital/HospitalCard.jsx`
+#### [DONE] `frontend/src/components/hospital/HospitalCard.jsx`
 - Shows hospital name (in selected language), type badge, distance in km
 - **"Directions" button** → uses Google Maps Directions Service to draw route on map, or opens `https://www.google.com/maps/dir/?api=1&destination={lat},{lng}` in new tab on mobile
 - **"Ambulance" button** (emergency only) → `tel:108`
 - **"Indoor Map" button** → `/map/{hospital_id}`
 
-#### [NEW] `frontend/src/services/mapsHelper.js`
+#### [DONE] `frontend/src/services/mapsHelper.js`
 - `getDirectionsUrl(lat, lng)` — builds Google Maps deep-link URL
 - `getEmbedUrl(lat, lng)` — Google Maps Embed API URL for static preview
 - `getAmbulanceLink()` → `tel:108`
@@ -233,11 +242,11 @@ GOOGLE_MAPS_API_KEY=your_key_here
 
 #### Indoor Navigation — Inside the Hospital
 
-#### [MODIFY] `backend/app/routers/navigation.py`
+#### [DONE] `backend/app/routers/navigation.py`
 - `GET /api/navigation/{hospital_id}/map` — returns all nodes + edges + floor map image URL
 - `GET /api/navigation/{hospital_id}/route?from=entrance&to={dept_id}` — runs BFS, returns step list
 
-#### [NEW] `backend/app/services/navigation_service.py`
+#### [DONE] `backend/app/services/navigation_service.py`
 - `get_map_graph(hospital_id)` — fetches `indoor_map_nodes` + `indoor_map_edges` from Supabase
 - `find_route(hospital_id, from_node_id, to_node_id)` — BFS/Dijkstra, returns `[{ step, label, floor, direction }]`
 - Steps rendered in plain language: *"Turn left at Lift → Take Lift to Floor 2 → Walk to Room 202"*
@@ -261,76 +270,76 @@ GOOGLE_MAPS_API_KEY=your_key_here
 
 ---
 
-### Step 7 · Government Scheme Eligibility
-#### [MODIFY] `backend/app/services/scheme_service.py`
+### ✅ Step 7 · Government Scheme Eligibility *(DONE)*
+#### [DONE] `backend/app/services/scheme_service.py`
 - `get_eligible_schemes(user_profile)` — matches income, state, condition to seeded scheme rules
 - `explain_scheme(scheme_id, language)` — uses Gemini to explain scheme in user's language
 
-#### [MODIFY] `backend/app/routers/scheme.py`
+#### [DONE] `backend/app/routers/scheme.py`
 - `GET /api/schemes/eligible?state=&income=&condition=` — returns list of applicable schemes
 - `GET /api/schemes/{id}/explain?language=` — returns plain-language scheme explanation
 
-#### [MODIFY] `backend/app/models/scheme_models.py`
+#### [DONE] `backend/app/models/scheme_models.py`
 - Pydantic models: `Scheme`, `SchemeEligibilityRequest`, `SchemeListResponse`
 
 ---
 
-## Phase 3 — Frontend Core
+## ✅ Phase 3 — Frontend Core *(COMPLETE)*
 
 > Route guards go in from day one — no unprotected pages.
 
-### Step 8 · Service Layer & App Shell
-#### [MODIFY] `frontend/src/services/api.js`
+### ✅ Step 8 · Service Layer & App Shell *(DONE)*
+#### [DONE] `frontend/src/services/api.js`
 - Axios instance with `baseURL` pointing to FastAPI backend
 - Request interceptor to attach Supabase JWT token from localStorage
 - Response interceptor for 401 → redirect to login
 
-#### [MODIFY] `frontend/src/services/supabase.js`
+#### [DONE] `frontend/src/services/supabase.js`
 - Supabase JS client singleton
 - `getCurrentUser()`, `signIn()`, `signOut()` helpers
 
-#### [MODIFY] `frontend/src/App.jsx`
+#### [DONE] `frontend/src/App.jsx`
 - React Router v6 setup
 - **Route guards immediately**: `<ProtectedRoute>` wrapper component — redirects unauthenticated users to `/login`
 - Routes: `/login`, `/chat` (protected), `/hospitals` (protected), `/profile` (protected), `/caregiver` (protected), `/map/:hospitalId` (protected)
 
-#### [NEW] `frontend/src/components/shared/ProtectedRoute.jsx`
+#### [DONE] `frontend/src/components/shared/ProtectedRoute.jsx`
 - Checks Supabase session; renders children or `<Navigate to="/login" />`
 
 ---
 
-### Step 9 · Chat UI
-#### [MODIFY] `frontend/src/pages/ChatPage.jsx`
+### ✅ Step 9 · Chat UI *(DONE)*
+#### [DONE] `frontend/src/pages/ChatPage.jsx`
 - Language selector (Hindi / Marathi / English) persisted to localStorage
 - Symptom input area with text and voice toggle
 - Renders chat thread with urgency-aware styling
 - Calls `/api/triage` and `/api/chat`, displays follow-up questions
 
-#### [MODIFY] `frontend/src/components/chat/ChatBubble.jsx`
+#### [DONE] `frontend/src/components/chat/ChatBubble.jsx`
 - User vs. AI bubble styling; supports RTL for Hindi/Marathi text direction
 
-#### [MODIFY] `frontend/src/components/chat/ChatInput.jsx`
+#### [DONE] `frontend/src/components/chat/ChatInput.jsx`
 - Text input + send button; auto-disables during AI response loading
 
-#### [MODIFY] `frontend/src/components/chat/VoiceButton.jsx`
+#### [DONE] `frontend/src/components/chat/VoiceButton.jsx`
 - Uses `useVoiceRecorder` hook; sends audio to `/api/voice/stt`, fills ChatInput with transcript
 
-#### [MODIFY] `frontend/src/components/chat/UrgencyBanner.jsx`
+#### [DONE] `frontend/src/components/chat/UrgencyBanner.jsx`
 - Color-coded banner: 🟢 Mild / 🟡 Moderate / 🔴 Emergency
 - Emergency state shows ambulance button + nearest hospital CTA
 
-#### [MODIFY] `frontend/src/hooks/useVoiceRecorder.js`
+#### [DONE] `frontend/src/hooks/useVoiceRecorder.js`
 - MediaRecorder API wrapper; start/stop/reset; returns `audioBlob`
 
-#### [MODIFY] `frontend/src/hooks/useChat.js`
+#### [DONE] `frontend/src/hooks/useChat.js`
 - Manages `messages[]`, `urgency`, `isLoading` state
 - Calls `api.js` functions for chat and triage
 
-#### [MODIFY] `frontend/src/pages/HospitalPage.jsx`
+#### [DONE] `frontend/src/pages/HospitalPage.jsx`
 - Shows nearby hospitals from `/api/hospitals/nearby` using user geolocation
 - Hospital cards with specialty, distance, department list, checklist
 
-#### [MODIFY] `frontend/src/hooks/useGeolocation.js`
+#### [DONE] `frontend/src/hooks/useGeolocation.js`
 - Browser Geolocation API wrapper; returns `{ lat, lng, error }`
 
 ---
