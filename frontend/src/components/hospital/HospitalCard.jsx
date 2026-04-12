@@ -3,7 +3,8 @@
  * Presentational component for a hospital card in the hospital list.
  */
 
-import { FiMapPin, FiPhone, FiClock, FiNavigation, FiStar } from 'react-icons/fi'
+import { Link } from 'react-router-dom'
+import { FiMapPin, FiPhone, FiClock, FiNavigation, FiStar, FiMap } from 'react-icons/fi'
 import { getDirectionsUrl, getAmbulanceLink, formatDistance } from '../../services/mapsHelper'
 
 export default function HospitalCard({ hospital, language = 'en' }) {
@@ -103,6 +104,13 @@ export default function HospitalCard({ hospital, language = 'en' }) {
             🚑 108
           </a>
         )}
+        <Link
+          to={`/map/${hospital.id}`}
+          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-accent-600/20 text-accent-400 text-xs font-medium hover:bg-accent-600/30 transition-all"
+        >
+          <FiMap className="w-3 h-3" />
+          {language === 'hi' ? 'नक्शा' : language === 'mr' ? 'नकाशा' : 'Indoor Map'}
+        </Link>
       </div>
     </div>
   )

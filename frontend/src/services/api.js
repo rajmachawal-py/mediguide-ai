@@ -164,4 +164,65 @@ export async function getIndoorRoute(hospitalId, from, to, accessibleOnly = fals
   return data
 }
 
+// ═══════════════════════════════════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════════════════════════════════
+
+/** Get current user's profile. */
+export async function getProfile() {
+  const { data } = await api.get('/profile')
+  return data
+}
+
+/** Update user profile fields. */
+export async function updateProfile(profileData) {
+  const { data } = await api.put('/profile', profileData)
+  return data
+}
+
+/** Save FCM push notification token. */
+export async function saveFCMTokenAPI(fcmToken) {
+  const { data } = await api.post('/profile/fcm', { fcm_token: fcmToken })
+  return data
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CAREGIVER
+// ═══════════════════════════════════════════════════════════════
+
+/** Link a caregiver by phone number. */
+export async function linkCaregiver(caregiverPhone, caregiverName, relationship = 'family') {
+  const { data } = await api.post('/caregiver/link', {
+    caregiver_phone: caregiverPhone,
+    caregiver_name: caregiverName,
+    relationship,
+  })
+  return data
+}
+
+/** Get all caregiver links for current user. */
+export async function getCaregiverLinks() {
+  const { data } = await api.get('/caregiver/links')
+  return data
+}
+
+/** Revoke a caregiver link. */
+export async function revokeCaregiver(linkId) {
+  const { data } = await api.delete(`/caregiver/link/${linkId}`)
+  return data
+}
+
+/** Send notification to caregivers. */
+export async function notifyCaregivers(urgency, summary) {
+  const { data } = await api.post('/caregiver/notify', { urgency, summary })
+  return data
+}
+
+/** Get caregiver alert history. */
+export async function getCaregiverAlerts(limit = 50) {
+  const { data } = await api.get('/caregiver/alerts', { params: { limit } })
+  return data
+}
+
 export default api
+

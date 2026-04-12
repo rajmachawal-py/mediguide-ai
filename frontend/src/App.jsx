@@ -11,6 +11,8 @@ import LoginPage from './pages/LoginPage'
 import ChatPage from './pages/ChatPage'
 import HospitalPage from './pages/HospitalPage'
 import ProfilePage from './pages/ProfilePage'
+import IndoorMapPage from './pages/IndoorMapPage'
+import CaregiverDashboard from './pages/CaregiverDashboard'
 
 /** Layout wrapper with Navbar for authenticated routes. */
 function AppLayout({ children }) {
@@ -65,6 +67,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AppLayout><ProfilePage /></AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/map/:hospitalId"
+          element={
+            <ProtectedRoute>
+              <AppLayout><IndoorMapPage /></AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/caregiver"
+          element={
+            <ProtectedRoute>
+              <AppLayout><CaregiverDashboard /></AppLayout>
             </ProtectedRoute>
           }
         />

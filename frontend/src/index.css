@@ -157,3 +157,15 @@ body {
   0%, 60%, 100% { transform: translateY(0); }
   30% { transform: translateY(-6px); }
 }
+
+/* ── Indoor Map Route Animation ───────────────────────────── */
+
+@keyframes routeDash {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 36; }
+}
+
+.animate-route-dash {
+  animation: routeDash 1.5s linear infinite;
+}
+

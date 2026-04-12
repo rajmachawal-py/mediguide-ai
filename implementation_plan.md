@@ -13,7 +13,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | **Phase 1 — Backend Foundation** | ✅ 100% Complete | Lakshay |
 | **Phase 2 — Core Feature APIs** | ✅ 100% Complete (Backend) | Lakshay + Antigravity |
 | **Phase 3 — Frontend Core** | ✅ 100% Complete | Antigravity |
-| **Phase 4 — Advanced Features** | ⬜ Not Started | — |
+| **Phase 4 — Advanced Features** | ✅ 100% Complete (except Appointments) | Antigravity |
 
 ### ✅ Completed Files — DO NOT re-create or overwrite these
 
@@ -38,7 +38,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | `backend/app/routers/voice.py` | ✅ Done | STT/TTS endpoints via Sarvam AI |
 | `backend/app/routers/hospital.py` | ✅ Done | Nearby search, hospital detail, departments |
 | `backend/app/routers/scheme.py` | ✅ Done | 3 endpoints: eligible, detail, AI explain |
-| `backend/app/routers/caregiver.py` | 🔲 Stub | Empty — Phase 4 work |
+| `backend/app/routers/caregiver.py` | ✅ Done | 5 endpoints for caregiver links/alerts |
 | `backend/app/routers/navigation.py` | ✅ Done | 2 endpoints: map graph, BFS route |
 | `backend/app/services/navigation_service.py` | ✅ Done | BFS pathfinding, graph queries |
 | `backend/app/services/scheme_service.py` | ✅ Done | Eligibility matching + Gemini explain |
@@ -251,22 +251,30 @@ GOOGLE_MAPS_API_KEY=your_key_here
 - `find_route(hospital_id, from_node_id, to_node_id)` — BFS/Dijkstra, returns `[{ step, label, floor, direction }]`
 - Steps rendered in plain language: *"Turn left at Lift → Take Lift to Floor 2 → Walk to Room 202"*
 
-#### [MODIFY] `frontend/src/pages/IndoorMapPage.jsx`
+#### [DONE] `frontend/src/pages/IndoorMapPage.jsx`
 - Loads floor map SVG + graph from `/api/navigation/{hospital_id}/map`
 - Department selector triggers `/api/navigation/{hospital_id}/route`
-- Renders `FloorMap` + `NavigationPanel` side-by-side with floor switcher
+- Renders `SVGFloorPlan` + `RouteOverlay` side-by-side with floor switcher
+- Voice navigation via TTS for step-by-step directions
 
-#### [MODIFY] `frontend/src/components/map/FloorMap.jsx`
-- SVG overlay on hospital floor image; route highlighted green with animated dashes
+#### [DONE] `frontend/src/components/map/SVGFloorPlan.jsx`
+- SVG overlay with nodes by type (entrance/department/lift/stairs/waypoint)
+- Route highlighted green with animated dashes
 - Tap a department node to set as destination
+- Floor filtering and selection ring for active node
 
-#### [MODIFY] `frontend/src/components/map/NavigationPanel.jsx`
-- Step-by-step directions in user's language with walk/lift/stairs icons
+#### [DONE] `frontend/src/components/map/RouteOverlay.jsx`
+- Step-by-step directions with walk/lift/stairs icons
 - "Accessible route only" toggle — excludes `is_accessible = FALSE` edges
+- Route summary with total steps and distance
 
-#### [MODIFY] `frontend/src/components/map/DepartmentSearch.jsx`
+#### [DONE] `frontend/src/components/map/DepartmentSearch.jsx`
 - Searchable dropdown in Hindi/Marathi/English from `/api/hospitals/{id}/departments`
 - On select → triggers route fetch
+
+#### [DONE] `frontend/src/components/map/FloorSelector.jsx`
+- Horizontal floor switcher buttons with active state
+- Multilingual labels (Ground/Floor 1/Floor 2 in hi/mr/en)
 
 ---
 
@@ -344,45 +352,57 @@ GOOGLE_MAPS_API_KEY=your_key_here
 
 ---
 
-## Phase 4 — Advanced Features
+## ✅ Phase 4 — Advanced Features *(COMPLETE)*
 
 > Auth first, then Caregiver Mode, then Indoor Map.
 
-### Step 10 · Authentication *(Auth before everything else in Phase 4)*
-#### [MODIFY] `frontend/src/pages/LoginPage.jsx`
+### ✅ Step 10 · Authentication *(DONE)*
+#### [DONE] `frontend/src/pages/LoginPage.jsx`
 - OTP-based phone login via Supabase Auth (India-first: no email dependency)
 - Language-aware UI (Hindi/Marathi/English labels)
 - On success: stores session, redirects to `/chat`
 
-#### [MODIFY] `frontend/src/pages/ProfilePage.jsx`
+#### [DONE] `frontend/src/pages/ProfilePage.jsx`
 - Editable fields: name, age, state, income bracket, preferred language
 - Saves to Supabase `users` table; used for scheme eligibility matching
 
-#### [MODIFY] `backend/app/models/user_models.py`
+#### [DONE] `backend/app/models/user_models.py`
 - Pydantic models: `UserProfile`, `UserUpdateRequest`
+
+#### [DONE] `backend/app/routers/profile.py`
+- Added JWT auth dependency (`get_current_user_id`)
+- `GET /api/profile`, `PUT /api/profile`, `POST /api/profile/fcm`
+
+#### [DONE] `frontend/src/components/shared/ProtectedRoute.jsx`
+- Supabase session check + Guest mode fallback
 
 ---
 
-### Step 11 · Caregiver Mode
-#### [MODIFY] `backend/app/services/caregiver_service.py`
-- `link_caregiver(patient_id, caregiver_phone)` — creates `caregiver_links` record
+### ✅ Step 11 · Caregiver Mode *(DONE)*
+#### [DONE] `backend/app/services/caregiver_service.py`
+- `link_caregiver()`, `revoke_link()`
 - `notify_caregiver(patient_id, urgency, summary)` — triggers FCM push notification
+- `get_alert_history()`
 
-#### [MODIFY] `backend/app/services/fcm_service.py`
+#### [DONE] `backend/app/services/fcm_service.py`
 - Firebase Admin SDK wrapper for push notifications
-- `send_push(token, title, body, data)` helper
+- `send_push_to_user(user_id, title, body, data)` helper
 
-#### [MODIFY] `backend/app/routers/caregiver.py`
+#### [DONE] `backend/app/routers/caregiver.py`
 - `POST /api/caregiver/link` — link patient ↔ caregiver by phone
-- `POST /api/caregiver/notify` — push urgency alert to caregiver's device
+- `GET /api/caregiver/links` — get all links
+- `DELETE /api/caregiver/link/{id}` — revoke link
+- `POST /api/caregiver/notify` — manual trigger
+- `GET /api/caregiver/alerts` — alert history
 
-#### [MODIFY] `frontend/src/pages/CaregiverDashboard.jsx`
+#### [DONE] `frontend/src/pages/CaregiverDashboard.jsx`
 - Real-time patient status via Supabase Realtime subscriptions
 - Shows urgency level, last symptom summary, timestamp
-- Alert history log
+- Alert history log + add/remove caregiver forms
 
-#### [MODIFY] `frontend/src/services/firebase.js`
+#### [DONE] `frontend/src/services/firebase.js`
 - Firebase JS SDK init; FCM token registration for push notifications
+- Desktop & Mobile push notification support with Foreground Toast handler.
 
 ---
 
@@ -420,3 +440,4 @@ GOOGLE_MAPS_API_KEY=your_key_here
 - Caregiver receives FCM push when patient hits emergency urgency
 - Indoor map renders for a hospital; department search triggers route highlight on SVG floor map
 - Accessibility route toggle correctly avoids non-accessible edges
+- Realtime Caregiver Dashboard shows live patient alerts via Supabase.

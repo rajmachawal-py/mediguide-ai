@@ -4,11 +4,12 @@
  */
 
 import { NavLink } from 'react-router-dom'
-import { FiMessageCircle, FiMapPin, FiUser } from 'react-icons/fi'
+import { FiMessageCircle, FiMapPin, FiUser, FiHeart } from 'react-icons/fi'
 
 const navItems = [
   { to: '/chat',      icon: FiMessageCircle, label: 'Chat',      labelHi: 'चैट',     labelMr: 'चॅट' },
   { to: '/hospitals', icon: FiMapPin,        label: 'Hospitals',  labelHi: 'अस्पताल', labelMr: 'रुग्णालय' },
+  { to: '/caregiver', icon: FiHeart,         label: 'Caregiver',  labelHi: 'केयरगिवर', labelMr: 'केयरगिव्हर' },
   { to: '/profile',   icon: FiUser,          label: 'Profile',    labelHi: 'प्रोफ़ाइल', labelMr: 'प्रोफाइल' },
 ]
 

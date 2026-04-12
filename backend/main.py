@@ -16,6 +16,7 @@ from app.routers import (
     caregiver,
     navigation,
     appointment,
+    profile,
 )
 
 
@@ -61,6 +62,7 @@ app.include_router(scheme.router,      prefix="/api", tags=["Schemes"])
 app.include_router(caregiver.router,   prefix="/api", tags=["Caregiver"])
 app.include_router(navigation.router,  prefix="/api", tags=["Navigation"])
 app.include_router(appointment.router, prefix="/api", tags=["Appointments"])
+app.include_router(profile.router,     prefix="/api", tags=["Profile"])
 
 
 # ── Health Check ─────────────────────────────────────────────
