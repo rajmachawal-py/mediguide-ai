@@ -9,6 +9,7 @@ Database tables used:
 """
 
 import logging
+import asyncio
 from typing import Optional
 from datetime import datetime, timezone
 
@@ -35,8 +36,8 @@ async def link_caregiver(
         supabase = get_service_client()
 
         # Find the caregiver user by phone
-        caregiver_result = (
-            supabase.table("profiles")
+        caregiver_result = await asyncio.to_thread(
+            lambda: supabase.table("profiles")
             .select("id, full_name, phone")
             .eq("phone", caregiver_phone)
             .execute()
@@ -51,8 +52,8 @@ async def link_caregiver(
             logger.info(f"Caregiver phone {caregiver_phone} not yet registered — creating pending link")
 
         # Check for duplicate link
-        existing = (
-            supabase.table("caregiver_links")
+        existing = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_links")
             .select("id, status")
             .eq("patient_id", patient_id)
             .eq("caregiver_phone", caregiver_phone)
@@ -65,8 +66,8 @@ async def link_caregiver(
                 return {"link": link, "message": "Link already exists", "is_new": False}
             else:
                 # Reactivate revoked link
-                updated = (
-                    supabase.table("caregiver_links")
+                updated = await asyncio.to_thread(
+                    lambda: supabase.table("caregiver_links")
                     .update({"status": "active", "caregiver_id": caregiver_id})
                     .eq("id", link["id"])
                     .execute()
@@ -83,8 +84,8 @@ async def link_caregiver(
             "status": "active",
         }
 
-        result = (
-            supabase.table("caregiver_links")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_links")
             .insert(link_data)
             .execute()
         )
@@ -106,8 +107,8 @@ async def get_caregiver_links(user_id: str) -> dict:
         supabase = get_service_client()
 
         # Links where user is patient
-        as_patient = (
-            supabase.table("caregiver_links")
+        as_patient = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_links")
             .select("*")
             .eq("patient_id", user_id)
             .eq("status", "active")
@@ -115,8 +116,8 @@ async def get_caregiver_links(user_id: str) -> dict:
         )
 
         # Links where user is caregiver
-        as_caregiver = (
-            supabase.table("caregiver_links")
+        as_caregiver = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_links")
             .select("*")
             .eq("caregiver_id", user_id)
             .eq("status", "active")
@@ -142,8 +143,8 @@ async def revoke_link(link_id: str, user_id: str) -> dict:
         supabase = get_service_client()
 
         # Verify ownership
-        link = (
-            supabase.table("caregiver_links")
+        link = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_links")
             .select("*")
             .eq("id", link_id)
             .execute()
@@ -156,8 +157,8 @@ async def revoke_link(link_id: str, user_id: str) -> dict:
         if link_data["patient_id"] != user_id and link_data.get("caregiver_id") != user_id:
             return {"error": "Not authorized to revoke this link"}
 
-        result = (
-            supabase.table("caregiver_links")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_links")
             .update({"status": "revoked"})
             .eq("id", link_id)
             .execute()
@@ -186,8 +187,8 @@ async def notify_caregivers(
         supabase = get_service_client()
 
         # Get all active caregiver links for this patient
-        links = (
-            supabase.table("caregiver_links")
+        links = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_links")
             .select("*")
             .eq("patient_id", patient_id)
             .eq("status", "active")
@@ -199,8 +200,8 @@ async def notify_caregivers(
             return {"notified": 0, "alerts": []}
 
         # Get patient name for the notification
-        patient = (
-            supabase.table("profiles")
+        patient = await asyncio.to_thread(
+            lambda: supabase.table("profiles")
             .select("full_name, phone")
             .eq("id", patient_id)
             .execute()
@@ -245,8 +246,8 @@ async def notify_caregivers(
                 "sent_via": "push" if push_sent else "pending",
             }
 
-            alert_result = (
-                supabase.table("caregiver_alerts")
+            alert_result = await asyncio.to_thread(
+                lambda: supabase.table("caregiver_alerts")
                 .insert(alert_data)
                 .execute()
             )
@@ -280,8 +281,8 @@ async def get_alert_history(
         supabase = get_service_client()
 
         # Get all link IDs for this user
-        links = (
-            supabase.table("caregiver_links")
+        links = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_links")
             .select("id")
             .or_(f"patient_id.eq.{user_id},caregiver_id.eq.{user_id}")
             .execute()
@@ -293,8 +294,8 @@ async def get_alert_history(
         link_ids = [link["id"] for link in links.data]
 
         # Fetch alerts for these links
-        alerts = (
-            supabase.table("caregiver_alerts")
+        alerts = await asyncio.to_thread(
+            lambda: supabase.table("caregiver_alerts")
             .select("*")
             .in_("link_id", link_ids)
             .order("created_at", desc=True)

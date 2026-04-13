@@ -8,6 +8,7 @@ Functions:
 """
 
 import logging
+import asyncio
 from typing import Optional
 from collections import deque
 
@@ -39,8 +40,8 @@ async def get_map_graph(hospital_id: str) -> dict:
         supabase = get_client()
 
         # Fetch hospital name and floor map URL
-        hospital_result = (
-            supabase.table("hospitals")
+        hospital_result = await asyncio.to_thread(
+            lambda: supabase.table("hospitals")
             .select("name, indoor_map_url")
             .eq("id", hospital_id)
             .execute()
@@ -53,8 +54,8 @@ async def get_map_graph(hospital_id: str) -> dict:
         hospital = hospital_result.data[0]
 
         # Fetch all nodes for this hospital
-        nodes_result = (
-            supabase.table("indoor_map_nodes")
+        nodes_result = await asyncio.to_thread(
+            lambda: supabase.table("indoor_map_nodes")
             .select("*")
             .eq("hospital_id", hospital_id)
             .order("floor_number", desc=False)
@@ -63,8 +64,8 @@ async def get_map_graph(hospital_id: str) -> dict:
         nodes = nodes_result.data or []
 
         # Fetch all edges for this hospital
-        edges_result = (
-            supabase.table("indoor_map_edges")
+        edges_result = await asyncio.to_thread(
+            lambda: supabase.table("indoor_map_edges")
             .select("*")
             .eq("hospital_id", hospital_id)
             .execute()
@@ -127,8 +128,8 @@ async def find_route(
         supabase = get_client()
 
         # Fetch all nodes
-        nodes_result = (
-            supabase.table("indoor_map_nodes")
+        nodes_result = await asyncio.to_thread(
+            lambda: supabase.table("indoor_map_nodes")
             .select("*")
             .eq("hospital_id", hospital_id)
             .execute()
@@ -151,8 +152,8 @@ async def find_route(
             return None
 
         # Fetch all edges
-        edges_result = (
-            supabase.table("indoor_map_edges")
+        edges_result = await asyncio.to_thread(
+            lambda: supabase.table("indoor_map_edges")
             .select("*")
             .eq("hospital_id", hospital_id)
             .execute()
@@ -274,8 +275,8 @@ async def find_entrance_node(hospital_id: str) -> Optional[str]:
     try:
         supabase = get_client()
 
-        result = (
-            supabase.table("indoor_map_nodes")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("indoor_map_nodes")
             .select("id")
             .eq("hospital_id", hospital_id)
             .eq("node_type", "entrance")
@@ -302,8 +303,8 @@ async def find_department_node(hospital_id: str, department_id: str) -> Optional
     try:
         supabase = get_client()
 
-        result = (
-            supabase.table("indoor_map_nodes")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("indoor_map_nodes")
             .select("id")
             .eq("hospital_id", hospital_id)
             .eq("department_id", department_id)

@@ -135,7 +135,7 @@ export default function HospitalCompare({ hospitals = [], onRemove, language = '
         {hospitals.map((h, i) => (
           <div key={h.id || i} className="p-2 border-l border-surface-700/30">
             <a
-              href={getDirectionsUrl(h.lat, h.lng)}
+              href={getDirectionsUrl(h.lat, h.lng, h.name, h.city)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-primary-600/20 text-primary-400 text-[10px] font-medium hover:bg-primary-600/30 transition-all"

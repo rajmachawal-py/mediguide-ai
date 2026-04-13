@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 # ── Gemini Model Configuration ───────────────────────────────
 
-TRIAGE_MODEL = "gemini-2.0-flash-lite"  # fast responses for chat
-SUMMARY_MODEL = "gemini-2.0-flash-lite" # structured JSON output
+TRIAGE_MODEL = "gemini-2.5-flash-lite"  # fast responses for chat
+SUMMARY_MODEL = "gemini-2.5-flash-lite" # structured JSON output
 
 
 # ── Prompt Loader ────────────────────────────────────────────

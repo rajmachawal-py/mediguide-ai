@@ -32,7 +32,8 @@ CREATE TYPE hospital_type AS ENUM ('government', 'private', 'trust', 'clinic');
 
 CREATE TABLE IF NOT EXISTS profiles (
     id              UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    phone           TEXT UNIQUE,                    -- primary identifier (OTP login)
+    phone           TEXT UNIQUE,                    -- phone (optional, for OTP login)
+    email           TEXT,                            -- email (for email/password + Google login)
     full_name       TEXT,
     age             SMALLINT CHECK (age BETWEEN 0 AND 120),
     gender          gender_type DEFAULT 'prefer_not_to_say',
@@ -497,19 +498,28 @@ ALTER PUBLICATION supabase_realtime ADD TABLE chat_sessions;
 
 -- ============================================================
 -- AUTO-CREATE PROFILE ON SIGNUP
--- Supabase trigger: fires when a new user signs up via OTP
+-- Supabase trigger: fires when a new user signs up
+-- Supports: Email/Password, Google OAuth, and Phone OTP
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO profiles (id, phone, preferred_lang)
+    INSERT INTO profiles (id, phone, email, full_name, preferred_lang)
     VALUES (
         NEW.id,
         NEW.phone,
+        NEW.email,
+        COALESCE(
+            NEW.raw_user_meta_data->>'full_name',
+            NEW.raw_user_meta_data->>'name',
+            NULL
+        ),
         'hi'  -- default language Hindi; user can change in ProfilePage
     )
-    ON CONFLICT (id) DO NOTHING;
+    ON CONFLICT (id) DO UPDATE SET
+        email = COALESCE(EXCLUDED.email, profiles.email),
+        full_name = COALESCE(profiles.full_name, EXCLUDED.full_name);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -517,3 +527,4 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+

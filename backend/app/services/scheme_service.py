@@ -9,6 +9,7 @@ Functions:
 """
 
 import logging
+import asyncio
 from typing import Optional
 
 from app.db.supabase_client import get_client
@@ -50,14 +51,13 @@ async def get_eligible_schemes(
         supabase = get_client()
 
         # Step 1: Fetch all active schemes from Supabase
-        query = (
-            supabase.table("schemes")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("schemes")
             .select("*")
             .eq("is_active", True)
             .order("name", desc=False)
+            .execute()
         )
-
-        result = query.execute()
         schemes = result.data or []
 
         logger.info(f"Scheme search | total active schemes: {len(schemes)}")
@@ -98,8 +98,8 @@ async def get_scheme_by_id(scheme_id: str) -> Optional[dict]:
     try:
         supabase = get_client()
 
-        result = (
-            supabase.table("schemes")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("schemes")
             .select("*")
             .eq("id", scheme_id)
             .execute()

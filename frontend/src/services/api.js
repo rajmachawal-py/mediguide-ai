@@ -67,7 +67,7 @@ export async function sendChat(message, language, history) {
 /** Generate a doctor-ready symptom summary. */
 export async function generateSummary(conversationHistory) {
   const { data } = await api.post('/chat/summary', {
-    conversation_history: conversationHistory,
+    history: conversationHistory,
   })
   return data
 }
@@ -80,7 +80,7 @@ export async function generateSummary(conversationHistory) {
 export async function speechToText(audioBlob, language) {
   const formData = new FormData()
   formData.append('file', audioBlob, 'recording.webm')
-  formData.append('language', language)
+  if (language) formData.append('language', language)
 
   const { data } = await api.post('/voice/stt', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

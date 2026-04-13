@@ -87,7 +87,7 @@ export default function HospitalMapView({ hospitals, centerLat, centerLng }) {
               )}
               <div className="mt-2 text-center">
                 <a 
-                  href={getDirectionsUrl(selectedHospital.lat, selectedHospital.lng)}
+                  href={getDirectionsUrl(selectedHospital.lat, selectedHospital.lng, selectedHospital.name, selectedHospital.city)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bg-primary-600 text-white text-xs font-semibold px-4 py-2 rounded shadow hover:bg-primary-700 transition"

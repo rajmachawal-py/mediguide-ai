@@ -47,13 +47,8 @@ async def get_current_user_id(
     token = authorization.split("Bearer ", 1)[1]
 
     try:
-        # Use the Supabase client to verify the JWT
-        from supabase import create_client
-
-        supabase = create_client(
-            supabase_url=settings.SUPABASE_URL,
-            supabase_key=settings.SUPABASE_KEY,
-        )
+        # Use the cached Supabase client singleton to verify the JWT
+        supabase = get_client()
 
         # Get user from JWT — this validates the token with Supabase
         user_response = supabase.auth.get_user(token)

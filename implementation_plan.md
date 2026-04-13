@@ -6,7 +6,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 
 ## 📊 Team Progress Dashboard
 
-> Last updated: 2026-04-13 | Updated by: Antigravity
+> Last updated: 2026-04-14 | Updated by: Antigravity
 
 | Phase | Status | Completed By |
 |---|---|---|
@@ -15,6 +15,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | **Phase 3 — Frontend Core** | ✅ 100% Complete | Antigravity |
 | **Phase 4 — Advanced Features** | ✅ 100% Complete (except Appointments) | Antigravity |
 | **Phase 5 — Auth Migration & Bug Fixes** | ✅ 100% Complete | Lakshay + Antigravity |
+| **Phase 6 — Upcoming Features** | 🔲 Not Started | — |
 
 ### ✅ Completed Files — DO NOT re-create or overwrite these
 
@@ -31,7 +32,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | `backend/app/prompts/triage_prompt.txt` | ✅ Done | Multilingual triage nurse + emergency rules |
 | `backend/app/prompts/summary_prompt.txt` | ✅ Done | Doctor-ready summary schema |
 | `backend/app/prompts/scheme_prompt.txt` | ✅ Done | Scheme explanation in user's language |
-| `backend/app/services/gemini_service.py` | ✅ Updated | Model changed to `gemini-2.0-flash-lite` |
+| `backend/app/services/gemini_service.py` | ✅ Updated | Model upgraded to `gemini-2.5-flash-lite` (2.0-flash-lite deprecated) |
 | `backend/app/services/triage_service.py` | ✅ Done | classify_urgency + keyword rules in 3 languages |
 | `backend/app/models/chat_models.py` | ✅ Done | All Pydantic models for chat/triage/summary |
 | `backend/app/models/user_models.py` | ✅ Updated | Added `email` field to `UserProfile` |
@@ -66,7 +67,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 3. **Database is live on Supabase** — any schema changes must be discussed before running SQL.
 4. **Seed data is verified correct** — hospital departments confirmed from official sources (April 2026).
 5. **`.env` is not in git** — get keys from Lakshay and create your own local `.env`.
-6. **Virtual environment**: install dependencies with `pip install -r requirements.txt` in `backend/`.
+6. **Package manager**: use `uv sync` + `uv run` for backend dependencies (or fallback to `pip install -r requirements.txt`).
 
 ### 🔑 Keys Every Team Member Needs (get from Lakshay)
 - `GEMINI_API_KEY` — Google AI Studio
@@ -78,9 +79,16 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 ### 🚀 How to Run Backend Locally
 ```bash
 cd backend
-.\mediguide-Venv\Scripts\activate    # Windows
+
+# Option A: Using uv (recommended)
+uv sync
+uv run uvicorn main:app --reload
+
+# Option B: Using pip
+python -m venv venv && venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload
+
 # Open: http://localhost:8000/docs       (Swagger UI — test all endpoints)
 # Open: http://localhost:8000/api/health (confirms all API keys are loaded)
 ```
@@ -136,7 +144,7 @@ uvicorn main:app --reload
 #### [DONE] `backend/app/services/gemini_service.py`
 - `ask_triage()`, `generate_summary()`, `explain_scheme()`
 - Chat session with full history, `_extract_json_block()` parser, medical safety settings
-- **Model: `gemini-2.0-flash-lite`** (see Phase 5 bug fixes for migration history)
+- **Model: `gemini-2.5-flash-lite`** (migrated from deprecated `gemini-2.0-flash-lite` on 2026-04-13)
 
 #### [DONE] `backend/app/services/triage_service.py`
 - `classify_urgency()` — dual-layer: keyword rules + AI (rules can only escalate, never downgrade)
@@ -223,15 +231,16 @@ uvicorn main:app --reload
 
 #### [DONE] `frontend/src/components/hospital/HospitalCard.jsx`
 - Shows hospital name (in selected language), type badge, distance in km
-- **"Directions" button** → uses Google Maps Directions Service to draw route on map, or opens `https://www.google.com/maps/dir/?api=1&destination={lat},{lng}` in new tab on mobile
+- **"Directions" button** → opens Google Maps with hospital name as destination (not raw coordinates) for accurate place resolution
 - **"Ambulance" button** (emergency only) → `tel:108`
 - **"Indoor Map" button** → `/map/{hospital_id}`
 
 #### [DONE] `frontend/src/services/mapsHelper.js`
-- `getDirectionsUrl(lat, lng)` — builds Google Maps deep-link URL
+- `getDirectionsUrl(lat, lng, name, city)` — builds Google Maps deep-link URL using hospital name (not raw coords) for accurate place resolution
 - `getEmbedUrl(lat, lng)` — Google Maps Embed API URL for static preview
 - `getAmbulanceLink()` → `tel:108`
-- `formatDistance(km)` — `"2.3 km"` or `"850 m"`
+- `formatDistance(km)` — `"~2.3 km"` or `"~850 m"` (approximate straight-line distance)
+- `haversineKm(lat1, lng1, lat2, lng2)` — client-side distance calculator
 - Reads key from `import.meta.env.VITE_GOOGLE_MAPS_API_KEY`
 
 #### Emergency Location Flow
@@ -458,9 +467,9 @@ GOOGLE_MAPS_API_KEY=your_key_here
 
 ### ✅ Step 14 · Bug Fixes & Database Patches
 
-#### 🐛 Bug 1: Gemini Model Quota Exhaustion
-- **Error**: `429 Resource Exhausted` — `gemini-2.0-flash` free-tier quota was 0
-- **Fix**: Migrated to `gemini-1.5-flash`, then to `gemini-2.0-flash-lite` (1.5-flash was deprecated/404)
+#### 🐛 Bug 1: Gemini Model Deprecation
+- **Error**: `429 Resource Exhausted` → then `gemini-2.0-flash-lite` deprecated (shutdown June 2026)
+- **Fix**: Migrated from `gemini-2.0-flash` → `gemini-1.5-flash` → `gemini-2.0-flash-lite` → **`gemini-2.5-flash-lite`** (current)
 - **File**: `backend/app/services/gemini_service.py` — `TRIAGE_MODEL` and `SUMMARY_MODEL`
 
 #### 🐛 Bug 2: Frontend Missing Supabase Credentials
@@ -544,7 +553,7 @@ These SQL changes were applied directly in the Supabase SQL Editor and are **not
 - Unauthenticated `/chat` access → redirects to `/login`
 - Browser geolocation prompt fires on `HospitalPage` load
 - Google Maps renders with hospital markers; clicking a marker shows popup with Directions button
-- Directions button opens Google Maps in new tab with correct destination lat/lng
+- Directions button opens Google Maps with hospital name as destination → correct place resolution
 - Emergency urgency → `UrgencyBanner` shows nearest emergency hospital + "Call Ambulance (108)" button
 - Full chat flow: type symptom → AI asks follow-up → urgency banner appears → hospital recommendation shown
 
@@ -559,3 +568,39 @@ These SQL changes were applied directly in the Supabase SQL Editor and are **not
 - Indoor map renders for a hospital; department search triggers route highlight on SVG floor map
 - Accessibility route toggle correctly avoids non-accessible edges
 - Realtime Caregiver Dashboard shows live patient alerts via Supabase.
+
+---
+
+## 🔲 Phase 6 — Upcoming Features *(NOT STARTED)*
+
+> Features to implement after all current bugs are resolved and core flow is stable.
+
+### 🌟 Tier 1 — High Impact, Feasible Now
+
+| # | Feature | Description | Difficulty |
+|---|---|---|---|
+| 1 | **📸 Visual Symptom Scanner** | Upload photos of rashes/injuries → Gemini Vision analyzes and adds to triage context | Medium |
+| 2 | **📄 Digital Health Card (PDF)** | Generate downloadable PDF with triage summary, urgency, symptoms — a "medical passport" for the hospital | Medium |
+| 3 | **🗣️ Fully Voice-First Mode** | Complete hands-free flow: speak → AI responds via TTS → user answers by voice. Zero screen reading. | Medium |
+| 4 | **💊 Medicine Reminder System** | After triage, suggest OTC medicines with push notification reminders at scheduled times | Medium |
+
+### 🌟 Tier 2 — SIH Differentiators
+
+| # | Feature | Description | Difficulty |
+|---|---|---|---|
+| 5 | **🏥 Live OPD Queue Tracker** | Show estimated wait times at hospitals (simulated with dynamic seed data) | Easy |
+| 6 | **🚨 SOS Panic Button** | One-tap: auto-call 108 + send GPS to caregiver + generate instant triage summary | Easy |
+| 7 | **📊 Health Timeline** | Visual timeline of past triage sessions — shows patterns like recurring symptoms | Medium |
+| 8 | **🌐 Offline Mode (PWA)** | Service Worker caches app shell + last 5 conversations for poor connectivity areas | Hard |
+
+### 🌟 Tier 3 — Wow Factor
+
+| # | Feature | Description | Difficulty |
+|---|---|---|---|
+| 9 | **🤖 WhatsApp Bot** | Same triage flow via WhatsApp Business API — reaches users without the app | Hard |
+| 10 | **📱 NFC/QR Hospital Check-in** | QR code with triage data → tap at hospital reception → pre-fill registration | Medium |
+
+### 🔲 Appointment Booking (Existing Stub)
+- `backend/app/routers/appointment.py` — empty stub, needs implementation
+- Tables already exist in `schema.sql` (`appointments` table with status, notes, scheduling)
+- Frontend page needs to be created

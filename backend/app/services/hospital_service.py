@@ -9,6 +9,7 @@ Functions:
 """
 
 import logging
+import asyncio
 from typing import Optional
 
 from app.db.supabase_client import get_client
@@ -62,7 +63,9 @@ async def find_nearby_hospitals(
             f"radius={radius_km}km specialty={specialty}"
         )
 
-        result = supabase.rpc("get_nearby_hospitals", rpc_params).execute()
+        result = await asyncio.to_thread(
+            lambda: supabase.rpc("get_nearby_hospitals", rpc_params).execute()
+        )
         hospitals = result.data or []
 
         # Filter by hospital_type if specified (not handled by SQL function)
@@ -110,8 +113,8 @@ async def get_hospital_by_id(hospital_id: str) -> Optional[dict]:
     try:
         supabase = get_client()
 
-        result = (
-            supabase.table("hospitals")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("hospitals")
             .select("*")
             .eq("id", hospital_id)
             .execute()
@@ -124,8 +127,8 @@ async def get_hospital_by_id(hospital_id: str) -> Optional[dict]:
         hospital = result.data[0]
 
         # Fetch specialties for this hospital
-        specialties_result = (
-            supabase.table("hospital_specialties")
+        specialties_result = await asyncio.to_thread(
+            lambda: supabase.table("hospital_specialties")
             .select("specialty")
             .eq("hospital_id", hospital_id)
             .execute()
@@ -157,8 +160,8 @@ async def get_hospital_departments(hospital_id: str) -> list[dict]:
     try:
         supabase = get_client()
 
-        result = (
-            supabase.table("departments")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("departments")
             .select("*")
             .eq("hospital_id", hospital_id)
             .order("floor_number", desc=False)
@@ -193,8 +196,8 @@ async def _get_specialties_for_hospitals(hospital_ids: list[str]) -> dict:
     try:
         supabase = get_client()
 
-        result = (
-            supabase.table("hospital_specialties")
+        result = await asyncio.to_thread(
+            lambda: supabase.table("hospital_specialties")
             .select("hospital_id, specialty")
             .in_("hospital_id", hospital_ids)
             .execute()

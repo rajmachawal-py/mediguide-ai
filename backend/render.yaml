@@ -1,0 +1,29 @@
+# MediGuide AI — Render Deployment Configuration
+# Deploy backend on Render.com
+# Docs: https://render.com/docs/yaml-spec
+
+services:
+  - type: web
+    name: mediguide-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: FCM_CREDENTIALS_JSON
+        sync: false
+      - key: PYTHONDONTWRITEBYTECODE
+        value: "1"
+    healthCheckPath: /health
+    autoDeploy: true
