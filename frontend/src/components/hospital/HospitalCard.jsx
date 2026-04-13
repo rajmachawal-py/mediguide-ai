@@ -89,8 +89,18 @@ export default function HospitalCard({ hospital, language = 'en' }) {
         </a>
         {hospital.phone && (
           <a
-            href={`tel:${hospital.phone}`}
+            href={`tel:${hospital.phone.replace(/[^\d+]/g, '')}`}
+            onClick={(e) => {
+              // On desktop, tel: links may not work — copy number instead
+              if (!/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+                e.preventDefault()
+                navigator.clipboard.writeText(hospital.phone).then(() => {
+                  alert(`Phone number copied: ${hospital.phone}`)
+                })
+              }
+            }}
             className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-green-600/20 text-green-400 text-xs font-medium hover:bg-green-600/30 transition-all"
+            title={hospital.phone}
           >
             <FiPhone className="w-3 h-3" />
             {language === 'en' ? 'Call' : 'कॉल'}
@@ -98,8 +108,17 @@ export default function HospitalCard({ hospital, language = 'en' }) {
         )}
         {hospital.has_ambulance && (
           <a
-            href={getAmbulanceLink()}
+            href="tel:108"
+            onClick={(e) => {
+              if (!/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+                e.preventDefault()
+                navigator.clipboard.writeText('108').then(() => {
+                  alert('Emergency number copied: 108')
+                })
+              }
+            }}
             className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-red-600/20 text-red-400 text-xs font-medium hover:bg-red-600/30 transition-all"
+            title="Call Ambulance: 108"
           >
             🚑 108
           </a>

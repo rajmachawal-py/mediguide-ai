@@ -12,15 +12,14 @@ import { FiNavigation, FiArrowUp } from 'react-icons/fi'
 
 // Node type → visual configuration
 const NODE_STYLES = {
-  entrance:   { fill: '#22c55e', stroke: '#16a34a', radius: 10, emoji: '🚪' },
-  department: { fill: '#2f8fff', stroke: '#1a6ff5', radius: 9,  emoji: '🏥' },
-  lift:       { fill: '#a855f7', stroke: '#9333ea', radius: 7,  emoji: '🛗' },
-  stairs:     { fill: '#f59e0b', stroke: '#d97706', radius: 7,  emoji: '🪜' },
-  waypoint:   { fill: '#64748b', stroke: '#475569', radius: 5,  emoji: '' },
+  entrance:   { fill: '#22c55e', stroke: '#16a34a', radius: 4, emoji: '🚪' },
+  department: { fill: '#2f8fff', stroke: '#1a6ff5', radius: 3.5, emoji: '🏥' },
+  lift:       { fill: '#a855f7', stroke: '#9333ea', radius: 2.5, emoji: '🛗' },
+  stairs:     { fill: '#f59e0b', stroke: '#d97706', radius: 2.5, emoji: '🪜' },
+  waypoint:   { fill: '#64748b', stroke: '#475569', radius: 2, emoji: '' },
 }
 
-const SVG_WIDTH = 800
-const SVG_HEIGHT = 500
+const SVG_PADDING = 15
 
 export default function SVGFloorPlan({
   nodes = [],
@@ -54,6 +53,31 @@ export default function SVGFloorPlan({
     nodes.forEach(n => { map[n.id] = n })
     return map
   }, [nodes])
+
+  // Compute bounds from floor nodes to scale SVG properly
+  const bounds = useMemo(() => {
+    if (floorNodes.length === 0) return { minX: 0, maxX: 100, minY: 0, maxY: 100 }
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+    floorNodes.forEach(n => {
+      const x = Number(n.x_pos) || 0
+      const y = Number(n.y_pos) || 0
+      if (x < minX) minX = x
+      if (x > maxX) maxX = x
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
+    })
+    return { minX, maxX, minY, maxY }
+  }, [floorNodes])
+
+  // ViewBox that fits all nodes with padding
+  const viewBox = useMemo(() => {
+    const { minX, maxX, minY, maxY } = bounds
+    const vbX = minX - SVG_PADDING
+    const vbY = minY - SVG_PADDING
+    const vbW = Math.max(maxX - minX + SVG_PADDING * 2, 60)
+    const vbH = Math.max(maxY - minY + SVG_PADDING * 2, 40)
+    return `${vbX} ${vbY} ${vbW} ${vbH}`
+  }, [bounds])
 
   // Build route path segments on this floor
   const routePathOnFloor = useMemo(() => {
@@ -90,14 +114,15 @@ export default function SVGFloorPlan({
   return (
     <div className="w-full rounded-2xl bg-surface-900/80 border border-surface-700/40 overflow-hidden relative">
       <svg
-        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+        viewBox={viewBox}
         className="w-full h-auto"
-        style={{ minHeight: '300px', maxHeight: '450px' }}
+        style={{ minHeight: '300px', maxHeight: '500px' }}
+        preserveAspectRatio="xMidYMid meet"
       >
         {/* Background grid */}
         <defs>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(51,65,85,0.2)" strokeWidth="0.5" />
+          <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+            <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(51,65,85,0.2)" strokeWidth="0.3" />
           </pattern>
           {/* Route animation dash */}
           <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -105,7 +130,7 @@ export default function SVGFloorPlan({
             <stop offset="100%" stopColor="#2f8fff" stopOpacity="0.8" />
           </linearGradient>
         </defs>
-        <rect width={SVG_WIDTH} height={SVG_HEIGHT} fill="url(#grid)" />
+        <rect x="-1000" y="-1000" width="3000" height="3000" fill="url(#grid)" />
 
         {/* Draw edges (walking paths) */}
         {floorEdges.map((edge) => {
@@ -120,8 +145,8 @@ export default function SVGFloorPlan({
               x2={Number(to.x_pos) || 0}
               y2={Number(to.y_pos) || 0}
               stroke="rgba(100,116,139,0.3)"
-              strokeWidth="2"
-              strokeDasharray="6 4"
+              strokeWidth="0.5"
+              strokeDasharray="2 1.5"
             />
           )
         })}
@@ -134,7 +159,7 @@ export default function SVGFloorPlan({
               d={routePathD}
               fill="none"
               stroke="rgba(34,197,94,0.15)"
-              strokeWidth="12"
+              strokeWidth="4"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -143,10 +168,10 @@ export default function SVGFloorPlan({
               d={routePathD}
               fill="none"
               stroke="url(#routeGradient)"
-              strokeWidth="4"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              strokeDasharray="12 6"
+              strokeDasharray="4 2"
               className="animate-route-dash"
             />
           </>
@@ -171,11 +196,11 @@ export default function SVGFloorPlan({
               {isSelected && (
                 <circle
                   cx={x} cy={y}
-                  r={style.radius + 6}
+                  r={style.radius + 2.5}
                   fill="none"
                   stroke="#2f8fff"
-                  strokeWidth="2"
-                  strokeDasharray="4 2"
+                  strokeWidth="0.6"
+                  strokeDasharray="2 1"
                   opacity="0.7"
                   className="animate-pulse"
                 />
@@ -185,10 +210,10 @@ export default function SVGFloorPlan({
               {isEntrance && (
                 <circle
                   cx={x} cy={y}
-                  r={style.radius + 4}
+                  r={style.radius + 2}
                   fill="none"
                   stroke="#22c55e"
-                  strokeWidth="1.5"
+                  strokeWidth="0.5"
                   opacity="0.4"
                   className="animate-pulse"
                 />
@@ -200,17 +225,17 @@ export default function SVGFloorPlan({
                 r={style.radius}
                 fill={isSelected ? '#2f8fff' : style.fill}
                 stroke={isSelected ? '#56b0ff' : style.stroke}
-                strokeWidth="2"
+                strokeWidth="0.6"
                 opacity="0.9"
               />
 
               {/* Label */}
               <text
                 x={x}
-                y={y + style.radius + 14}
+                y={y + style.radius + 5}
                 textAnchor="middle"
                 fill={isDepartment || isEntrance ? '#e2e8f0' : '#94a3b8'}
-                fontSize={isDepartment || isEntrance ? '11' : '9'}
+                fontSize={isDepartment || isEntrance ? '3.5' : '2.8'}
                 fontWeight={isDepartment || isEntrance ? '600' : '400'}
                 fontFamily="Inter, system-ui, sans-serif"
               >
@@ -223,11 +248,11 @@ export default function SVGFloorPlan({
         {/* "No nodes" message */}
         {floorNodes.length === 0 && (
           <text
-            x={SVG_WIDTH / 2}
-            y={SVG_HEIGHT / 2}
+            x={(bounds.minX + bounds.maxX) / 2}
+            y={(bounds.minY + bounds.maxY) / 2}
             textAnchor="middle"
             fill="#64748b"
-            fontSize="14"
+            fontSize="6"
             fontFamily="Inter, system-ui, sans-serif"
           >
             No map data for this floor
