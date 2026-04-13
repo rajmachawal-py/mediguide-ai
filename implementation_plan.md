@@ -6,7 +6,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 
 ## 📊 Team Progress Dashboard
 
-> Last updated: 2026-04-12 | Updated by: Antigravity
+> Last updated: 2026-04-13 | Updated by: Antigravity
 
 | Phase | Status | Completed By |
 |---|---|---|
@@ -14,13 +14,14 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | **Phase 2 — Core Feature APIs** | ✅ 100% Complete (Backend) | Lakshay + Antigravity |
 | **Phase 3 — Frontend Core** | ✅ 100% Complete | Antigravity |
 | **Phase 4 — Advanced Features** | ✅ 100% Complete (except Appointments) | Antigravity |
+| **Phase 5 — Auth Migration & Bug Fixes** | ✅ 100% Complete | Lakshay + Antigravity |
 
 ### ✅ Completed Files — DO NOT re-create or overwrite these
 
 | File | Status | Notes |
 |---|---|---|
 | `supabase/schema.sql` | ✅ Done | 11 tables, RLS, Haversine fn, Realtime — **live on Supabase** |
-| `supabase/seed_hospitals.sql` | ✅ Done | 10 hospitals, 51 depts, 44 specialties — verified |
+| `supabase/seed_hospitals.sql` | ✅ Done | 10 hospitals, 51 depts, 44 specialties — verified & seeded |
 | `supabase/seed_schemes.sql` | ✅ Done | 8 govt schemes — UUID bug fixed |
 | `supabase/seed_appointments.sql` | ✅ Done | Template only — needs real auth UUIDs to run |
 | `backend/.env` | ✅ Done | All keys present — **NEVER COMMIT** |
@@ -30,9 +31,10 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | `backend/app/prompts/triage_prompt.txt` | ✅ Done | Multilingual triage nurse + emergency rules |
 | `backend/app/prompts/summary_prompt.txt` | ✅ Done | Doctor-ready summary schema |
 | `backend/app/prompts/scheme_prompt.txt` | ✅ Done | Scheme explanation in user's language |
-| `backend/app/services/gemini_service.py` | ✅ Done | ask_triage, generate_summary, explain_scheme |
+| `backend/app/services/gemini_service.py` | ✅ Updated | Model changed to `gemini-2.0-flash-lite` |
 | `backend/app/services/triage_service.py` | ✅ Done | classify_urgency + keyword rules in 3 languages |
 | `backend/app/models/chat_models.py` | ✅ Done | All Pydantic models for chat/triage/summary |
+| `backend/app/models/user_models.py` | ✅ Updated | Added `email` field to `UserProfile` |
 | `backend/app/routers/triage.py` | ✅ Done | POST /api/triage |
 | `backend/app/routers/chat.py` | ✅ Done | POST /api/chat + POST /api/chat/summary |
 | `backend/app/routers/voice.py` | ✅ Done | STT/TTS endpoints via Sarvam AI |
@@ -50,6 +52,12 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | `supabase/seed_indoor_map.sql` | ✅ Done | 14 nodes + 14 edges for Sassoon Hospital |
 | `backend/app/routers/appointment.py` | 🔲 Stub | Empty — Phase 4 work |
 | `.gitignore` | ✅ Done | All secrets, venv, Firebase, certs covered |
+| `frontend/src/services/supabase.js` | ✅ Updated | Email/password + Google OAuth (phone OTP removed) |
+| `frontend/src/pages/LoginPage.jsx` | ✅ Updated | Login/Sign-Up tabs + Google OAuth + PKCE handling |
+| `frontend/src/pages/ProfilePage.jsx` | ✅ Updated | Email display, Google name auto-populate |
+| `frontend/src/pages/HospitalPage.jsx` | ✅ Updated | Search radius increased to 30km |
+| `frontend/src/services/api.js` | ✅ Updated | STT field name fix (`audio` → `file`) |
+| `frontend/.env.local` | ✅ Updated | Supabase URL + anon key added |
 
 ### ⚠️ Team Coordination Rules
 
@@ -85,7 +93,7 @@ uvicorn main:app --reload
 #### [DONE] `supabase/schema.sql`
 - 11 tables with full RLS, indexes, `haversine_km()` + `get_nearby_hospitals()` SQL functions
 - Supabase Realtime on `caregiver_alerts` + `chat_sessions`
-- Auto-profile trigger on OTP signup
+- Auto-profile trigger on signup (updated for email/Google OAuth)
 
 #### [DONE] `supabase/seed_hospitals.sql`
 - 10 hospitals (Pune + Mumbai), 51 verified departments, 44 specialty tags
@@ -128,6 +136,7 @@ uvicorn main:app --reload
 #### [DONE] `backend/app/services/gemini_service.py`
 - `ask_triage()`, `generate_summary()`, `explain_scheme()`
 - Chat session with full history, `_extract_json_block()` parser, medical safety settings
+- **Model: `gemini-2.0-flash-lite`** (see Phase 5 bug fixes for migration history)
 
 #### [DONE] `backend/app/services/triage_service.py`
 - `classify_urgency()` — dual-layer: keyword rules + AI (rules can only escalate, never downgrade)
@@ -162,7 +171,7 @@ uvicorn main:app --reload
 - Wraps [Sarvam AI REST API](https://sarvam.ai)
 
 #### [DONE] `backend/app/routers/voice.py`
-- `POST /api/voice/stt` — accepts audio file upload, returns transcribed text in detected language
+- `POST /api/voice/stt` — accepts audio file upload (`file` field), returns transcribed text in detected language
 - `POST /api/voice/tts` — accepts text + language, returns audio stream
 
 ---
@@ -235,6 +244,8 @@ uvicorn main:app --reload
 ```
 # frontend/.env.local
 VITE_GOOGLE_MAPS_API_KEY=your_key_here
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # backend/.env (if backend proxies map requests in future)
 GOOGLE_MAPS_API_KEY=your_key_here
@@ -304,7 +315,7 @@ GOOGLE_MAPS_API_KEY=your_key_here
 
 #### [DONE] `frontend/src/services/supabase.js`
 - Supabase JS client singleton
-- `getCurrentUser()`, `signIn()`, `signOut()` helpers
+- `signUpWithEmail()`, `signInWithEmail()`, `signInWithGoogle()`, `signOut()`, `getSession()` helpers
 
 #### [DONE] `frontend/src/App.jsx`
 - React Router v6 setup
@@ -346,6 +357,7 @@ GOOGLE_MAPS_API_KEY=your_key_here
 #### [DONE] `frontend/src/pages/HospitalPage.jsx`
 - Shows nearby hospitals from `/api/hospitals/nearby` using user geolocation
 - Hospital cards with specialty, distance, department list, checklist
+- **Search radius: 30km** (increased from 15km to cover wider Pune area)
 
 #### [DONE] `frontend/src/hooks/useGeolocation.js`
 - Browser Geolocation API wrapper; returns `{ lat, lng, error }`
@@ -356,18 +368,25 @@ GOOGLE_MAPS_API_KEY=your_key_here
 
 > Auth first, then Caregiver Mode, then Indoor Map.
 
-### ✅ Step 10 · Authentication *(DONE)*
+### ✅ Step 10 · Authentication *(MIGRATED — see Phase 5)*
 #### [DONE] `frontend/src/pages/LoginPage.jsx`
-- OTP-based phone login via Supabase Auth (India-first: no email dependency)
+- **Migrated from phone OTP → Email/Password + Google OAuth**
+- Login/Sign-Up tabs with email + password fields (6 char min, email validation)
+- Confirm Password field in Sign-Up mode with show/hide toggle
+- Google OAuth with real Google logo via `signInWithGoogle()`
 - Language-aware UI (Hindi/Marathi/English labels)
-- On success: stores session, redirects to `/chat`
+- PKCE code exchange + hash token handling for OAuth redirect
+- `onAuthStateChange` listener for reliable post-OAuth navigation
+- On success: redirects to `/chat`
 
 #### [DONE] `frontend/src/pages/ProfilePage.jsx`
+- **Email displayed** instead of phone number (read-only)
+- Auto-populates Google name + email from Supabase user metadata
 - Editable fields: name, age, state, income bracket, preferred language
-- Saves to Supabase `users` table; used for scheme eligibility matching
+- Saves to Supabase `profiles` table; used for scheme eligibility matching
 
 #### [DONE] `backend/app/models/user_models.py`
-- Pydantic models: `UserProfile`, `UserUpdateRequest`
+- Pydantic models: `UserProfile` (with `email` field), `UserUpdateRequest`
 
 #### [DONE] `backend/app/routers/profile.py`
 - Added JWT auth dependency (`get_current_user_id`)
@@ -414,6 +433,100 @@ GOOGLE_MAPS_API_KEY=your_key_here
 
 ---
 
+## ✅ Phase 5 — Auth Migration & Bug Fixes *(COMPLETE — 2026-04-13)*
+
+> Migrated from phone OTP to email/password + Google OAuth. Fixed multiple backend and database issues.
+
+### ✅ Step 13 · Authentication Migration
+
+#### Changes Summary
+| Component | Before | After |
+|---|---|---|
+| **Login Method** | Phone + OTP via Supabase | Email/Password + Google OAuth |
+| **LoginPage UI** | Phone number input → OTP verification | Login/Sign-Up tabs + Google button |
+| **Supabase Service** | `signInWithOtp()`, `verifyOtp()` | `signUpWithEmail()`, `signInWithEmail()`, `signInWithGoogle()` |
+| **Profile Display** | Phone number (read-only) | Email (read-only) + Google name auto-fill |
+| **DB Trigger** | Inserts `phone` on signup | Inserts `email` + `full_name` from Google metadata |
+
+#### Files Modified
+- `frontend/src/services/supabase.js` — Replaced phone OTP functions with email/password + Google OAuth
+- `frontend/src/pages/LoginPage.jsx` — Full rewrite: Login/Sign-Up tabs, Google OAuth, PKCE code exchange
+- `frontend/src/pages/ProfilePage.jsx` — Shows email instead of phone, auto-populates Google user metadata
+- `backend/app/models/user_models.py` — Added `email` field to `UserProfile` model
+
+---
+
+### ✅ Step 14 · Bug Fixes & Database Patches
+
+#### 🐛 Bug 1: Gemini Model Quota Exhaustion
+- **Error**: `429 Resource Exhausted` — `gemini-2.0-flash` free-tier quota was 0
+- **Fix**: Migrated to `gemini-1.5-flash`, then to `gemini-2.0-flash-lite` (1.5-flash was deprecated/404)
+- **File**: `backend/app/services/gemini_service.py` — `TRIAGE_MODEL` and `SUMMARY_MODEL`
+
+#### 🐛 Bug 2: Frontend Missing Supabase Credentials
+- **Error**: `dummy.supabase.co` DNS failure + "Failed to fetch" on sign-up
+- **Fix**: Added `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `frontend/.env.local`
+
+#### 🐛 Bug 3: Google OAuth — "Unsupported provider"
+- **Error**: `400 validation_failed: Unsupported provider: provider is not enabled`
+- **Fix**: Enabled Google provider in Supabase Dashboard → Authentication → Providers → Google
+- **Setup Required**: Google Cloud Console OAuth client ID + secret → paste into Supabase
+
+#### 🐛 Bug 4: Google OAuth — "Database error saving new user"
+- **Error**: `server_error: unexpected_failure: Database error saving new user`
+- **Root Cause**: The `on_auth_user_created` trigger tried to INSERT a profile with `phone = NULL` from Google OAuth, but the `profiles.phone` column had a `UNIQUE` constraint causing conflicts
+- **Fix** (SQL applied in Supabase):
+  1. Dropped the `UNIQUE` constraint on `profiles.phone`
+  2. Created partial unique index: `WHERE phone IS NOT NULL`
+  3. Dropped and recreated the trigger to handle Google OAuth users (no phone, has email + name)
+  4. Added `email` column to `profiles` table
+
+#### 🐛 Bug 5: Google OAuth — Redirect Loop (stuck on /login)
+- **Error**: User authenticated via Google but kept landing back on `/login`
+- **Root Cause**: OAuth redirect went to `/chat` where `ProtectedRoute` checked session before Supabase processed the PKCE auth code, causing a bounce back
+- **Fix**:
+  1. Changed OAuth redirect from `/chat` → `/login`
+  2. Added PKCE `exchangeCodeForSession(code)` handling in LoginPage
+  3. Added `onAuthStateChange` listener as safety net
+  4. Added hash-based token detection for older Supabase flows
+
+#### 🐛 Bug 6: Profile Save — "Failed to save profile"
+- **Error**: `500 Internal Server Error` on `GET /api/profile` and `PUT /api/profile`
+- **Root Cause**: `SUPABASE_SERVICE_KEY` in `backend/.env` was set to the **anon key** instead of the **service_role key**. This meant all backend database operations went through RLS, which blocked server-side profile reads/writes
+- **Fix**: User replaced `SUPABASE_SERVICE_KEY` with the actual service_role key from Supabase Dashboard → Settings → API
+
+#### 🐛 Bug 7: Hospital Search — "column reference specialty is ambiguous"
+- **Error**: `42702: column reference "specialty" is ambiguous` in `get_nearby_hospitals()` SQL function
+- **Root Cause**: Function parameter named `specialty` clashed with the `hospital_specialties.specialty` column
+- **Fix** (SQL applied in Supabase):
+  1. Dropped the old function
+  2. Recreated with parameter renamed to `filter_specialty`
+
+#### 🐛 Bug 8: Hospitals Not Showing (0 results)
+- **Error**: "No hospitals found in this category" — 0 results
+- **Root Cause**: Search radius was 15km but user's location (~18.675 lat) was ~18km from seeded hospitals in central Pune
+- **Fix**: Increased `HospitalPage.jsx` search radius from 15km → 30km
+
+#### 🐛 Bug 9: Voice STT — 422 Unprocessable Entity
+- **Error**: `422 Unprocessable Entity` on `POST /api/voice/stt`
+- **Root Cause**: Frontend sent audio as form field `audio`, but backend expected `file`
+- **Fix**: Changed `formData.append('audio', ...)` → `formData.append('file', ...)` in `frontend/src/services/api.js`
+
+---
+
+### 📝 Database Changes Applied (via Supabase SQL Editor)
+
+These SQL changes were applied directly in the Supabase SQL Editor and are **not tracked in schema.sql**:
+
+1. **Added `email` column** to `profiles` table
+2. **Dropped `profiles_phone_key`** unique constraint on phone
+3. **Created partial unique index** on phone (`WHERE phone IS NOT NULL`)
+4. **Updated `handle_new_user()` trigger** to populate email + full_name from Google OAuth metadata
+5. **Dropped and recreated `get_nearby_hospitals()`** function with renamed `filter_specialty` parameter
+6. **Seeded hospital data** from `seed_hospitals.sql`
+
+---
+
 ## Verification Plan
 
 ### After Phase 1
@@ -430,13 +543,18 @@ GOOGLE_MAPS_API_KEY=your_key_here
 ### After Phase 3
 - Unauthenticated `/chat` access → redirects to `/login`
 - Browser geolocation prompt fires on `HospitalPage` load
-- Leaflet map renders with hospital markers; clicking a marker shows popup with Directions button
+- Google Maps renders with hospital markers; clicking a marker shows popup with Directions button
 - Directions button opens Google Maps in new tab with correct destination lat/lng
 - Emergency urgency → `UrgencyBanner` shows nearest emergency hospital + "Call Ambulance (108)" button
 - Full chat flow: type symptom → AI asks follow-up → urgency banner appears → hospital recommendation shown
 
 ### After Phase 4
-- OTP login works end-to-end
+- Email/Password sign-up and login works end-to-end ✅
+- Google OAuth login works end-to-end ✅
+- Profile page shows Google name and email ✅
+- Profile save (edit name, age, state, etc.) works ✅
+- Hospitals page shows nearby hospitals within 30km radius ✅
+- Voice STT sends correct form field and receives transcript ✅
 - Caregiver receives FCM push when patient hits emergency urgency
 - Indoor map renders for a hospital; department search triggers route highlight on SVG floor map
 - Accessibility route toggle correctly avoids non-accessible edges
