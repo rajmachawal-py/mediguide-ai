@@ -21,6 +21,7 @@ class UserProfile(BaseModel):
     Matches the schema.sql definition exactly.
     """
     id:             str
+    email:          Optional[str]          = None
     phone:          Optional[str]          = None
     full_name:      Optional[str]          = None
     age:            Optional[int]          = Field(default=None, ge=0, le=120)

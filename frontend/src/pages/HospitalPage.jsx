@@ -34,7 +34,7 @@ export default function HospitalPage() {
       setLoading(true)
       setError(null)
       try {
-        const data = await getNearbyHospitals(lat, lng, 15)
+        const data = await getNearbyHospitals(lat, lng, 30)
         setHospitals(data.hospitals || [])
       } catch (err) {
         setError('Failed to load hospitals')

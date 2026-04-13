@@ -41,13 +41,13 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [profile, setProfile] = useState({
     full_name: '',
+    email: '',
     age: '',
     gender: 'prefer_not_to_say',
     state: '',
     district: '',
     preferred_lang: language,
     annual_income: 0,
-    phone: '',
   })
 
   // Check auth and load profile
@@ -58,6 +58,12 @@ export default function ProfilePage() {
 
       if (session) {
         setIsAuthenticated(true)
+
+        // Get user metadata from Supabase (Google name, email, avatar)
+        const user = session.user
+        const googleName = user?.user_metadata?.full_name || user?.user_metadata?.name || ''
+        const userEmail = user?.email || ''
+
         try {
           const data = await getProfile()
           if (data?.profile) {
@@ -65,10 +71,26 @@ export default function ProfilePage() {
               ...prev,
               ...data.profile,
               age: data.profile.age || '',
+              // Use Google metadata as fallback if profile fields are empty
+              full_name: data.profile.full_name || googleName,
+              email: data.profile.email || userEmail,
+            }))
+          } else {
+            // No profile from API — use Google metadata
+            setProfile(prev => ({
+              ...prev,
+              full_name: googleName,
+              email: userEmail,
             }))
           }
         } catch (err) {
           console.error('Profile load error:', err)
+          // Fallback to Google metadata on API error
+          setProfile(prev => ({
+            ...prev,
+            full_name: googleName,
+            email: userEmail,
+          }))
         }
       }
       setLoading(false)
@@ -134,7 +156,7 @@ export default function ProfilePage() {
       district: 'जिला',
       language: 'भाषा',
       income: 'वार्षिक आय',
-      phone: 'फ़ोन नंबर',
+      email: 'ईमेल',
       logout: 'बाहर निकलें',
       loginFirst: 'प्रोफ़ाइल संपादित करने के लिए लॉगिन करें',
       schemeNote: 'आय और राज्य की जानकारी सरकारी योजनाओं की पात्रता के लिए उपयोग होती है',
@@ -152,7 +174,7 @@ export default function ProfilePage() {
       district: 'District',
       language: 'Language',
       income: 'Annual Income',
-      phone: 'Phone Number',
+      email: 'Email',
       logout: 'Sign Out',
       loginFirst: 'Sign in to edit your profile',
       schemeNote: 'Income and state info is used for government scheme eligibility matching',
@@ -202,13 +224,13 @@ export default function ProfilePage() {
 
       {/* Profile Form */}
       <div className="space-y-3">
-        {/* Phone (read-only) */}
-        {profile.phone && (
+        {/* Email (read-only) */}
+        {profile.email && (
           <div className="glass-card p-4 flex items-center gap-3">
             <FiUser className="w-5 h-5 text-primary-400 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-[10px] text-surface-400 uppercase tracking-wider">{text.phone}</p>
-              <p className="text-sm text-white font-medium">{profile.phone}</p>
+              <p className="text-[10px] text-surface-400 uppercase tracking-wider">{text.email}</p>
+              <p className="text-sm text-white font-medium">{profile.email}</p>
             </div>
           </div>
         )}

@@ -79,7 +79,7 @@ export async function generateSummary(conversationHistory) {
 /** Send audio for speech-to-text transcription. */
 export async function speechToText(audioBlob, language) {
   const formData = new FormData()
-  formData.append('audio', audioBlob, 'recording.webm')
+  formData.append('file', audioBlob, 'recording.webm')
   formData.append('language', language)
 
   const { data } = await api.post('/voice/stt', formData, {

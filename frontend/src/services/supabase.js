@@ -1,6 +1,7 @@
 /**
  * MediGuide AI — Supabase Client
  * Singleton client for auth and database operations.
+ * Auth methods: Email/Password + Google OAuth (no phone verification).
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -31,18 +32,31 @@ export async function getSession() {
   return session
 }
 
-/** Sign in with OTP (phone-based login). */
-export async function signInWithOtp(phone) {
-  const { data, error } = await supabase.auth.signInWithOtp({ phone })
+/** Sign up with email and password. */
+export async function signUpWithEmail(email, password) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  })
   return { data, error }
 }
 
-/** Verify OTP code. */
-export async function verifyOtp(phone, token) {
-  const { data, error } = await supabase.auth.verifyOtp({
-    phone,
-    token,
-    type: 'sms',
+/** Sign in with email and password. */
+export async function signInWithEmail(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+  return { data, error }
+}
+
+/** Sign in with Google OAuth. */
+export async function signInWithGoogle() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/login',
+    },
   })
   return { data, error }
 }
