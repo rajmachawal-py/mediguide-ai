@@ -311,6 +311,12 @@ backend/venv/
 backend/.venv/
 **/mediguide-Venv/
 
+# ── uv (Python package manager) ──────────────────────────────
+# uv creates .venv at the project root level
+.venv/
+# Note: uv.lock SHOULD be committed (it locks exact dependency versions)
+# Do NOT add uv.lock to .gitignore
+
 # ── Build Artifacts ──────────────────────────────────────────
 frontend/dist/
 frontend/build/
