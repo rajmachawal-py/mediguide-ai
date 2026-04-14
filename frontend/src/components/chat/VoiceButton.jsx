@@ -1,54 +1,193 @@
 /**
  * MediGuide AI — VoiceButton
- * Push-to-talk button that records audio and sends to STT API.
+ * Single voice button for manual voice input.
+ * Uses Web Speech API for real-time transcription.
+ * Falls back to MediaRecorder + Sarvam API if Web Speech isn't available.
  */
 
 import { FiMic, FiMicOff, FiLoader } from 'react-icons/fi'
-import useVoiceRecorder from '../../hooks/useVoiceRecorder'
+import { useState, useRef, useCallback } from 'react'
 import { speechToText } from '../../services/api'
-import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
+
+// Language code mapping for Web Speech API
+const SPEECH_LANG_MAP = {
+  hi: 'hi-IN',
+  mr: 'mr-IN',
+  en: 'en-IN',
+}
 
 export default function VoiceButton({ language, onTranscript, disabled }) {
-  const { isRecording, audioBlob, error, startRecording, stopRecording, resetRecording } = useVoiceRecorder()
+  const [isRecording, setIsRecording] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const recognitionRef = useRef(null)
+  const transcriptRef = useRef('')
+  const mediaRecorderRef = useRef(null)
+  const chunksRef = useRef([])
+  const useWebSpeech = useRef(true)
 
-  // When recording stops, send audio for transcription
-  useEffect(() => {
-    if (!audioBlob || isProcessing) return
+  // Check if Web Speech API is available
+  const hasWebSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition)
 
-    const transcribe = async () => {
-      setIsProcessing(true)
-      try {
-        const langMap = { hi: 'hi-IN', mr: 'mr-IN', en: 'en-IN' }
-        const result = await speechToText(audioBlob, langMap[language] || 'hi-IN')
-        if (result?.transcript) {
-          onTranscript(result.transcript)
+  /** Start with Web Speech API */
+  const startWebSpeech = useCallback(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    transcriptRef.current = ''
+
+    const recognition = new SpeechRecognition()
+    recognition.lang = SPEECH_LANG_MAP[language] || 'en-IN'
+    recognition.interimResults = true
+    recognition.continuous = true
+    recognition.maxAlternatives = 1
+
+    recognition.onresult = (event) => {
+      let final = ''
+      let interim = ''
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          final += event.results[i][0].transcript
+        } else {
+          interim += event.results[i][0].transcript
         }
-      } catch (err) {
-        console.error('STT error:', err)
-      } finally {
-        setIsProcessing(false)
-        resetRecording()
+      }
+      transcriptRef.current = final || interim
+    }
+
+    recognition.onerror = (event) => {
+      if (event.error === 'no-speech' && isRecording) {
+        // Silently restart
+        try { recognition.start() } catch { /* ignore */ }
+      } else if (event.error !== 'aborted') {
+        console.warn('[VoiceButton] Web Speech error:', event.error)
       }
     }
 
-    transcribe()
-  }, [audioBlob]) // eslint-disable-line react-hooks/exhaustive-deps
+    recognition.onend = () => {
+      // Will be handled by stopRecording
+    }
+
+    recognitionRef.current = recognition
+    try {
+      recognition.start()
+      return true
+    } catch {
+      return false
+    }
+  }, [language, isRecording])
+
+  /** Start with MediaRecorder (fallback for Sarvam API) */
+  const startMediaRecorder = useCallback(async () => {
+    try {
+      chunksRef.current = []
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true }
+      })
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus' : 'audio/webm',
+      })
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data)
+      }
+      mediaRecorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop())
+      }
+      mediaRecorderRef.current = mediaRecorder
+      mediaRecorder.start(250)
+      return true
+    } catch (err) {
+      console.error('[VoiceButton] MediaRecorder failed:', err)
+      return false
+    }
+  }, [])
+
+  /** Start recording */
+  const handleStart = useCallback(async () => {
+    setIsRecording(true)
+
+    let started = false
+    if (hasWebSpeech) {
+      started = startWebSpeech()
+      useWebSpeech.current = true
+    }
+    if (!started) {
+      started = await startMediaRecorder()
+      useWebSpeech.current = false
+    }
+
+    if (started) {
+      toast('🎤 Recording... Tap again to stop', {
+        icon: '🔴',
+        duration: 30000,
+        id: 'recording-toast',
+      })
+    } else {
+      setIsRecording(false)
+      toast.error('Could not access microphone')
+    }
+  }, [hasWebSpeech, startWebSpeech, startMediaRecorder])
+
+  /** Stop recording and process */
+  const handleStop = useCallback(async () => {
+    setIsRecording(false)
+    toast.dismiss('recording-toast')
+
+    if (useWebSpeech.current && recognitionRef.current) {
+      // Web Speech API path
+      recognitionRef.current.stop()
+      recognitionRef.current = null
+
+      const transcript = transcriptRef.current.trim()
+      if (transcript) {
+        toast.success(`🎤 "${transcript}"`, { duration: 2000 })
+        onTranscript(transcript)
+      } else {
+        toast.error(
+          language === 'hi' ? 'आवाज़ नहीं आई। फिर से बोलें।' :
+          language === 'mr' ? 'आवाज आली नाही. पुन्हा बोला.' :
+          'No speech detected. Please try again.',
+          { duration: 3000 }
+        )
+      }
+    } else if (mediaRecorderRef.current) {
+      // Sarvam API fallback path
+      setIsProcessing(true)
+      mediaRecorderRef.current.stop()
+
+      // Wait for chunks to finalize
+      await new Promise(r => setTimeout(r, 300))
+
+      const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' })
+      try {
+        const result = await speechToText(audioBlob, language || 'en')
+        if (result?.transcript?.trim()) {
+          toast.success(`🎤 "${result.transcript}"`, { duration: 2000 })
+          onTranscript(result.transcript.trim())
+        } else {
+          toast.error('Could not understand audio. Try speaking louder.', { duration: 3000 })
+        }
+      } catch (err) {
+        console.error('[VoiceButton] Sarvam STT error:', err)
+        toast.error('Voice recognition failed.')
+      } finally {
+        setIsProcessing(false)
+        mediaRecorderRef.current = null
+      }
+    }
+  }, [language, onTranscript])
 
   const handlePress = () => {
+    if (isProcessing) return
     if (isRecording) {
-      stopRecording()
+      handleStop()
     } else {
-      startRecording()
+      handleStart()
     }
   }
 
   if (isProcessing) {
     return (
-      <button
-        disabled
-        className="w-11 h-11 rounded-xl bg-surface-700 flex items-center justify-center"
-      >
+      <button disabled className="w-11 h-11 rounded-xl bg-surface-700 flex items-center justify-center">
         <FiLoader className="w-4 h-4 text-surface-400 animate-spin" />
       </button>
     )
@@ -58,12 +197,13 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
     <button
       onClick={handlePress}
       disabled={disabled}
-      title={isRecording ? 'Stop recording' : 'Start voice input'}
+      title={isRecording ? 'Stop & send' : 'Start voice input'}
       className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
         isRecording
-          ? 'bg-red-500 hover:bg-red-600 text-white animate-recording shadow-lg shadow-red-500/30'
+          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'
           : 'bg-surface-800 hover:bg-surface-700 text-surface-300 hover:text-white border border-surface-700/50'
       } disabled:opacity-30 disabled:cursor-not-allowed`}
+      style={isRecording ? { animation: 'pulse 1.5s ease-in-out infinite' } : {}}
     >
       {isRecording ? <FiMicOff className="w-4 h-4" /> : <FiMic className="w-4 h-4" />}
     </button>

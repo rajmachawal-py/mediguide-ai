@@ -6,17 +6,20 @@
 import { useRef, useEffect, useState } from 'react'
 import useChat from '../hooks/useChat'
 import useGeolocation from '../hooks/useGeolocation'
+import useVoiceAutoMode from '../hooks/useVoiceAutoMode'
 import ChatBubble from '../components/chat/ChatBubble'
 import ChatInput from '../components/chat/ChatInput'
 import VoiceButton from '../components/chat/VoiceButton'
 import ImageUploadButton from '../components/chat/ImageUploadButton'
+import VoiceAutoModeOverlay from '../components/chat/VoiceAutoModeOverlay'
 import UrgencyBanner from '../components/chat/UrgencyBanner'
 import LanguageBadge from '../components/chat/LanguageBadge'
 import EmergencyAlert from '../components/shared/EmergencyAlert'
 import Spinner from '../components/shared/Spinner'
-import { getNearbyHospitals } from '../services/api'
+import { getNearbyHospitals, textToSpeech } from '../services/api'
 import { generateHealthCard } from '../services/healthCardGenerator'
-import { FiRefreshCw, FiFileText, FiDownload } from 'react-icons/fi'
+import { playAudioBlob } from '../services/sarvam'
+import { FiRefreshCw, FiFileText, FiDownload, FiVolume2 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 const welcomeMessage = {
@@ -37,10 +40,28 @@ export default function ChatPage() {
   const [nearestHospital, setNearestHospital] = useState(null)
   const [isDownloading, setIsDownloading] = useState(false)
 
+  // Voice Auto-Mode
+  const { isAutoMode, phase, liveTranscript, startAutoMode, stopAutoMode } =
+    useVoiceAutoMode({ language, sendMessage, messages, isFinal, lat, lng })
+  const usedVoiceRef = useRef(false) // track if last input was voice
+
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
+
+  // Auto-play TTS when AI responds after voice input
+  useEffect(() => {
+    if (!usedVoiceRef.current) return
+    const lastMsg = messages[messages.length - 1]
+    if (lastMsg?.role === 'assistant' && lastMsg.content && !lastMsg.isError) {
+      usedVoiceRef.current = false // reset
+      // Play the AI response as audio
+      textToSpeech(lastMsg.content, language)
+        .then(audioBlob => playAudioBlob(audioBlob))
+        .catch(err => console.warn('TTS playback failed:', err))
+    }
+  }, [messages]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Trigger emergency alert when urgency is emergency
   useEffect(() => {
@@ -60,11 +81,13 @@ export default function ChatPage() {
   }, [urgency]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSend = (text) => {
+    usedVoiceRef.current = false
     sendMessage(text, lat, lng)
   }
 
   const handleVoiceTranscript = (transcript) => {
     if (transcript) {
+      usedVoiceRef.current = true // mark that voice was used
       sendMessage(transcript, lat, lng)
     }
   }
@@ -127,6 +150,20 @@ export default function ChatPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          {!isFinal && (
+            <button
+              onClick={isAutoMode ? stopAutoMode : startAutoMode}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                isAutoMode
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  : 'bg-primary-500/15 text-primary-400 border border-primary-500/30 hover:bg-primary-500/25'
+              }`}
+              title={isAutoMode ? 'Stop Voice Mode' : 'Start Voice Mode'}
+            >
+              <FiVolume2 className="w-3.5 h-3.5" />
+              {isAutoMode ? '🔴 Stop' : '🗣️ Voice'}
+            </button>
+          )}
           {messages.length > 0 && (
             <button onClick={resetChat} className="btn-ghost p-2" title="New chat">
               <FiRefreshCw className="w-4 h-4" />
@@ -198,7 +235,7 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Summary Button */}
+        {/* Generate & Download Health Card Button */}
         {isFinal && !summary && (
           <div className="flex justify-center py-2 animate-bounce-in">
             <button
@@ -209,26 +246,18 @@ export default function ChatPage() {
               <FiFileText className="w-4 h-4" />
               {language === 'hi' ? 'डॉक्टर के लिए रिपोर्ट बनाएं' :
                language === 'mr' ? 'डॉक्टरांसाठी अहवाल तयार करा' :
-               'Generate Doctor Summary'}
+               'Generate Doctor Report'}
             </button>
           </div>
         )}
 
-        {/* Doctor Summary */}
+        {/* Download Health Card (shown after summary generated) */}
         {summary && (
-          <div className="glass-card p-4 space-y-3 animate-slide-up">
-            <h3 className="text-sm font-bold text-primary-400 flex items-center gap-2">
-              <FiFileText className="w-4 h-4" /> Doctor-Ready Summary
-            </h3>
-            <pre className="text-xs text-surface-300 whitespace-pre-wrap font-sans leading-relaxed">
-              {typeof summary === 'string' ? summary : JSON.stringify(summary, null, 2)}
-            </pre>
-
-            {/* Download Health Card Button */}
+          <div className="flex justify-center py-2 animate-slide-up">
             <button
               onClick={handleDownloadHealthCard}
               disabled={isDownloading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm text-white transition-all duration-200 active:scale-95 disabled:opacity-50 shadow-lg"
+              className="w-full max-w-xs flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm text-white transition-all duration-200 active:scale-95 disabled:opacity-50 shadow-lg"
               style={{
                 background: 'linear-gradient(135deg, #16a34a, #15803d)',
                 boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
@@ -241,7 +270,7 @@ export default function ChatPage() {
                 </>
               ) : (
                 <>
-                  <FiDownload className="w-4 h-4" />
+                  <FiDownload className="w-5 h-5" />
                   {language === 'hi' ? '📄 हेल्थ कार्ड डाउनलोड करें' :
                    language === 'mr' ? '📄 आरोग्य कार्ड डाउनलोड करा' :
                    '📄 Download Health Card'}
@@ -260,11 +289,11 @@ export default function ChatPage() {
           <VoiceButton
             language={language}
             onTranscript={handleVoiceTranscript}
-            disabled={isLoading}
+            disabled={isLoading || isFinal}
           />
           <ImageUploadButton
             onImageCapture={handleImageCapture}
-            disabled={isLoading}
+            disabled={isLoading || isFinal}
           />
           <div className="flex-1">
             <ChatInput
@@ -275,6 +304,16 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+
+      {/* Voice Auto-Mode Overlay */}
+      {isAutoMode && (
+        <VoiceAutoModeOverlay
+          phase={phase}
+          liveTranscript={liveTranscript}
+          language={language}
+          onStop={stopAutoMode}
+        />
+      )}
 
       {/* Emergency Alert Overlay */}
       {showEmergency && (

@@ -15,7 +15,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | **Phase 3 — Frontend Core** | ✅ 100% Complete | Antigravity |
 | **Phase 4 — Advanced Features** | ✅ 100% Complete (except Appointments) | Antigravity |
 | **Phase 5 — Auth Migration & Bug Fixes** | ✅ 100% Complete | Lakshay + Antigravity |
-| **Phase 6 — Upcoming Features** | 🔲 Not Started | — |
+| **Phase 6 — Key Features** | ✅ 3/3 Complete (PDF + Scanner + Voice) | Aziz + Antigravity |
 
 ### ✅ Completed Files — DO NOT re-create or overwrite these
 
@@ -59,6 +59,16 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | `frontend/src/pages/HospitalPage.jsx` | ✅ Updated | Search radius increased to 30km |
 | `frontend/src/services/api.js` | ✅ Updated | STT field name fix (`audio` → `file`) |
 | `frontend/.env.local` | ✅ Updated | Supabase URL + anon key added |
+| `frontend/src/services/healthCardGenerator.js` | ✅ Updated | Professional PDF with html2canvas + jsPDF |
+| `frontend/src/components/chat/ImageUploadButton.jsx` | ✅ Updated | React Portal fix for image preview modal |
+| `frontend/src/components/chat/VoiceButton.jsx` | ✅ Updated | Dual-mode STT (Web Speech API + Sarvam fallback) |
+| `frontend/src/components/chat/VoiceAutoModeOverlay.jsx` | ✅ NEW | Full-screen hands-free voice mode overlay |
+| `frontend/src/hooks/useVoiceAutoMode.js` | ✅ NEW | Auto-mode loop: TTS → listen → STT → triage → repeat |
+| `frontend/src/hooks/useChat.js` | ✅ Updated | Fixed stale closure bug with loadingRef |
+| `frontend/src/pages/ChatPage.jsx` | ✅ Updated | Voice Mode toggle, TTS auto-play, report download |
+| `backend/app/prompts/triage_prompt.txt` | ✅ Updated | Language enforcement, tag priority rules |
+| `backend/app/services/gemini_service.py` | ✅ Updated | Multimodal image analysis, language tag stripping |
+| `backend/app/services/triage_service.py` | ✅ Updated | Urgency warning cleanup (suppress None pre-scan) |
 
 ### ⚠️ Team Coordination Rules
 
@@ -571,34 +581,102 @@ These SQL changes were applied directly in the Supabase SQL Editor and are **not
 
 ---
 
-## 🔲 Phase 6 — Upcoming Features *(NOT STARTED)*
+## ✅ Phase 6 — Key Features *(3/3 COMPLETE)*
 
-> Features to implement after all current bugs are resolved and core flow is stable.
+> Three high-impact features implemented to make the platform hackathon-ready.
 
-### 🌟 Tier 1 — High Impact, Feasible Now
+### ✅ Feature 1: PDF Health Card Generator
+
+**Status:** ✅ Complete | **Files:** `healthCardGenerator.js`, `ChatPage.jsx`
+
+After triage completes (`is_final=true`), user clicks **"Generate Doctor Report"** → **"Download Health Card"** → downloads a professional A4 PDF:
+
+- **Patient card** with name, age, gender + **urgency badge** (color-coded green/yellow/red)
+- **Clinical details table**: Chief complaint, duration, severity, associated symptoms, medical history, recommended specialty
+- **Uploaded symptom image** embedded if available
+- **AI assessment** summary section
+- **Urgency-specific advice** in the user's language
+- **Conversation log** excerpts
+- **Disclaimer** footer
+- Uses `html2canvas` + `jsPDF` for full Hindi/Marathi/Devanagari font support
+
+---
+
+### ✅ Feature 2: Visual Symptom Scanner (Gemini Vision)
+
+**Status:** ✅ Complete | **Files:** `ImageUploadButton.jsx`, `gemini_service.py`, `ChatPage.jsx`
+
+User uploads a photo of a symptom (rash, wound, swelling) during chat → image sent to Gemini 2.5 Flash Vision → AI analyzes image with conversation context:
+
+- **Camera/gallery picker** with `capture="environment"` for mobile
+- **Client-side compression** to max 1MB before upload
+- **Image preview modal** via React Portal (bypasses CSS transform conflicts)
+- **Multimodal analysis** using `model.generate_content()` with image `Part`
+- **Image thumbnails** displayed in chat bubbles
+- **Disclaimer** always included in visual analysis responses
+
+---
+
+### ✅ Feature 3: Voice Auto-Mode (Hands-Free Triage)
+
+**Status:** ✅ Complete | **Files:** `useVoiceAutoMode.js`, `VoiceAutoModeOverlay.jsx`, `VoiceButton.jsx`, `ChatPage.jsx`
+
+Fully hands-free triage loop activated via **🗣️ Voice** toggle in header:
+
+- **Welcome TTS** in user's language ("Hello, I am MediGuide. What symptoms...")
+- **Auto-listen** via Web Speech API (continuous mode with silence detection)
+- **Live transcript** displayed on overlay in real-time
+- **Auto-send** to triage after 2 seconds of silence
+- **Auto-play** AI response via Sarvam TTS (with browser `speechSynthesis` fallback)
+- **Loop** continues until triage is final → speaks completion → auto-stops
+- **Full-screen overlay** with animated indicators:
+  - 🟢 Green pulse = Listening
+  - 🔵 Blue pulse = AI Speaking
+  - 🟣 Purple spinner = Processing
+- **Stop button** to exit voice mode at any time
+
+Manual **🎤 mic button** also available with dual-mode STT:
+- Primary: Web Speech API (instant, no API call)
+- Fallback: MediaRecorder + Sarvam API
+
+---
+
+### Bug Fixes Applied During Phase 6
+
+| Bug | Root Cause | Fix |
+|-----|-----------|-----|
+| Language switching to Hindi mid-conversation | Gemini ignoring language tag | Strengthened prompt rules + `_strip_language_tags()` |
+| Image preview modal broken/tiny | CSS `backdrop-filter` breaking `position:fixed` | React Portal to `document.body` |
+| "Something went wrong" on image analysis | `chat.send_message()` rejecting multimodal | Switched to `model.generate_content()` |
+| Voice transcript silently dropped | Stale closure: `isLoading` in `useCallback` deps | Replaced with `loadingRef` (ref) |
+| Noisy urgency warning in backend logs | Pre-scan always passes `gemini_urgency=None` | Only warn when value is not `None` |
+| Raw JSON displayed as doctor summary | `buildCardHTML` used `white-space: pre-wrap` | Structured HTML table with labeled fields |
+
+---
+
+## 🔲 Future Features (Not Yet Implemented)
+
+### 🌟 Tier 1 — High Impact
 
 | # | Feature | Description | Difficulty |
 |---|---|---|---|
-| 1 | **📸 Visual Symptom Scanner** | Upload photos of rashes/injuries → Gemini Vision analyzes and adds to triage context | Medium |
-| 2 | **📄 Digital Health Card (PDF)** | Generate downloadable PDF with triage summary, urgency, symptoms — a "medical passport" for the hospital | Medium |
-| 3 | **🗣️ Fully Voice-First Mode** | Complete hands-free flow: speak → AI responds via TTS → user answers by voice. Zero screen reading. | Medium |
-| 4 | **💊 Medicine Reminder System** | After triage, suggest OTC medicines with push notification reminders at scheduled times | Medium |
+| 4 | **💊 Medicine Reminder System** | After triage, suggest OTC medicines with push notification reminders | Medium |
 
 ### 🌟 Tier 2 — SIH Differentiators
 
 | # | Feature | Description | Difficulty |
 |---|---|---|---|
-| 5 | **🏥 Live OPD Queue Tracker** | Show estimated wait times at hospitals (simulated with dynamic seed data) | Easy |
-| 6 | **🚨 SOS Panic Button** | One-tap: auto-call 108 + send GPS to caregiver + generate instant triage summary | Easy |
-| 7 | **📊 Health Timeline** | Visual timeline of past triage sessions — shows patterns like recurring symptoms | Medium |
-| 8 | **🌐 Offline Mode (PWA)** | Service Worker caches app shell + last 5 conversations for poor connectivity areas | Hard |
+| 5 | **🏥 Live OPD Queue Tracker** | Show estimated wait times at hospitals (simulated) | Easy |
+| 6 | **🚨 SOS Panic Button** | One-tap: auto-call 108 + send GPS to caregiver | Easy |
+| 7 | **📊 Health Timeline** | Visual timeline of past triage sessions | Medium |
+| 8 | **🌐 Offline Mode (PWA)** | Service Worker caches app shell + last 5 conversations | Hard |
 
 ### 🌟 Tier 3 — Wow Factor
 
 | # | Feature | Description | Difficulty |
 |---|---|---|---|
-| 9 | **🤖 WhatsApp Bot** | Same triage flow via WhatsApp Business API — reaches users without the app | Hard |
-| 10 | **📱 NFC/QR Hospital Check-in** | QR code with triage data → tap at hospital reception → pre-fill registration | Medium |
+| 9 | **🤖 WhatsApp Bot** | Same triage flow via WhatsApp Business API | Hard |
+| 10 | **📱 NFC/QR Hospital Check-in** | QR code with triage data → tap at hospital reception | Medium |
 
 ### 🔲 Appointment Booking (Existing Stub)
 - `backend/app/routers/appointment.py` — empty stub, needs implementation

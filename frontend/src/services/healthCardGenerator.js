@@ -3,7 +3,7 @@
  * Generates a professional, printable Health Card PDF from triage results.
  *
  * Approach: Renders a styled HTML card off-screen → html2canvas captures it
- * as a high-res image → jsPDF wraps it into a downloadable A5 PDF.
+ * as a high-res image → jsPDF wraps it into a downloadable A4 PDF.
  * This ensures full Hindi/Marathi/Devanagari support since the browser
  * handles all font rendering natively.
  */
@@ -17,14 +17,29 @@ const URGENCY_STYLES = {
   mild: {
     bg: '#dcfce7', border: '#16a34a', text: '#166534',
     emoji: '🟢', label: { hi: 'हल्का', mr: 'सौम्य', en: 'Mild' },
+    advice: {
+      hi: 'आपकी स्थिति गंभीर नहीं है। 1-3 दिन में डॉक्टर से मिलें।',
+      mr: 'तुमची स्थिती गंभीर नाही. 1-3 दिवसात डॉक्टरांना भेटा.',
+      en: 'Your condition is not serious. Visit a doctor within 1-3 days.',
+    },
   },
   moderate: {
     bg: '#fef9c3', border: '#ca8a04', text: '#854d0e',
     emoji: '🟡', label: { hi: 'मध्यम', mr: 'मध्यम', en: 'Moderate' },
+    advice: {
+      hi: 'कृपया 24 घंटे के भीतर डॉक्टर से मिलें।',
+      mr: 'कृपया 24 तासांच्या आत डॉक्टरांना भेटा.',
+      en: 'Please visit a doctor within 24 hours.',
+    },
   },
   emergency: {
     bg: '#fee2e2', border: '#dc2626', text: '#991b1b',
     emoji: '🔴', label: { hi: 'आपातकालीन', mr: 'आणीबाणी', en: 'Emergency' },
+    advice: {
+      hi: 'तुरंत अस्पताल जाएं या 108 पर एम्बुलेंस बुलाएं!',
+      mr: 'ताबडतोब रुग्णालयात जा किंवा 108 वर कॉल करा!',
+      en: 'Go to the hospital immediately or call 108 ambulance!',
+    },
   },
 }
 
@@ -35,16 +50,21 @@ const LABELS = {
   age:         { hi: 'उम्र', mr: 'वय', en: 'Age' },
   gender:      { hi: 'लिंग', mr: 'लिंग', en: 'Gender' },
   date:        { hi: 'दिनांक', mr: 'दिनांक', en: 'Date' },
-  urgency:     { hi: 'तात्कालिकता स्तर', mr: 'आपत्कालीन स्तर', en: 'Urgency Level' },
-  symptoms:    { hi: 'लक्षण विवरण', mr: 'लक्षणे', en: 'Reported Symptoms' },
+  urgency:     { hi: 'तात्कालिकता', mr: 'आपत्कालीन', en: 'Urgency Level' },
+  complaint:   { hi: 'मुख्य समस्या', mr: 'मुख्य तक्रार', en: 'Chief Complaint' },
+  duration:    { hi: 'कब से', mr: 'कालावधी', en: 'Duration' },
+  severity:    { hi: 'गंभीरता', mr: 'तीव्रता', en: 'Severity' },
+  symptoms:    { hi: 'संबंधित लक्षण', mr: 'संबंधित लक्षणे', en: 'Associated Symptoms' },
+  history:     { hi: 'चिकित्सा इतिहास', mr: 'वैद्यकीय इतिहास', en: 'Medical History' },
   assessment:  { hi: 'AI मूल्यांकन', mr: 'AI मूल्यांकन', en: 'AI Assessment' },
-  specialty:   { hi: 'सुझाई गई विशेषता', mr: 'सुचवलेले विशेष', en: 'Suggested Specialty' },
+  specialty:   { hi: 'सुझाई गई विशेषता', mr: 'सुचवलेले विशेष', en: 'Recommended Specialty' },
+  advice:      { hi: 'सलाह', mr: 'सल्ला', en: 'Advice' },
+  conversation: { hi: 'बातचीत सारांश', mr: 'संभाषण सारांश', en: 'Conversation Summary' },
   disclaimer:  {
-    hi: '⚠️ यह AI-सहायित ट्राइएज है, चिकित्सा निदान नहीं। कृपया डॉक्टर से परामर्श करें।',
-    mr: '⚠️ हे AI-सहाय्यित ट्रायएज आहे, वैद्यकीय निदान नाही. कृपया डॉक्टरांचा सल्ला घ्या.',
-    en: '⚠️ This is AI-assisted triage, not a medical diagnosis. Please consult a doctor.',
+    hi: '⚠️ यह AI-सहायित ट्राइएज रिपोर्ट है, चिकित्सा निदान नहीं। कृपया इसे अपने डॉक्टर को दिखाएं।',
+    mr: '⚠️ हे AI-सहाय्यित ट्रायएज अहवाल आहे, वैद्यकीय निदान नाही. कृपया डॉक्टरांना दाखवा.',
+    en: '⚠️ This is an AI-assisted triage report, not a medical diagnosis. Please show this to your doctor.',
   },
-  download:    { hi: 'डाउनलोड', mr: 'डाउनलोड', en: 'Download' },
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -59,20 +79,12 @@ function extractUserSymptoms(messages) {
     .map(m => m.content)
 }
 
-function formatSummary(summary) {
-  if (!summary) return ''
-  if (typeof summary === 'string') return summary
-
-  const parts = []
-  if (summary.chief_complaint) parts.push(`Chief Complaint: ${summary.chief_complaint}`)
-  if (summary.duration)        parts.push(`Duration: ${summary.duration}`)
-  if (summary.severity)        parts.push(`Severity: ${summary.severity}`)
-  if (summary.associated_symptoms?.length) {
-    parts.push(`Associated Symptoms: ${summary.associated_symptoms.join(', ')}`)
+/** Extract the user-uploaded image from the message history */
+function extractUserImage(messages) {
+  for (const msg of messages) {
+    if (msg.image) return msg.image
   }
-  if (summary.relevant_history) parts.push(`Relevant History: ${summary.relevant_history}`)
-  if (summary.full_summary)     parts.push(`\n${summary.full_summary}`)
-  return parts.join('\n')
+  return null
 }
 
 function formatDateTime(lang) {
@@ -88,6 +100,17 @@ function formatDateTime(lang) {
   }
 }
 
+/** Build an HTML row for a field (label: value) */
+function fieldRow(label, value) {
+  if (!value || value === '—') return ''
+  return `
+    <tr>
+      <td style="padding: 6px 12px; font-size: 11px; font-weight: 600; color: #64748b; white-space: nowrap; vertical-align: top; border-bottom: 1px solid #f1f5f9;">${label}</td>
+      <td style="padding: 6px 12px; font-size: 12px; color: #1e293b; border-bottom: 1px solid #f1f5f9;">${value}</td>
+    </tr>
+  `
+}
+
 // ── Build HTML Card ──────────────────────────────────────────
 
 function buildCardHTML({
@@ -96,133 +119,168 @@ function buildCardHTML({
   const lang = language || 'en'
   const urg = URGENCY_STYLES[urgency] || URGENCY_STYLES.mild
   const symptoms = extractUserSymptoms(messages)
-  const summaryText = formatSummary(summary)
+  const userImage = extractUserImage(messages)
   const specialty = urgencyData?.recommend_specialty || summary?.recommend_specialty || '—'
   const dateStr = formatDateTime(lang)
 
+  // Extract summary fields
+  const chiefComplaint = summary?.chief_complaint || symptoms[0] || '—'
+  const duration = summary?.duration || '—'
+  const severity = summary?.severity || '—'
+  const associatedSymptoms = summary?.associated_symptoms?.join(', ') || '—'
+  const relevantHistory = summary?.relevant_history || 'None reported'
+  const fullSummary = summary?.full_summary || ''
+
   return `
     <div id="mediguide-health-card" style="
-      width: 560px;
+      width: 620px;
       font-family: 'Inter', 'Noto Sans Devanagari', 'Segoe UI', system-ui, sans-serif;
       background: #ffffff;
       color: #1e293b;
       padding: 0;
-      border: 2px solid #1a6ff5;
-      border-radius: 16px;
-      overflow: hidden;
     ">
-      <!-- Header Bar -->
+      <!-- Header -->
       <div style="
-        background: linear-gradient(135deg, #1a6ff5, #1259e1, #a21caf);
+        background: linear-gradient(135deg, #1a6ff5, #1259e1, #7c3aed);
         color: white;
-        padding: 20px 24px;
-        text-align: center;
+        padding: 24px 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       ">
-        <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">
-          🏥 MediGuide ${L('title', lang)}
+        <div>
+          <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">
+            🏥 MediGuide ${L('title', lang)}
+          </div>
+          <div style="font-size: 11px; opacity: 0.75; margin-top: 4px;">
+            AI-Powered Healthcare Triage Report
+          </div>
         </div>
-        <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">
-          AI-Powered Healthcare Guidance
+        <div style="text-align: right; font-size: 10px; opacity: 0.7;">
+          ${dateStr}
         </div>
       </div>
 
       <!-- Body -->
-      <div style="padding: 20px 24px;">
+      <div style="padding: 20px 28px;">
 
-        <!-- Patient Info -->
-        <div style="
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 10px;
-          padding: 14px 16px;
-          margin-bottom: 16px;
-        ">
-          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
-            ${L('patient', lang)}
-          </div>
-          <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 120px;">
-              <span style="font-size: 10px; color: #94a3b8;">${L('name', lang)}</span><br/>
-              <span style="font-size: 14px; font-weight: 600;">${patientName || 'Patient'}</span>
+        <!-- Patient Info + Urgency Row -->
+        <div style="display: flex; gap: 16px; margin-bottom: 20px;">
+          <!-- Patient Card -->
+          <div style="
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+          ">
+            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;">
+              ${L('patient', lang)}
             </div>
-            <div>
-              <span style="font-size: 10px; color: #94a3b8;">${L('age', lang)}</span><br/>
-              <span style="font-size: 14px; font-weight: 600;">${age || '—'}</span>
+            <div style="font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
+              ${patientName || 'Patient'}
             </div>
-            <div>
-              <span style="font-size: 10px; color: #94a3b8;">${L('gender', lang)}</span><br/>
-              <span style="font-size: 14px; font-weight: 600;">${gender || '—'}</span>
-            </div>
-            <div>
-              <span style="font-size: 10px; color: #94a3b8;">${L('date', lang)}</span><br/>
-              <span style="font-size: 12px; font-weight: 600;">${dateStr}</span>
+            <div style="display: flex; gap: 20px; font-size: 11px; color: #64748b;">
+              <span>${L('age', lang)}: <strong>${age || '—'}</strong></span>
+              <span>${L('gender', lang)}: <strong>${gender || '—'}</strong></span>
             </div>
           </div>
-        </div>
 
-        <!-- Urgency Badge -->
-        <div style="
-          background: ${urg.bg};
-          border: 2px solid ${urg.border};
-          border-radius: 10px;
-          padding: 12px 16px;
-          margin-bottom: 16px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        ">
-          <span style="font-size: 28px;">${urg.emoji}</span>
-          <div>
+          <!-- Urgency Badge -->
+          <div style="
+            width: 160px;
+            background: ${urg.bg};
+            border: 2px solid ${urg.border};
+            border-radius: 10px;
+            padding: 14px 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+          ">
+            <div style="font-size: 28px; margin-bottom: 4px;">${urg.emoji}</div>
             <div style="font-size: 10px; font-weight: 700; color: ${urg.text}; text-transform: uppercase; letter-spacing: 1px;">
               ${L('urgency', lang)}
             </div>
-            <div style="font-size: 18px; font-weight: 800; color: ${urg.text};">
+            <div style="font-size: 16px; font-weight: 800; color: ${urg.text};">
               ${urg.label[lang] || urg.label.en}
             </div>
           </div>
         </div>
 
-        <!-- Symptoms -->
-        <div style="margin-bottom: 16px;">
-          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
-            ${L('symptoms', lang)}
+        <!-- Clinical Details Table -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 11px; font-weight: 700; color: #1a6ff5; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #1a6ff5;">
+            Clinical Details
           </div>
-          <ul style="margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.7; color: #334155;">
-            ${symptoms.map(s => `<li>${s}</li>`).join('')}
-          </ul>
+          <table style="width: 100%; border-collapse: collapse;">
+            ${fieldRow(L('complaint', lang), chiefComplaint)}
+            ${fieldRow(L('duration', lang), duration)}
+            ${fieldRow(L('severity', lang), severity)}
+            ${fieldRow(L('symptoms', lang), associatedSymptoms)}
+            ${fieldRow(L('history', lang), relevantHistory)}
+            ${fieldRow(L('specialty', lang), `<span style="text-transform: capitalize; font-weight: 600; color: #1a6ff5;">${specialty}</span>`)}
+          </table>
         </div>
 
-        <!-- AI Assessment -->
-        ${summaryText ? `
-        <div style="margin-bottom: 16px;">
-          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
-            ${L('assessment', lang)}
+        ${userImage ? `
+        <!-- Uploaded Image -->
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 11px; font-weight: 700; color: #1a6ff5; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #1a6ff5;">
+            Symptom Image
           </div>
-          <div style="font-size: 12px; line-height: 1.7; color: #334155; white-space: pre-wrap;">
-            ${summaryText}
+          <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; display: inline-block;">
+            <img src="${userImage}" style="max-width: 200px; max-height: 150px; object-fit: contain; display: block;" />
           </div>
         </div>
         ` : ''}
 
-        <!-- Suggested Specialty -->
+        <!-- AI Assessment -->
+        ${fullSummary ? `
+        <div style="margin-bottom: 20px;">
+          <div style="font-size: 11px; font-weight: 700; color: #1a6ff5; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid #1a6ff5;">
+            ${L('assessment', lang)}
+          </div>
+          <div style="
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 12px;
+            line-height: 1.7;
+            color: #334155;
+          ">
+            ${fullSummary}
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- Advice -->
         <div style="
-          background: #eff6ff;
-          border: 1px solid #bfdbfe;
+          background: ${urg.bg};
+          border: 1px solid ${urg.border};
           border-radius: 8px;
-          padding: 10px 14px;
+          padding: 12px 14px;
           margin-bottom: 16px;
+          font-size: 12px;
+          font-weight: 600;
+          color: ${urg.text};
           display: flex;
           align-items: center;
           gap: 8px;
         ">
-          <span style="font-size: 18px;">🩺</span>
-          <div>
-            <div style="font-size: 10px; color: #3b82f6; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
-              ${L('specialty', lang)}
-            </div>
-            <div style="font-size: 14px; font-weight: 700; color: #1e40af; text-transform: capitalize;">
-              ${specialty}
-            </div>
+          <span style="font-size: 16px;">💡</span>
+          ${urg.advice[lang] || urg.advice.en}
+        </div>
+
+        <!-- Conversation Log -->
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">
+            ${L('conversation', lang)}
+          </div>
+          <div style="font-size: 10px; color: #94a3b8; line-height: 1.6; max-height: 120px; overflow: hidden;">
+            ${symptoms.map((s, i) => `<div style="margin-bottom: 2px;"><strong>•</strong> ${s}</div>`).join('')}
           </div>
         </div>
 
@@ -244,12 +302,14 @@ function buildCardHTML({
       <div style="
         background: #f1f5f9;
         border-top: 1px solid #e2e8f0;
-        padding: 10px 24px;
-        text-align: center;
-        font-size: 10px;
+        padding: 10px 28px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 9px;
         color: #94a3b8;
       ">
-        Generated by MediGuide AI • ${dateStr}
+        <span>Generated by MediGuide AI</span>
+        <span>${dateStr}</span>
       </div>
     </div>
   `
@@ -292,18 +352,18 @@ export async function generateHealthCard(params) {
       logging: false,
     })
 
-    // 4. Convert to PDF (A5 portrait: 148 × 210 mm)
+    // 4. Convert to PDF (A4 portrait: 210 × 297 mm)
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a5',
+      format: 'a4',
     })
 
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const pdfHeight = pdf.internal.pageSize.getHeight()
 
-    // Fit card image to A5 with margins
-    const margin = 6
+    // Fit card image to A4 with margins
+    const margin = 8
     const imgWidth = pdfWidth - margin * 2
     const imgHeight = (canvas.height / canvas.width) * imgWidth
 

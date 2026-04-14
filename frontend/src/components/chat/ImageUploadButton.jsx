@@ -2,9 +2,12 @@
  * MediGuide AI — ImageUploadButton
  * Camera/gallery button for uploading symptom images.
  * Compresses to max 1MB, converts to base64, shows preview.
+ * Uses React Portal so the preview overlay renders at document.body level
+ * (avoids CSS transform/backdrop-filter breaking position:fixed).
  */
 
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { FiCamera, FiX, FiSend } from 'react-icons/fi'
 
 const MAX_SIZE_BYTES = 1024 * 1024 // 1MB
@@ -54,6 +57,128 @@ async function compressImage(file) {
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+/** Full-screen preview overlay rendered via Portal */
+function PreviewOverlay({ preview, onSend, onCancel }) {
+  return createPortal(
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backdropFilter: 'blur(8px)',
+        padding: '24px',
+      }}
+      onClick={onCancel}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '380px',
+          backgroundColor: 'rgba(30, 41, 59, 0.95)',
+          border: '1px solid rgba(71, 85, 105, 0.5)',
+          borderRadius: '16px',
+          padding: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: 0 }}>
+            📸 Symptom Image
+          </h3>
+          <button
+            onClick={onCancel}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+            }}
+          >
+            <FiX size={20} />
+          </button>
+        </div>
+
+        {/* Image preview */}
+        <div
+          style={{
+            borderRadius: '12px',
+            overflow: 'hidden',
+            border: '1px solid rgba(71, 85, 105, 0.5)',
+            backgroundColor: '#0f172a',
+          }}
+        >
+          <img
+            src={preview}
+            alt="Symptom preview"
+            style={{
+              width: '100%',
+              maxHeight: '280px',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+        </div>
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={onCancel}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              borderRadius: '12px',
+              backgroundColor: '#1e293b',
+              color: '#94a3b8',
+              fontSize: '14px',
+              fontWeight: 500,
+              border: '1px solid rgba(71, 85, 105, 0.5)',
+              cursor: 'pointer',
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSend}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              borderRadius: '12px',
+              backgroundColor: '#2563eb',
+              color: '#fff',
+              fontSize: '14px',
+              fontWeight: 600,
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+            }}
+          >
+            <FiSend size={16} />
+            Analyze
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
 }
 
 export default function ImageUploadButton({ onImageCapture, disabled }) {
@@ -106,42 +231,13 @@ export default function ImageUploadButton({ onImageCapture, disabled }) {
         className="hidden"
       />
 
-      {/* Preview overlay */}
+      {/* Preview overlay — rendered via Portal at document.body */}
       {preview && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="glass-card p-4 max-w-sm w-full space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-white">📸 Symptom Image</h3>
-              <button onClick={handleCancel} className="text-surface-400 hover:text-white p-1">
-                <FiX className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="rounded-xl overflow-hidden border border-surface-700/50">
-              <img
-                src={preview}
-                alt="Symptom preview"
-                className="w-full max-h-[300px] object-contain bg-surface-900"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={handleCancel}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-surface-800 text-surface-300 text-sm font-medium hover:bg-surface-700 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSend}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-all active:scale-95 shadow-lg shadow-primary-600/20"
-              >
-                <FiSend className="w-4 h-4" />
-                Analyze
-              </button>
-            </div>
-          </div>
-        </div>
+        <PreviewOverlay
+          preview={preview}
+          onSend={handleSend}
+          onCancel={handleCancel}
+        />
       )}
 
       {/* Camera button */}

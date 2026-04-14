@@ -106,7 +106,8 @@ def classify_urgency(
         return gemini_urgency  # type: ignore
 
     # 4. Safe default if Gemini returned nothing
-    logger.warning(f"Gemini urgency was None/invalid: '{gemini_urgency}' → defaulting to 'moderate'")
+    if gemini_urgency is not None:
+        logger.warning(f"Gemini urgency was invalid: '{gemini_urgency}' → defaulting to 'moderate'")
     return "moderate"
 
 

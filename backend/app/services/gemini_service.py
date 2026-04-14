@@ -221,16 +221,26 @@ async def ask_triage(
             text_content = f"{language_hint}\n{symptom_text}" if language_hint else symptom_text
             message_parts.append(Part.from_text(text_content))
 
-        response = chat.send_message(message_parts)
+        # For image+text, use generate_content directly (chat sessions can fail with multimodal)
+        if image_base64 and len(message_parts) > 1:
+            response = model.generate_content(message_parts)
+        else:
+            response = chat.send_message(message_parts)
+
         raw_text = response.text
+
+        # Strip language instruction tags that Gemini sometimes echoes back
+        raw_text = _strip_language_tags(raw_text)
 
         # Parse if a JSON result block is embedded
         result_json = _extract_json_block(raw_text)
 
         if result_json and result_json.get("type") == "result":
+            patient_msg = result_json.get("patient_message", raw_text)
+            patient_msg = _strip_language_tags(patient_msg)
             # Final triage result
             return {
-                "message": result_json.get("patient_message", raw_text),
+                "message": patient_msg,
                 "is_final": True,
                 "urgency": result_json.get("urgency"),
                 "recommend_specialty": result_json.get("recommend_specialty"),
@@ -253,7 +263,7 @@ async def ask_triage(
             }
 
     except Exception as e:
-        logger.error(f"Gemini triage error: {e}")
+        logger.error(f"Gemini triage error: {e}", exc_info=True)
         raise
 
 
@@ -343,6 +353,18 @@ async def explain_scheme(
 
 
 # ── Utility ───────────────────────────────────────────────────
+
+def _strip_language_tags(text: str) -> str:
+    """
+    Remove language instruction tags that Gemini sometimes echoes back.
+    E.g. "[User's language: English. Respond in English only.]\nActual response"
+    """
+    # Remove [User's language: ...] tags
+    text = re.sub(r"\[User's language:.*?\]\s*", "", text, flags=re.IGNORECASE)
+    # Remove [User has uploaded an image...] tags
+    text = re.sub(r"\[User has uploaded.*?\]\s*", "", text, flags=re.IGNORECASE | re.DOTALL)
+    return text.strip()
+
 
 def _extract_json_block(text: str) -> Optional[dict]:
     """

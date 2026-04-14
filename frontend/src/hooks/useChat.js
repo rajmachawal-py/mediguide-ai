@@ -1,8 +1,3 @@
-/**
- * MediGuide AI — useChat Hook
- * Manages chat state, triage flow, and conversation history.
- */
-
 import { useState, useCallback, useRef } from 'react'
 import { sendTriage, generateSummary } from '../services/api'
 
@@ -17,6 +12,7 @@ export default function useChat() {
   const [summary, setSummary] = useState(null)
   const [language, setLanguage] = useState(() => localStorage.getItem('mediguide_lang') || 'hi')
   const abortRef = useRef(null)
+  const loadingRef = useRef(false) // ref to avoid stale closure
 
   /** Update and persist language preference. */
   const changeLanguage = useCallback((lang) => {
@@ -34,16 +30,21 @@ export default function useChat() {
 
   /** Send a user message and get AI triage response. */
   const sendMessage = useCallback(async (text, lat = null, lng = null, imageBase64 = null) => {
-    if (!text.trim() || isLoading) return
+    console.log('[useChat] sendMessage called:', { text, isLoading: loadingRef.current })
+    if (!text.trim() || loadingRef.current) {
+      console.log('[useChat] Blocked — empty text or already loading')
+      return
+    }
 
     const userMsg = {
       role: 'user',
       content: text.trim(),
       timestamp: Date.now(),
-      image: imageBase64 || null, // store image for ChatBubble display
+      image: imageBase64 || null,
     }
     setMessages(prev => [...prev, userMsg])
     setIsLoading(true)
+    loadingRef.current = true
 
     try {
       const history = buildHistory([...messages, userMsg])
@@ -86,8 +87,9 @@ export default function useChat() {
       throw error
     } finally {
       setIsLoading(false)
+      loadingRef.current = false
     }
-  }, [messages, language, isLoading, buildHistory])
+  }, [messages, language, buildHistory])
 
   /** Generate doctor-ready summary from conversation. */
   const getSummary = useCallback(async () => {
