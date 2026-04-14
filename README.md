@@ -448,7 +448,7 @@ Open **http://localhost:5173** — the Vite dev server proxies API calls to `loc
 
 ## 👥 Team
 
-Built by **Team MediGuide** for **Smart India Hackathon (SIH)**.
+Built by **Hack Rats**.
 
 ---
 
