@@ -109,18 +109,18 @@ Family health monitoring:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    User (Mobile / Desktop)                │
-│                                                          │
-│   ┌──────────┐   ┌──────────┐   ┌───────────────────┐  │
-│   │  🎙️ Voice  │   │  💬 Chat  │   │  🏥 Hospital Find │  │
-│   │   Input   │   │  Input   │   │  + Indoor Map     │  │
-│   └─────┬────┘   └─────┬────┘   └────────┬──────────┘  │
+│                    User (Mobile / Desktop)              │
+│                                                         │
+│   ┌──────────┐   ┌──────────┐   ┌───────────────────┐   │
+│   │   Voice  │   │   Chat   │   │   Hospital Find   │   │
+│   │   Input  │   │  Input   │   │  + Indoor Map     │   │
+│   └─────┬────┘   └─────┬────┘   └────────┬──────────┘   │
 └─────────┼──────────────┼─────────────────┼──────────────┘
           │              │                 │
           ▼              ▼                 ▼
 ┌─────────────────────────────────────────────────────────┐
-│                   FastAPI Backend (Python)                │
-│                                                          │
+│                   FastAPI Backend (Python)              │
+│                                                         │
 │  ┌────────────┐  ┌──────────────┐  ┌─────────────────┐  │
 │  │ Sarvam AI  │  │  Gemini 2.5  │  │  Navigation     │  │
 │  │ STT / TTS  │  │  Flash Lite  │  │  (BFS Router)   │  │
@@ -129,15 +129,15 @@ Family health monitoring:
 │  │ bulbul:v3  │  │ • Summary    │  │ • Shortest Path │  │
 │  │            │  │ • Schemes    │  │ • Multi-floor   │  │
 │  └────────────┘  └──────────────┘  └─────────────────┘  │
-│                         │                                │
-│                         ▼                                │
+│                         │                               │
+│                         ▼                               │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │           Supabase (PostgreSQL + Auth)            │   │
-│  │                                                   │   │
-│  │  • profiles     • hospitals     • departments     │   │
-│  │  • indoor_map_nodes / edges    • schemes          │   │
-│  │  • caregiver_links  • appointments                │   │
-│  │  • Row Level Security (RLS)   • Auth triggers     │   │
+│  │           Supabase (PostgreSQL + Auth)           │   │
+│  │                                                  │   │
+│  │  • profiles     • hospitals     • departments    │   │
+│  │  • indoor_map_nodes / edges    • schemes         │   │
+│  │  • caregiver_links  • appointments               │   │
+│  │  • Row Level Security (RLS)   • Auth triggers    │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
