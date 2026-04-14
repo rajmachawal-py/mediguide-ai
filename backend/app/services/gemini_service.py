@@ -1,19 +1,20 @@
 """
-MediGuide AI — Gemini AI Service
-Handles all interactions with the Google Gemini API.
+MediGuide AI — Gemini AI Service (Vertex AI)
+Handles all interactions with Google Gemini via the Vertex AI SDK.
 - Triage conversations (multilingual symptom assessment)
 - Doctor-ready symptom summaries
 - Government scheme explanations
+
+Uses service account authentication (no API key needed).
 """
 
 import json
+import os
 import re
 import logging
 from pathlib import Path
 from functools import lru_cache
 from typing import Optional
-
-import google.generativeai as genai
 
 from app.config import settings
 
@@ -21,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 # ── Gemini Model Configuration ───────────────────────────────
 
-TRIAGE_MODEL = "gemini-2.5-flash-lite"  # fast responses for chat
-SUMMARY_MODEL = "gemini-2.5-flash-lite" # structured JSON output
+TRIAGE_MODEL = "gemini-2.5-flash"       # full model for accurate triage
+SUMMARY_MODEL = "gemini-2.5-flash"      # structured JSON output
 
 
 # ── Prompt Loader ────────────────────────────────────────────
@@ -39,35 +40,74 @@ def _load_prompt(filename: str) -> str:
     return path.read_text(encoding="utf-8").strip()
 
 
-# ── Gemini Client Init ────────────────────────────────────────
+# ── Vertex AI Initialization ─────────────────────────────────
 
-def _get_triage_model() -> genai.GenerativeModel:
-    """Returns a configured Gemini model with the triage system prompt."""
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    system_prompt = _load_prompt("triage_prompt.txt")
-    return genai.GenerativeModel(
-        model_name=TRIAGE_MODEL,
-        system_instruction=system_prompt,
-        generation_config=genai.GenerationConfig(
-            temperature=0.4,        # low temp for consistent medical responses
-            max_output_tokens=1024,
-        ),
-        safety_settings=[
-            # Allow medical content — Gemini blocks some health topics by default
-            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"},
-            {"category": "HARM_CATEGORY_HARASSMENT",        "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            {"category": "HARM_CATEGORY_HATE_SPEECH",       "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-        ],
+_vertex_initialized = False
+
+
+def _ensure_vertex_init():
+    """Initialize Vertex AI SDK with service account credentials (once)."""
+    global _vertex_initialized
+    if _vertex_initialized:
+        return
+
+    # Set credentials environment variable if configured
+    if settings.GOOGLE_APPLICATION_CREDENTIALS:
+        cred_path = settings.GOOGLE_APPLICATION_CREDENTIALS
+        # Handle relative paths (relative to backend/ directory)
+        if not os.path.isabs(cred_path):
+            cred_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                cred_path
+            )
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred_path
+        logger.info(f"Vertex AI credentials set: {os.path.basename(cred_path)}")
+
+    import vertexai
+    vertexai.init(
+        project=settings.GCP_PROJECT_ID,
+        location=settings.GCP_LOCATION,
+    )
+    _vertex_initialized = True
+    logger.info(
+        f"Vertex AI initialized | project={settings.GCP_PROJECT_ID} | "
+        f"location={settings.GCP_LOCATION} | model={TRIAGE_MODEL}"
     )
 
 
-def _get_summary_model() -> genai.GenerativeModel:
+# ── Gemini Client Init ────────────────────────────────────────
+
+def _get_triage_model():
+    """Returns a configured Gemini model with the triage system prompt."""
+    _ensure_vertex_init()
+    from vertexai.generative_models import GenerativeModel, GenerationConfig, HarmCategory, HarmBlockThreshold
+
+    system_prompt = _load_prompt("triage_prompt.txt")
+    return GenerativeModel(
+        model_name=TRIAGE_MODEL,
+        system_instruction=system_prompt,
+        generation_config=GenerationConfig(
+            temperature=0.4,        # low temp for consistent medical responses
+            max_output_tokens=1024,
+        ),
+        safety_settings={
+            # Allow medical content — Gemini blocks some health topics by default
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+    )
+
+
+def _get_summary_model():
     """Returns a Gemini model configured for structured JSON output."""
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    return genai.GenerativeModel(
+    _ensure_vertex_init()
+    from vertexai.generative_models import GenerativeModel, GenerationConfig
+
+    return GenerativeModel(
         model_name=SUMMARY_MODEL,
-        generation_config=genai.GenerationConfig(
+        generation_config=GenerationConfig(
             temperature=0.1,        # near-zero for deterministic JSON output
             max_output_tokens=512,
         ),
@@ -83,13 +123,14 @@ def _build_gemini_history(history: list[dict]) -> list[dict]:
     Frontend format:  [{"role": "user"|"assistant", "content": "..."}]
     Gemini format:    [{"role": "user"|"model",      "parts": [{"text": "..."}]}]
     """
+    from vertexai.generative_models import Content, Part
+
     gemini_history = []
     for msg in history:
         role = "model" if msg["role"] == "assistant" else "user"
-        gemini_history.append({
-            "role": role,
-            "parts": [{"text": msg["content"]}],
-        })
+        gemini_history.append(
+            Content(role=role, parts=[Part.from_text(msg["content"])])
+        )
     return gemini_history
 
 

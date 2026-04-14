@@ -21,8 +21,11 @@ class Settings(BaseSettings):
         extra="ignore",             # silently ignore extra vars in .env
     )
 
-    # ── Google Gemini AI ─────────────────────────────────────
-    GEMINI_API_KEY: str
+    # ── Google Gemini AI (via Vertex AI) ────────────────────
+    GEMINI_API_KEY: str = ""                 # Legacy — not needed with Vertex AI
+    GCP_PROJECT_ID: str = ""                 # Google Cloud project ID
+    GCP_LOCATION: str = "us-central1"        # Vertex AI region
+    GOOGLE_APPLICATION_CREDENTIALS: str = "" # Path to service account JSON
 
     # ── Supabase ─────────────────────────────────────────────
     SUPABASE_URL: str

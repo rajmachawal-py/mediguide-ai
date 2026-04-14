@@ -97,7 +97,7 @@ Family health monitoring:
 | **Frontend** | React 18 + Vite 6 + TailwindCSS 3 | SPA with dark glassmorphism UI |
 | **Backend** | Python FastAPI | REST API with async support |
 | **Database** | Supabase (PostgreSQL) | DB + Auth + RLS + Realtime |
-| **AI Engine** | Google Gemini 2.5 Flash Lite | Symptom triage, summaries, scheme matching |
+| **AI Engine** | Google Gemini 2.5 Flash | Symptom triage, summaries, scheme matching |
 | **Voice** | Sarvam AI (saaras:v3 / bulbul:v3) | Hindi, Marathi, English STT & TTS |
 | **Maps** | Google Maps JavaScript API | Hospital discovery, directions |
 | **Notifications** | Firebase Cloud Messaging | Caregiver push notifications |

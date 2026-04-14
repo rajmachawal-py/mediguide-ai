@@ -32,7 +32,7 @@ A full-stack multilingual healthcare navigation assistant built with FastAPI (Py
 | `backend/app/prompts/triage_prompt.txt` | ✅ Done | Multilingual triage nurse + emergency rules |
 | `backend/app/prompts/summary_prompt.txt` | ✅ Done | Doctor-ready summary schema |
 | `backend/app/prompts/scheme_prompt.txt` | ✅ Done | Scheme explanation in user's language |
-| `backend/app/services/gemini_service.py` | ✅ Updated | Model upgraded to `gemini-2.5-flash-lite` (2.0-flash-lite deprecated) |
+| `backend/app/services/gemini_service.py` | ✅ Updated | Model: `gemini-2.5-flash` (service account auth) |
 | `backend/app/services/triage_service.py` | ✅ Done | classify_urgency + keyword rules in 3 languages |
 | `backend/app/models/chat_models.py` | ✅ Done | All Pydantic models for chat/triage/summary |
 | `backend/app/models/user_models.py` | ✅ Updated | Added `email` field to `UserProfile` |
@@ -144,7 +144,7 @@ uvicorn main:app --reload
 #### [DONE] `backend/app/services/gemini_service.py`
 - `ask_triage()`, `generate_summary()`, `explain_scheme()`
 - Chat session with full history, `_extract_json_block()` parser, medical safety settings
-- **Model: `gemini-2.5-flash-lite`** (migrated from deprecated `gemini-2.0-flash-lite` on 2026-04-13)
+- **Model: `gemini-2.5-flash`** (service account auth)
 
 #### [DONE] `backend/app/services/triage_service.py`
 - `classify_urgency()` — dual-layer: keyword rules + AI (rules can only escalate, never downgrade)
@@ -469,7 +469,7 @@ GOOGLE_MAPS_API_KEY=your_key_here
 
 #### 🐛 Bug 1: Gemini Model Deprecation
 - **Error**: `429 Resource Exhausted` → then `gemini-2.0-flash-lite` deprecated (shutdown June 2026)
-- **Fix**: Migrated from `gemini-2.0-flash` → `gemini-1.5-flash` → `gemini-2.0-flash-lite` → **`gemini-2.5-flash-lite`** (current)
+- **Fix**: Migrated from `gemini-2.0-flash` → `gemini-1.5-flash` → `gemini-2.0-flash-lite` → `gemini-2.5-flash-lite` → **`gemini-2.5-flash`** (current)
 - **File**: `backend/app/services/gemini_service.py` — `TRIAGE_MODEL` and `SUMMARY_MODEL`
 
 #### 🐛 Bug 2: Frontend Missing Supabase Credentials
