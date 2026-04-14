@@ -19,6 +19,7 @@ class ChatMessage(BaseModel):
     """A single turn in the conversation history."""
     role:    MessageRole = Field(..., description="Who sent this message")
     content: str         = Field(..., description="The message text", min_length=1)
+    image_base64: Optional[str] = Field(default=None, description="Base64-encoded image data (for vision analysis)")
 
 
 # ── Triage Endpoint ───────────────────────────────────────────
@@ -31,6 +32,9 @@ class TriageRequest(BaseModel):
     symptom:  str          = Field(..., description="User's current message (symptom or answer)", min_length=1)
     language: LanguageCode = Field(default="hi", description="User's preferred language")
     history:  list[ChatMessage] = Field(default=[], description="Previous conversation turns")
+
+    # Optional image for visual symptom analysis (Gemini Vision)
+    image_base64: Optional[str] = Field(default=None, description="Base64-encoded image for visual analysis")
 
     # Optional geolocation — used to find nearest emergency hospital if urgency=emergency
     lat: Optional[float] = Field(default=None, description="User latitude (optional)")

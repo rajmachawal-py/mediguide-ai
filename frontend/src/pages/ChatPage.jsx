@@ -9,12 +9,15 @@ import useGeolocation from '../hooks/useGeolocation'
 import ChatBubble from '../components/chat/ChatBubble'
 import ChatInput from '../components/chat/ChatInput'
 import VoiceButton from '../components/chat/VoiceButton'
+import ImageUploadButton from '../components/chat/ImageUploadButton'
 import UrgencyBanner from '../components/chat/UrgencyBanner'
 import LanguageBadge from '../components/chat/LanguageBadge'
 import EmergencyAlert from '../components/shared/EmergencyAlert'
 import Spinner from '../components/shared/Spinner'
 import { getNearbyHospitals } from '../services/api'
-import { FiRefreshCw, FiFileText } from 'react-icons/fi'
+import { generateHealthCard } from '../services/healthCardGenerator'
+import { FiRefreshCw, FiFileText, FiDownload } from 'react-icons/fi'
+import toast from 'react-hot-toast'
 
 const welcomeMessage = {
   hi: 'नमस्ते! मैं MediGuide AI हूँ। आप अपने लक्षण बताइए, मैं आपकी मदद करूँगा। 🏥',
@@ -32,6 +35,7 @@ export default function ChatPage() {
   const messagesEndRef = useRef(null)
   const [showEmergency, setShowEmergency] = useState(false)
   const [nearestHospital, setNearestHospital] = useState(null)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -62,6 +66,44 @@ export default function ChatPage() {
   const handleVoiceTranscript = (transcript) => {
     if (transcript) {
       sendMessage(transcript, lat, lng)
+    }
+  }
+
+  /** Handle image capture from ImageUploadButton. */
+  const handleImageCapture = (base64DataUrl) => {
+    const defaultText = language === 'hi'
+      ? 'कृपया इस चित्र का विश्लेषण करें'
+      : language === 'mr'
+        ? 'कृपया या चित्राचे विश्लेषण करा'
+        : 'Please analyze this image of my symptom'
+    sendMessage(defaultText, lat, lng, base64DataUrl)
+  }
+
+  /** Download Health Card as PDF. */
+  const handleDownloadHealthCard = async () => {
+    if (isDownloading) return
+    setIsDownloading(true)
+    try {
+      await generateHealthCard({
+        patientName: localStorage.getItem('mediguide_patient_name') || 'Patient',
+        age: localStorage.getItem('mediguide_patient_age') || '',
+        gender: localStorage.getItem('mediguide_patient_gender') || '',
+        language,
+        urgency,
+        urgencyData,
+        messages,
+        summary,
+      })
+      toast.success(
+        language === 'hi' ? 'हेल्थ कार्ड डाउनलोड हो गया!' :
+        language === 'mr' ? 'आरोग्य कार्ड डाउनलोड झाले!' :
+        'Health Card downloaded!'
+      )
+    } catch (err) {
+      console.error('Health Card generation failed:', err)
+      toast.error('Failed to generate Health Card')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -174,13 +216,38 @@ export default function ChatPage() {
 
         {/* Doctor Summary */}
         {summary && (
-          <div className="glass-card p-4 space-y-2 animate-slide-up">
+          <div className="glass-card p-4 space-y-3 animate-slide-up">
             <h3 className="text-sm font-bold text-primary-400 flex items-center gap-2">
               <FiFileText className="w-4 h-4" /> Doctor-Ready Summary
             </h3>
             <pre className="text-xs text-surface-300 whitespace-pre-wrap font-sans leading-relaxed">
               {typeof summary === 'string' ? summary : JSON.stringify(summary, null, 2)}
             </pre>
+
+            {/* Download Health Card Button */}
+            <button
+              onClick={handleDownloadHealthCard}
+              disabled={isDownloading}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm text-white transition-all duration-200 active:scale-95 disabled:opacity-50 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #16a34a, #15803d)',
+                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
+              }}
+            >
+              {isDownloading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  {language === 'hi' ? 'बना रहे हैं...' : language === 'mr' ? 'तयार करत आहे...' : 'Generating...'}
+                </>
+              ) : (
+                <>
+                  <FiDownload className="w-4 h-4" />
+                  {language === 'hi' ? '📄 हेल्थ कार्ड डाउनलोड करें' :
+                   language === 'mr' ? '📄 आरोग्य कार्ड डाउनलोड करा' :
+                   '📄 Download Health Card'}
+                </>
+              )}
+            </button>
           </div>
         )}
 
@@ -193,6 +260,10 @@ export default function ChatPage() {
           <VoiceButton
             language={language}
             onTranscript={handleVoiceTranscript}
+            disabled={isLoading}
+          />
+          <ImageUploadButton
+            onImageCapture={handleImageCapture}
             disabled={isLoading}
           />
           <div className="flex-1">

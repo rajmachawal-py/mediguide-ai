@@ -11,6 +11,7 @@ Uses service account authentication (no API key needed).
 import json
 import os
 import re
+import base64
 import logging
 from pathlib import Path
 from functools import lru_cache
@@ -140,14 +141,17 @@ async def ask_triage(
     symptom_text: str,
     language: str,
     history: list[dict],
+    image_base64: str = None,
 ) -> dict:
     """
     Send a user message to Gemini for triage assessment.
+    Supports multimodal input when an image is provided.
 
     Args:
         symptom_text: The user's current message (symptom description or answer)
         language:     Language code — "hi" | "mr" | "en"
         history:      Previous conversation turns [{"role": ..., "content": ...}]
+        image_base64: Optional base64-encoded image for visual symptom analysis
 
     Returns:
         {
@@ -162,6 +166,8 @@ async def ask_triage(
         }
     """
     try:
+        from vertexai.generative_models import Part
+
         model = _get_triage_model()
         gemini_history = _build_gemini_history(history)
 
@@ -175,9 +181,47 @@ async def ask_triage(
             "en": "[User's language: English. Respond in English only.]",
         }.get(language, "")
 
-        full_message = f"{language_hint}\n{symptom_text}" if language_hint else symptom_text
+        # Build message parts
+        message_parts = []
 
-        response = chat.send_message(full_message)
+        # If image is provided, add vision analysis instructions + image Part
+        if image_base64:
+            vision_prompt = (
+                "[User has uploaded an image of their symptom. Analyze the image and "
+                "incorporate your visual assessment into the triage. Describe what you "
+                "see in the image in the user's language. If it's a skin condition, "
+                "describe the appearance and suggest possible conditions. "
+                "Always add a disclaimer that visual AI analysis is not a clinical diagnosis.]"
+            )
+            text_content = f"{language_hint}\n{vision_prompt}\n{symptom_text}" if language_hint else f"{vision_prompt}\n{symptom_text}"
+            message_parts.append(Part.from_text(text_content))
+
+            # Decode base64 image and attach as Part
+            try:
+                # Strip data URL prefix if present (e.g. "data:image/jpeg;base64,...")
+                img_data = image_base64
+                mime_type = "image/jpeg"  # default
+                if img_data.startswith("data:"):
+                    header, img_data = img_data.split(",", 1)
+                    if "image/png" in header:
+                        mime_type = "image/png"
+                    elif "image/webp" in header:
+                        mime_type = "image/webp"
+
+                image_bytes = base64.b64decode(img_data)
+                message_parts.append(
+                    Part.from_data(data=image_bytes, mime_type=mime_type)
+                )
+                logger.info(f"Image attached to triage | size={len(image_bytes)} bytes | mime={mime_type}")
+            except Exception as img_err:
+                logger.warning(f"Failed to decode image, sending text-only: {img_err}")
+                # Fall through — text-only if image parsing fails
+        else:
+            # Text-only message
+            text_content = f"{language_hint}\n{symptom_text}" if language_hint else symptom_text
+            message_parts.append(Part.from_text(text_content))
+
+        response = chat.send_message(message_parts)
         raw_text = response.text
 
         # Parse if a JSON result block is embedded

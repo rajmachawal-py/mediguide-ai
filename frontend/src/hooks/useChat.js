@@ -33,16 +33,21 @@ export default function useChat() {
   }, [])
 
   /** Send a user message and get AI triage response. */
-  const sendMessage = useCallback(async (text, lat = null, lng = null) => {
+  const sendMessage = useCallback(async (text, lat = null, lng = null, imageBase64 = null) => {
     if (!text.trim() || isLoading) return
 
-    const userMsg = { role: 'user', content: text.trim(), timestamp: Date.now() }
+    const userMsg = {
+      role: 'user',
+      content: text.trim(),
+      timestamp: Date.now(),
+      image: imageBase64 || null, // store image for ChatBubble display
+    }
     setMessages(prev => [...prev, userMsg])
     setIsLoading(true)
 
     try {
       const history = buildHistory([...messages, userMsg])
-      const response = await sendTriage(text.trim(), language, history, lat, lng)
+      const response = await sendTriage(text.trim(), language, history, lat, lng, imageBase64)
 
       const aiMsg = {
         role: 'assistant',

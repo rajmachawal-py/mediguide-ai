@@ -20,6 +20,17 @@ export default function ChatBubble({ message }) {
               : 'chat-bubble-ai text-surface-200'
         }`}
       >
+        {/* Image thumbnail (for visual symptom uploads) */}
+        {message.image && (
+          <div className="mb-2 -mx-1">
+            <img
+              src={message.image}
+              alt="Symptom image"
+              className="rounded-lg max-w-[200px] max-h-[200px] object-cover border border-white/10"
+            />
+          </div>
+        )}
+
         {/* Urgency indicator on AI messages */}
         {!isUser && message.urgency && (
           <span
