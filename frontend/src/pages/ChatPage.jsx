@@ -14,12 +14,14 @@ import ImageUploadButton from '../components/chat/ImageUploadButton'
 import VoiceAutoModeOverlay from '../components/chat/VoiceAutoModeOverlay'
 import UrgencyBanner from '../components/chat/UrgencyBanner'
 import LanguageBadge from '../components/chat/LanguageBadge'
+import DisclaimerBanner from '../components/shared/DisclaimerBanner'
 import EmergencyAlert from '../components/shared/EmergencyAlert'
 import Spinner from '../components/shared/Spinner'
 import { getNearbyHospitals, textToSpeech } from '../services/api'
 import { generateHealthCard } from '../services/healthCardGenerator'
+import { downloadFHIRBundle } from '../services/fhirExport'
 import { playAudioBlob } from '../services/sarvam'
-import { FiRefreshCw, FiFileText, FiDownload, FiVolume2 } from 'react-icons/fi'
+import { FiRefreshCw, FiFileText, FiDownload, FiVolume2, FiCode } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 const welcomeMessage = {
@@ -177,6 +179,9 @@ export default function ChatPage() {
         <LanguageBadge selected={language} onChange={changeLanguage} />
       </div>
 
+      {/* Medical Disclaimer */}
+      <DisclaimerBanner language={language} />
+
       {/* Urgency Banner */}
       {urgency && (
         <div className="px-4 py-1">
@@ -251,9 +256,9 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Download Health Card (shown after summary generated) */}
+        {/* Download Health Card + FHIR Export (shown after summary generated) */}
         {summary && (
-          <div className="flex justify-center py-2 animate-slide-up">
+          <div className="flex flex-col items-center gap-2 py-2 animate-slide-up">
             <button
               onClick={handleDownloadHealthCard}
               disabled={isDownloading}
@@ -276,6 +281,32 @@ export default function ChatPage() {
                    '📄 Download Health Card'}
                 </>
               )}
+            </button>
+            {/* FHIR Export Button */}
+            <button
+              onClick={() => {
+                downloadFHIRBundle({
+                  patientName: localStorage.getItem('mediguide_patient_name') || 'Patient',
+                  age: localStorage.getItem('mediguide_patient_age') || '',
+                  gender: localStorage.getItem('mediguide_patient_gender') || '',
+                  language,
+                  urgency,
+                  urgencyData,
+                  messages,
+                  summary,
+                })
+                toast.success(
+                  language === 'hi' ? 'FHIR रिपोर्ट डाउनलोड हो गई!' :
+                  language === 'mr' ? 'FHIR अहवाल डाउनलोड झाला!' :
+                  'FHIR report downloaded!'
+                )
+              }}
+              className="w-full max-w-xs flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium text-surface-300 bg-surface-800/60 hover:bg-surface-800/90 border border-surface-700/40 hover:border-surface-600/60 transition-all active:scale-95"
+            >
+              <FiCode className="w-3.5 h-3.5" />
+              {language === 'hi' ? '🏥 HL7 FHIR फॉर्मेट में डाउनलोड करें' :
+               language === 'mr' ? '🏥 HL7 FHIR फॉर्मॅटमध्ये डाउनलोड करा' :
+               '🏥 Download in HL7 FHIR Format'}
             </button>
           </div>
         )}

@@ -3,16 +3,19 @@
  * React Router setup with route guards.
  */
 
+import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/shared/Navbar'
 import ProtectedRoute from './components/shared/ProtectedRoute'
+import ConsentModal, { hasConsent } from './components/shared/ConsentModal'
 import LoginPage from './pages/LoginPage'
 import ChatPage from './pages/ChatPage'
 import HospitalPage from './pages/HospitalPage'
 import ProfilePage from './pages/ProfilePage'
 import IndoorMapPage from './pages/IndoorMapPage'
 import CaregiverDashboard from './pages/CaregiverDashboard'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 
 /** Layout wrapper with Navbar for authenticated routes. */
 function AppLayout({ children }) {
@@ -26,6 +29,9 @@ function AppLayout({ children }) {
 }
 
 export default function App() {
+  const [consentGiven, setConsentGiven] = useState(hasConsent())
+  const language = localStorage.getItem('mediguide_lang') || 'en'
+
   return (
     <BrowserRouter>
       <Toaster
@@ -44,6 +50,7 @@ export default function App() {
       <Routes>
         {/* Public Route */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
         {/* Protected Routes with Navbar */}
         <Route
@@ -90,6 +97,14 @@ export default function App() {
         {/* Default redirect */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+
+      {/* DPDPA Consent Modal — shown on first use */}
+      {!consentGiven && (
+        <ConsentModal
+          language={language}
+          onAccept={() => setConsentGiven(true)}
+        />
+      )}
     </BrowserRouter>
   )
 }
