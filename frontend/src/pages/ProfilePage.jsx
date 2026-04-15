@@ -7,9 +7,10 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FiUser, FiMapPin, FiGlobe, FiLogOut, FiSave, FiLoader, FiEdit2, FiCheck, FiShield } from 'react-icons/fi'
+import { FiUser, FiMapPin, FiGlobe, FiLogOut, FiSave, FiLoader, FiEdit2, FiCheck, FiShield, FiTrash2, FiFileText, FiAlertTriangle } from 'react-icons/fi'
 import { supabase, signOut, getSession } from '../services/supabase'
 import { getProfile, updateProfile } from '../services/api'
+import { revokeConsent, getConsentInfo } from '../components/shared/ConsentModal'
 import toast from 'react-hot-toast'
 
 const INDIAN_STATES = [
@@ -142,6 +143,31 @@ export default function ProfilePage() {
     navigate('/login')
   }
 
+  /** DPDPA: Withdraw consent and redirect to login */
+  const handleWithdrawConsent = () => {
+    if (!window.confirm(
+      language === 'hi'
+        ? 'क्या आप वाकई अपनी सहमति वापस लेना चाहते हैं? सभी स्थानीय डेटा हटा दिया जाएगा।'
+        : language === 'mr'
+          ? 'तुम्हाला खरोखर तुमची संमती मागे घ्यायची आहे का? सर्व स्थानिक डेटा हटवला जाईल.'
+          : 'Are you sure you want to withdraw consent? All local data will be deleted.'
+    )) return
+
+    revokeConsent()
+    if (isAuthenticated) {
+      signOut()
+    }
+    toast.success(
+      language === 'hi' ? 'सहमति वापस ली गई। डेटा हटाया गया।' :
+      language === 'mr' ? 'संमती मागे घेतली. डेटा हटवला.' :
+      'Consent withdrawn. Local data cleared.'
+    )
+    // Small delay so the toast is visible before redirect
+    setTimeout(() => navigate('/login'), 800)
+  }
+
+  const consentInfo = getConsentInfo()
+
   const t = {
     hi: {
       profile: 'प्रोफ़ाइल',
@@ -160,6 +186,38 @@ export default function ProfilePage() {
       logout: 'बाहर निकलें',
       loginFirst: 'प्रोफ़ाइल संपादित करने के लिए लॉगिन करें',
       schemeNote: 'आय और राज्य की जानकारी सरकारी योजनाओं की पात्रता के लिए उपयोग होती है',
+      dataPrivacy: 'डेटा और गोपनीयता',
+      consentGiven: 'सहमति दी गई',
+      consentOn: 'सहमति दिनांक',
+      withdrawConsent: 'सहमति वापस लें',
+      viewPrivacy: 'गोपनीयता नीति देखें',
+      deleteData: 'मेरा डेटा हटाएं',
+      dpdpaNote: 'DPDPA 2023 के तहत आपको अपना डेटा हटाने और सहमति वापस लेने का अधिकार है',
+    },
+    mr: {
+      profile: 'प्रोफाइल',
+      guest: 'अतिथी मोड',
+      authenticated: 'लॉग इन',
+      edit: 'संपादन',
+      save: 'सेव्ह करा',
+      name: 'पूर्ण नाव',
+      age: 'वय',
+      gender: 'लिंग',
+      state: 'राज्य',
+      district: 'जिल्हा',
+      language: 'भाषा',
+      income: 'वार्षिक उत्पन्न',
+      email: 'ईमेल',
+      logout: 'बाहेर पडा',
+      loginFirst: 'प्रोफाइल संपादित करण्यासाठी साइन इन करा',
+      schemeNote: 'उत्पन्न आणि राज्य माहिती सरकारी योजनांच्या पात्रतेसाठी वापरली जाते',
+      dataPrivacy: 'डेटा आणि गोपनीयता',
+      consentGiven: 'संमती दिली',
+      consentOn: 'संमती दिनांक',
+      withdrawConsent: 'संमती मागे घ्या',
+      viewPrivacy: 'गोपनीयता धोरण पहा',
+      deleteData: 'माझा डेटा हटवा',
+      dpdpaNote: 'DPDPA 2023 अंतर्गत तुम्हाला तुमचा डेटा हटवण्याचा आणि संमती मागे घेण्याचा अधिकार आहे',
     },
     en: {
       profile: 'Profile',
@@ -178,6 +236,13 @@ export default function ProfilePage() {
       logout: 'Sign Out',
       loginFirst: 'Sign in to edit your profile',
       schemeNote: 'Income and state info is used for government scheme eligibility matching',
+      dataPrivacy: 'Data & Privacy',
+      consentGiven: 'Consent Given',
+      consentOn: 'Consent Date',
+      withdrawConsent: 'Withdraw Consent',
+      viewPrivacy: 'View Privacy Policy',
+      deleteData: 'Delete My Data',
+      dpdpaNote: 'Under DPDPA 2023, you have the right to delete your data and withdraw consent at any time',
     },
   }
 
@@ -388,6 +453,57 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* ── DPDPA Data Rights Section ─────────────────────── */}
+      <div className="glass-card rounded-xl p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <FiShield className="w-4 h-4 text-primary-400" />
+          <h2 className="text-sm font-bold text-white">{text.dataPrivacy}</h2>
+          <span className="ml-auto px-2 py-0.5 rounded-full bg-primary-500/10 border border-primary-500/20 text-[9px] font-semibold text-primary-400">
+            DPDPA 2023
+          </span>
+        </div>
+
+        {/* Consent Status */}
+        {consentInfo.given && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
+            <FiCheck className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-[10px] text-green-400 font-semibold">{text.consentGiven}</p>
+              {consentInfo.timestamp && (
+                <p className="text-[9px] text-green-400/60">
+                  {text.consentOn}: {new Date(consentInfo.timestamp).toLocaleDateString(
+                    language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN',
+                    { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Privacy Policy Link */}
+        <button
+          onClick={() => navigate('/privacy')}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-surface-800/60 hover:bg-surface-800/90 text-surface-300 hover:text-white transition-all text-xs"
+        >
+          <FiFileText className="w-3.5 h-3.5 text-primary-400" />
+          {text.viewPrivacy}
+        </button>
+
+        {/* Withdraw Consent */}
+        <button
+          onClick={handleWithdrawConsent}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-red-500/5 hover:bg-red-500/15 text-red-400/70 hover:text-red-400 border border-red-500/10 hover:border-red-500/30 transition-all text-xs"
+        >
+          <FiAlertTriangle className="w-3.5 h-3.5" />
+          {text.withdrawConsent}
+        </button>
+
+        <p className="text-[9px] text-surface-500 text-center leading-relaxed px-2">
+          🔒 {text.dpdpaNote}
+        </p>
       </div>
 
       {/* Sign Out */}

@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-surface-950 pb-12">
       {/* Header */}
       <div
-        className="px-6 py-8 text-center"
+        className="relative px-6 py-8 text-center"
         style={{
           background: 'linear-gradient(135deg, rgba(26,111,245,0.1), rgba(124,58,237,0.08))',
           borderBottom: '1px solid rgba(255,255,255,0.05)',

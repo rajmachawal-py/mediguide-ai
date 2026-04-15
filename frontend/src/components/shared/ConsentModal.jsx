@@ -9,16 +9,43 @@ import { useState } from 'react'
 import { FiShield, FiCheck, FiFileText, FiLock, FiDatabase, FiAlertTriangle } from 'react-icons/fi'
 
 const CONSENT_KEY = 'mediguide_consent_given'
+const CONSENT_VERSION = '1.0' // bump this when privacy policy changes materially
 
-/** Check if the user has already given consent. */
+/** Check if the user has already given consent (and it's for the current version). */
 export function hasConsent() {
-  return localStorage.getItem(CONSENT_KEY) === 'true'
+  return (
+    localStorage.getItem(CONSENT_KEY) === 'true' &&
+    localStorage.getItem('mediguide_consent_version') === CONSENT_VERSION
+  )
 }
 
 /** Record that the user has given consent. */
 export function giveConsent() {
   localStorage.setItem(CONSENT_KEY, 'true')
   localStorage.setItem('mediguide_consent_timestamp', new Date().toISOString())
+  localStorage.setItem('mediguide_consent_version', CONSENT_VERSION)
+}
+
+/** Revoke consent and clear all personal data from localStorage (DPDPA right to withdraw). */
+export function revokeConsent() {
+  localStorage.removeItem(CONSENT_KEY)
+  localStorage.removeItem('mediguide_consent_timestamp')
+  localStorage.removeItem('mediguide_consent_version')
+  localStorage.removeItem('mediguide_patient_name')
+  localStorage.removeItem('mediguide_patient_age')
+  localStorage.removeItem('mediguide_patient_gender')
+  localStorage.removeItem('mediguide_lang')
+  localStorage.removeItem('mediguide_location')
+  localStorage.removeItem('mediguide_guest')
+}
+
+/** Get consent info for display (timestamp, version). */
+export function getConsentInfo() {
+  return {
+    given: hasConsent(),
+    timestamp: localStorage.getItem('mediguide_consent_timestamp'),
+    version: localStorage.getItem('mediguide_consent_version'),
+  }
 }
 
 const TEXTS = {

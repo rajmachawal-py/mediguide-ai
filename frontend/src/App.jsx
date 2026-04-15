@@ -3,7 +3,7 @@
  * React Router setup with route guards.
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/shared/Navbar'
@@ -31,6 +31,19 @@ function AppLayout({ children }) {
 export default function App() {
   const [consentGiven, setConsentGiven] = useState(hasConsent())
   const language = localStorage.getItem('mediguide_lang') || 'en'
+
+  // Re-check consent when localStorage changes (e.g. consent withdrawn from ProfilePage)
+  useEffect(() => {
+    const handleStorage = () => setConsentGiven(hasConsent())
+    window.addEventListener('storage', handleStorage)
+    // Also poll on focus (same-tab localStorage changes don't fire 'storage')
+    const handleFocus = () => setConsentGiven(hasConsent())
+    window.addEventListener('focus', handleFocus)
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [])
 
   return (
     <BrowserRouter>
