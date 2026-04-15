@@ -138,3 +138,50 @@ async def get_navigation_route(
         )
 
     return RouteResponse(**route)
+
+
+# ── GET /navigation/{hospital_id}/qr-codes ───────────────────
+
+@router.get(
+    "/navigation/{hospital_id}/qr-codes",
+    summary="Get QR code data for all departments",
+    description=(
+        "Returns QR code payloads for all navigable nodes (departments, pharmacy, etc.) "
+        "in a hospital. These can be printed and placed at physical locations for "
+        "scan-to-navigate functionality."
+    ),
+)
+async def get_qr_codes(hospital_id: str):
+    """
+    Generate QR code data for all department/waypoint nodes.
+    Returns a list of { node_id, label, node_type, floor, qr_content }
+    where qr_content is the mediguide:// URL to encode in a QR code.
+    """
+    graph = await get_map_graph(hospital_id)
+
+    if graph is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Hospital not found or has no indoor map: {hospital_id}",
+        )
+
+    qr_data = []
+    for node in graph["nodes"]:
+        # Only generate QR codes for significant locations (not generic waypoints)
+        if node.get("node_type") in ("department", "entrance", "lift", "stairs") or node.get("department_id"):
+            qr_data.append({
+                "node_id": node["id"],
+                "label": node["label"],
+                "node_type": node.get("node_type", "waypoint"),
+                "floor_number": node.get("floor_number", 0),
+                "department_id": node.get("department_id"),
+                "qr_content": f"mediguide://nav/{hospital_id}/{node['id']}",
+            })
+
+    return {
+        "hospital_id": hospital_id,
+        "hospital_name": graph["hospital_name"],
+        "total_qr_codes": len(qr_data),
+        "qr_codes": qr_data,
+    }
+

@@ -1,0 +1,25 @@
+{
+  "name": "MediGuide AI — Healthcare Navigator",
+  "short_name": "MediGuide AI",
+  "description": "AI-powered multilingual healthcare triage and hospital navigation",
+  "start_url": "/chat",
+  "display": "standalone",
+  "background_color": "#0a0f1c",
+  "theme_color": "#1a6ff5",
+  "orientation": "portrait-primary",
+  "categories": ["health", "medical"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

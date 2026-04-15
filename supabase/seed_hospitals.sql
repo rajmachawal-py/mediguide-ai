@@ -376,28 +376,28 @@ INSERT INTO departments (
 
 ('10000000-0003-0003-0003-000000000002', '00000000-0000-0000-0000-000000000003',
  'Cardiology & Cardiac Surgery', 'हृदय रोग एवं कार्डियक सर्जरी', 'हृदयरोग व कार्डियक शस्त्रक्रिया',
- 2, '202', ARRAY['Dr. P. Herlekar', 'Dr. N. Deshpande'], 30, TRUE),
+ 0, 'G-CARD', ARRAY['Dr. P. Herlekar', 'Dr. N. Deshpande'], 30, TRUE),
 
 ('10000000-0003-0003-0003-000000000003', '00000000-0000-0000-0000-000000000003',
  'Neurology', 'न्यूरोलॉजी', 'न्यूरोलॉजी',
- 3, '310', ARRAY['Dr. S. Borse'], 40, TRUE),
+ 2, '2-NEURO', ARRAY['Dr. S. Borse'], 40, TRUE),
 
 ('10000000-0003-0003-0003-000000000004', '00000000-0000-0000-0000-000000000003',
  'Oncology', 'कैंसर रोग', 'कर्करोग',
- 4, '401', ARRAY['Dr. V. Paranjpe', 'Dr. A. Phadke'], 35, TRUE),
+ 2, '2-ONCO', ARRAY['Dr. V. Paranjpe', 'Dr. A. Phadke'], 35, TRUE),
 
 ('10000000-0003-0003-0003-000000000005', '00000000-0000-0000-0000-000000000003',
  'Orthopedics & Joint Replacement', 'हड्डी रोग एवं जॉइंट रिप्लेसमेंट', 'हाडे व जॉइंट रिप्लेसमेंट',
- 3, '315', ARRAY['Dr. M. Bhosale'], 45, TRUE),
+ 2, '2-ORTHO', ARRAY['Dr. M. Bhosale'], 45, TRUE),
 
 ('10000000-0003-0003-0003-000000000006', '00000000-0000-0000-0000-000000000003',
  'Nephrology & Dialysis', 'किडनी रोग', 'मूत्रपिंड रोग',
- 2, '218', ARRAY['Dr. S. Thorat'], 40, TRUE),
+ 1, '1-NEPH', ARRAY['Dr. S. Thorat'], 40, TRUE),
 
 -- ↓ NEW: Major Ruby Hall department
 ('10000000-0003-0003-0003-000000000007', '00000000-0000-0000-0000-000000000003',
  'Neurosurgery', 'न्यूरोसर्जरी', 'न्यूरोसर्जरी',
- 3, '312', ARRAY['Dr. R. Bhalerao', 'Dr. K. Agarwal'], 35, TRUE),
+ 2, '2-NSURG', ARRAY['Dr. R. Bhalerao', 'Dr. K. Agarwal'], 35, TRUE),
 
 
 -- ═══════════════════════════════════════════════════════════
