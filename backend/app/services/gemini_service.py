@@ -1,11 +1,11 @@
 """
-MediGuide AI — Gemini AI Service (Google AI SDK)
-Handles all interactions with Google Gemini via the google-generativeai SDK.
+MediGuide AI — Gemini AI Service (Vertex AI SDK)
+Handles all interactions with Google Gemini via the Vertex AI SDK.
 - Triage conversations (multilingual symptom assessment)
 - Doctor-ready symptom summaries
 - Government scheme explanations
 
-Uses GEMINI_API_KEY for authentication.
+Uses GOOGLE_APPLICATION_CREDENTIALS (service account JSON) for authentication.
 """
 
 import json
@@ -41,64 +41,75 @@ def _load_prompt(filename: str) -> str:
     return path.read_text(encoding="utf-8").strip()
 
 
-# ── Google GenAI Initialization ──────────────────────────────
+# ── Vertex AI Initialization ────────────────────────────────
 
-_genai_initialized = False
+_vertex_initialized = False
 
 
-def _ensure_genai_init():
-    """Initialize the Google Generative AI SDK with the API key (once)."""
-    global _genai_initialized
-    if _genai_initialized:
+def _ensure_vertex_init():
+    """Initialize Vertex AI SDK with service account credentials (once)."""
+    global _vertex_initialized
+    if _vertex_initialized:
         return
 
-    import google.generativeai as genai
+    import vertexai
 
-    api_key = settings.GEMINI_API_KEY
-    if not api_key:
+    cred_path = settings.GOOGLE_APPLICATION_CREDENTIALS
+    if cred_path and os.path.exists(cred_path):
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = cred_path
+        logger.info(f"Service account loaded from: {cred_path}")
+    else:
         raise RuntimeError(
-            "GEMINI_API_KEY is not set. Please set it in your .env file. "
-            "Get one from https://aistudio.google.com/apikey"
+            f"GOOGLE_APPLICATION_CREDENTIALS file not found at: {cred_path}. "
+            "Set the correct path in your .env file."
         )
 
-    genai.configure(api_key=api_key)
-    _genai_initialized = True
-    logger.info(f"Google GenAI SDK initialized | model={TRIAGE_MODEL}")
+    project_id = settings.GCP_PROJECT_ID
+    location = settings.GCP_LOCATION or "us-central1"
+
+    if not project_id:
+        raise RuntimeError(
+            "GCP_PROJECT_ID is not set. Please set it in your .env file."
+        )
+
+    vertexai.init(project=project_id, location=location)
+    _vertex_initialized = True
+    logger.info(f"Vertex AI initialized | project={project_id} | location={location} | model={TRIAGE_MODEL}")
 
 
 # ── Gemini Client Init ────────────────────────────────────────
 
 def _get_triage_model():
     """Returns a configured Gemini model with the triage system prompt."""
-    _ensure_genai_init()
-    import google.generativeai as genai
+    _ensure_vertex_init()
+    from vertexai.generative_models import GenerativeModel, GenerationConfig, SafetySetting, HarmCategory, HarmBlockThreshold
 
     system_prompt = _load_prompt("triage_prompt.txt")
-    return genai.GenerativeModel(
+    return GenerativeModel(
         model_name=TRIAGE_MODEL,
         system_instruction=system_prompt,
-        generation_config=genai.types.GenerationConfig(
+        generation_config=GenerationConfig(
             temperature=0.4,        # low temp for consistent medical responses
             max_output_tokens=1024,
         ),
         safety_settings=[
             # Allow medical content — Gemini blocks some health topics by default
-            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"},
-            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+            SafetySetting(category=HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold=HarmBlockThreshold.BLOCK_ONLY_HIGH),
+            SafetySetting(category=HarmCategory.HARM_CATEGORY_HARASSMENT, threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
+            SafetySetting(category=HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
+            SafetySetting(category=HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold=HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE),
         ],
     )
 
 
 def _get_summary_model():
     """Returns a Gemini model configured for structured JSON output."""
-    _ensure_genai_init()
-    import google.generativeai as genai
+    _ensure_vertex_init()
+    from vertexai.generative_models import GenerativeModel, GenerationConfig
 
-    return genai.GenerativeModel(
+    return GenerativeModel(
         model_name=SUMMARY_MODEL,
-        generation_config=genai.types.GenerationConfig(
+        generation_config=GenerationConfig(
             temperature=0.1,        # near-zero for deterministic JSON output
             max_output_tokens=512,
         ),
@@ -107,18 +118,20 @@ def _get_summary_model():
 
 # ── History Format Helpers ────────────────────────────────────
 
-def _build_gemini_history(history: list[dict]) -> list[dict]:
+def _build_gemini_history(history: list[dict]) -> list:
     """
-    Converts frontend message history to Gemini's expected format.
+    Converts frontend message history to Vertex AI Content objects.
 
     Frontend format:  [{"role": "user"|"assistant", "content": "..."}]
-    Gemini format:    [{"role": "user"|"model",      "parts": ["..."]}]
+    Vertex AI format: [Content(role="user"|"model", parts=[Part.from_text("...")])]
     """
+    from vertexai.generative_models import Content, Part
+
     gemini_history = []
     for msg in history:
         role = "model" if msg["role"] == "assistant" else "user"
         gemini_history.append(
-            {"role": role, "parts": [msg["content"]]}
+            Content(role=role, parts=[Part.from_text(msg["content"])])
         )
     return gemini_history
 
@@ -182,8 +195,10 @@ async def ask_triage(
             text_content = f"{language_hint}\n{vision_prompt}\n{symptom_text}" if language_hint else f"{vision_prompt}\n{symptom_text}"
             message_parts.append(text_content)
 
-            # Decode base64 image and attach as inline data
+            # Decode base64 image and attach as Vertex AI Part
             try:
+                from vertexai.generative_models import Part
+
                 # Strip data URL prefix if present (e.g. "data:image/jpeg;base64,...")
                 img_data = image_base64
                 mime_type = "image/jpeg"  # default
@@ -195,10 +210,7 @@ async def ask_triage(
                         mime_type = "image/webp"
 
                 image_bytes = base64.b64decode(img_data)
-                message_parts.append({
-                    "mime_type": mime_type,
-                    "data": image_bytes,
-                })
+                message_parts.append(Part.from_data(data=image_bytes, mime_type=mime_type))
                 logger.info(f"Image attached to triage | size={len(image_bytes)} bytes | mime={mime_type}")
             except Exception as img_err:
                 logger.warning(f"Failed to decode image, sending text-only: {img_err}")
