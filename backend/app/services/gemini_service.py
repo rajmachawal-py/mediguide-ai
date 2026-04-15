@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 # ── Gemini Model Configuration ───────────────────────────────
 
-TRIAGE_MODEL = "gemini-2.5-flash"       # full model for accurate triage
-SUMMARY_MODEL = "gemini-2.5-flash"      # structured JSON output
+TRIAGE_MODEL = "gemini-1.5-flash"       # correct model for accurate triage
+SUMMARY_MODEL = "gemini-1.5-flash"      # structured JSON output
 
 
 # ── Prompt Loader ────────────────────────────────────────────
