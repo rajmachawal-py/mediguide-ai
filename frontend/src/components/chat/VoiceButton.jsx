@@ -1,6 +1,9 @@
 /**
  * MediGuide AI — VoiceButton
- * Single voice button for manual voice input.
+ * Single voice button for manual voice INPUT only.
+ * Converts speech to text and sends as a chat message — NO TTS output.
+ * For voice output (TTS), users should use Voice Mode (useVoiceAutoMode).
+ *
  * Uses Web Speech API for real-time transcription.
  * Falls back to MediaRecorder + Sarvam API if Web Speech isn't available.
  */
@@ -209,7 +212,7 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
     <button
       onClick={handlePress}
       disabled={disabled}
-      title={isRecording ? 'Stop & send' : 'Start voice input'}
+      title={isRecording ? 'Stop & send' : 'Voice input (text reply)'}
       className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
         isRecording
           ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'

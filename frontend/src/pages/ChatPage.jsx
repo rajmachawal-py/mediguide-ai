@@ -1,6 +1,14 @@
 /**
  * MediGuide AI — ChatPage
  * Main chat interface for symptom assessment and triage.
+ *
+ * Voice I/O Architecture:
+ * - Text Input: User types → text response (no audio)
+ * - Mic Button (🎤): Voice → STT → sends as text → text-only response (no TTS)
+ * - Voice Mode (🗣️): Full duplex overlay → voice in → AI → TTS out → loop
+ *
+ * TTS is ONLY used inside useVoiceAutoMode (Voice Mode).
+ * The mic button and text chat never trigger audio output.
  */
 
 import { useRef, useEffect, useState } from 'react'
@@ -15,13 +23,11 @@ import VoiceAutoModeOverlay from '../components/chat/VoiceAutoModeOverlay'
 import UrgencyBanner from '../components/chat/UrgencyBanner'
 import DisclaimerBanner from '../components/shared/DisclaimerBanner'
 import EmergencyAlert from '../components/shared/EmergencyAlert'
-// SchemeRecommendation removed — inline implementation below
 import Spinner from '../components/shared/Spinner'
-import { getNearbyHospitals, textToSpeech, getEligibleSchemes } from '../services/api'
+import { getNearbyHospitals, getEligibleSchemes } from '../services/api'
 import { generateHealthCard } from '../services/healthCardGenerator'
 import { downloadFHIRBundle } from '../services/fhirExport'
-import { playAudioBlob } from '../services/sarvam'
-import { FiRefreshCw, FiFileText, FiDownload, FiVolume2, FiCode } from 'react-icons/fi'
+import { FiRefreshCw, FiFileText, FiDownload, FiCode, FiVolume2 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 const welcomeMessage = {
@@ -43,28 +49,18 @@ export default function ChatPage() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [schemes, setSchemes] = useState(null) // null = not fetched, [] = fetched empty
 
-  // Voice Auto-Mode
+  // Voice Auto-Mode (full duplex: voice in → AI → TTS out → loop)
+  // Mic button input does NOT trigger TTS — only Voice Mode does
   const { isAutoMode, phase, liveTranscript, startAutoMode, stopAutoMode } =
     useVoiceAutoMode({ language, sendMessage, messages, isFinal, lat, lng })
-  const usedVoiceRef = useRef(false) // track if last input was voice
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
 
-  // Auto-play TTS when AI responds after voice input
-  useEffect(() => {
-    if (!usedVoiceRef.current) return
-    const lastMsg = messages[messages.length - 1]
-    if (lastMsg?.role === 'assistant' && lastMsg.content && !lastMsg.isError) {
-      usedVoiceRef.current = false // reset
-      // Play the AI response as audio
-      textToSpeech(lastMsg.content, language)
-        .then(audioBlob => playAudioBlob(audioBlob))
-        .catch(err => console.warn('TTS playback failed:', err))
-    }
-  }, [messages]) // eslint-disable-line react-hooks/exhaustive-deps
+  // NOTE: No auto-TTS here — mic button input gets text-only responses.
+  // TTS output only happens in Voice Mode (useVoiceAutoMode).
 
   // Trigger emergency alert when urgency is emergency
   useEffect(() => {
@@ -84,13 +80,12 @@ export default function ChatPage() {
   }, [urgency]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSend = (text) => {
-    usedVoiceRef.current = false
     sendMessage(text, lat, lng)
   }
 
+  /** Handle voice transcript — sends as text, NO TTS output */
   const handleVoiceTranscript = (transcript) => {
     if (transcript) {
-      usedVoiceRef.current = true // mark that voice was used
       sendMessage(transcript, lat, lng)
     }
   }
@@ -161,7 +156,10 @@ export default function ChatPage() {
                   ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                   : 'bg-primary-500/15 text-primary-400 border border-primary-500/30 hover:bg-primary-500/25'
               }`}
-              title={isAutoMode ? 'Stop Voice Mode' : 'Start Voice Mode'}
+              title={isAutoMode
+                ? (language === 'hi' ? 'वॉइस मोड बंद करें' : language === 'mr' ? 'व्हॉइस मोड बंद करा' : 'Stop Voice Mode')
+                : (language === 'hi' ? 'वॉइस मोड — बोलें और सुनें' : language === 'mr' ? 'व्हॉइस मोड — बोला आणि ऐका' : 'Voice Mode — Speak & Listen')
+              }
             >
               <FiVolume2 className="w-3.5 h-3.5" />
               {isAutoMode ? '🔴 Stop' : '🗣️ Voice'}
