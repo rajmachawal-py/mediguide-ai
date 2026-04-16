@@ -1,10 +1,12 @@
 /**
  * MediGuide AI — Navbar
  * Bottom navigation bar (mobile-first) with route links.
+ * Uses LanguageContext for instant system-wide language updates.
  */
 
 import { NavLink } from 'react-router-dom'
 import { FiMessageCircle, FiMapPin, FiUser, FiHeart } from 'react-icons/fi'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const navItems = [
   { to: '/chat',      icon: FiMessageCircle, label: 'Chat',      labelHi: 'चैट',     labelMr: 'चॅट' },
@@ -13,7 +15,9 @@ const navItems = [
   { to: '/profile',   icon: FiUser,          label: 'Profile',    labelHi: 'प्रोफ़ाइल', labelMr: 'प्रोफाइल' },
 ]
 
-export default function Navbar({ language = 'en' }) {
+export default function Navbar() {
+  const { language } = useLanguage()
+
   const getLabel = (item) => {
     if (language === 'hi') return item.labelHi
     if (language === 'mr') return item.labelMr
@@ -43,3 +47,4 @@ export default function Navbar({ language = 'en' }) {
     </nav>
   )
 }
+

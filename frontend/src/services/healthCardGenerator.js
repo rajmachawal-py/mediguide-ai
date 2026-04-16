@@ -87,6 +87,17 @@ function extractUserImage(messages) {
   return null
 }
 
+/** Translate gender for display in the user's language */
+function translateGender(gender, lang) {
+  const genderLabels = {
+    male:   { hi: 'पुरुष',  mr: 'पुरुष',  en: 'Male' },
+    female: { hi: 'महिला',  mr: 'स्त्री', en: 'Female' },
+    other:  { hi: 'अन्य',   mr: 'इतर',    en: 'Other' },
+  }
+  const g = (gender || '').toLowerCase()
+  return genderLabels[g]?.[lang] || genderLabels[g]?.en || gender || '—'
+}
+
 function formatDateTime(lang) {
   const now = new Date()
   try {
@@ -182,7 +193,7 @@ function buildCardHTML({
             </div>
             <div style="display: flex; gap: 20px; font-size: 11px; color: #64748b;">
               <span>${L('age', lang)}: <strong>${age || '—'}</strong></span>
-              <span>${L('gender', lang)}: <strong>${gender || '—'}</strong></span>
+              <span>${L('gender', lang)}: <strong>${translateGender(gender, lang)}</strong></span>
             </div>
           </div>
 

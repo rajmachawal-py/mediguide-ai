@@ -11,11 +11,12 @@ Flow:
 """
 
 import logging
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from app.models.chat_models import TriageRequest, TriageResponse, UrgencyDisplay
 from app.services.gemini_service import ask_triage
 from app.services.triage_service import classify_urgency, get_urgency_display
+from app.services.audit_service import log_audit_event
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -31,7 +32,7 @@ router = APIRouter()
         "classification with hospital recommendation. Supports Hindi, Marathi, English."
     ),
 )
-async def triage_symptom(request: TriageRequest) -> TriageResponse:
+async def triage_symptom(request: TriageRequest, raw_request: Request) -> TriageResponse:
     """
     Main triage endpoint — the heart of MediGuide AI.
 
@@ -88,7 +89,7 @@ async def triage_symptom(request: TriageRequest) -> TriageResponse:
             urgency_display = UrgencyDisplay(**display_data)
 
         # Step 5: Build and return response
-        return TriageResponse(
+        response = TriageResponse(
             message=gemini_result["message"],
             is_final=gemini_result["is_final"],
             urgency=final_urgency if gemini_result["is_final"] else None,
@@ -98,6 +99,35 @@ async def triage_symptom(request: TriageRequest) -> TriageResponse:
             summary_for_doctor=gemini_result.get("summary_for_doctor"),
             urgency_display=urgency_display,
         )
+
+        # Step 6: Audit trail — log triage events
+        if gemini_result["is_final"]:
+            await log_audit_event(
+                event_type="triage_complete",
+                event_action=f"Triage completed: urgency={final_urgency}, specialty={gemini_result.get('recommend_specialty')}",
+                resource_type="triage",
+                metadata={
+                    "urgency": final_urgency,
+                    "specialty": gemini_result.get("recommend_specialty"),
+                    "language": request.language,
+                    "go_to_hospital": gemini_result.get("go_to_hospital_now", False),
+                    "call_ambulance": gemini_result.get("call_ambulance", False),
+                },
+                request=raw_request,
+            )
+        if pre_scan_urgency == "emergency":
+            await log_audit_event(
+                event_type="emergency_detected",
+                event_action="Emergency keywords detected in user input",
+                resource_type="triage",
+                metadata={
+                    "language": request.language,
+                    "symptom_preview": request.symptom[:100],
+                },
+                request=raw_request,
+            )
+
+        return response
 
     except Exception as e:
         logger.error(f"Triage endpoint error: {e}", exc_info=True)

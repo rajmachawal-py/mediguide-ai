@@ -11,6 +11,7 @@ import { FiUser, FiMapPin, FiGlobe, FiLogOut, FiSave, FiLoader, FiEdit2, FiCheck
 import { supabase, signOut, getSession } from '../services/supabase'
 import { getProfile, updateProfile } from '../services/api'
 import { revokeConsent, getConsentInfo } from '../components/shared/ConsentModal'
+import { useLanguage } from '../contexts/LanguageContext'
 import toast from 'react-hot-toast'
 
 const INDIAN_STATES = [
@@ -34,7 +35,7 @@ const INCOME_BRACKETS = [
 
 export default function ProfilePage() {
   const navigate = useNavigate()
-  const language = localStorage.getItem('mediguide_lang') || 'en'
+  const { language, changeLanguage: setAppLanguage } = useLanguage()
 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -121,8 +122,13 @@ export default function ProfilePage() {
         setProfile(prev => ({ ...prev, ...result.profile }))
       }
 
-      // Sync language preference
-      localStorage.setItem('mediguide_lang', profile.preferred_lang)
+      // Sync language preference to context (updates entire app)
+      setAppLanguage(profile.preferred_lang)
+
+      // Also save patient details to localStorage for health card
+      if (profile.full_name) localStorage.setItem('mediguide_patient_name', profile.full_name)
+      if (profile.age) localStorage.setItem('mediguide_patient_age', String(profile.age))
+      if (profile.gender) localStorage.setItem('mediguide_patient_gender', profile.gender)
 
       toast.success(language === 'hi' ? 'प्रोफ़ाइल सेव हो गई ✅' : 'Profile saved ✅')
       setIsEditing(false)
@@ -138,9 +144,16 @@ export default function ProfilePage() {
     if (isAuthenticated) {
       await signOut()
     }
+    // Clear ALL user data so consent + onboarding re-appear on next login
     localStorage.removeItem('mediguide_guest')
     localStorage.removeItem('mediguide_location')
-    navigate('/login')
+    localStorage.removeItem('mediguide_patient_name')
+    localStorage.removeItem('mediguide_patient_age')
+    localStorage.removeItem('mediguide_patient_gender')
+    localStorage.removeItem('mediguide_patient_state')
+    localStorage.removeItem('mediguide_profile_complete')
+    // Force full page reload to reset React state
+    window.location.href = '/login'
   }
 
   /** DPDPA: Withdraw consent and redirect to login */
@@ -162,8 +175,8 @@ export default function ProfilePage() {
       language === 'mr' ? 'संमती मागे घेतली. डेटा हटवला.' :
       'Consent withdrawn. Local data cleared.'
     )
-    // Small delay so the toast is visible before redirect
-    setTimeout(() => navigate('/login'), 800)
+    // Full page reload to reset ALL React state (consent, profile, etc.)
+    setTimeout(() => { window.location.href = '/login' }, 800)
   }
 
   const consentInfo = getConsentInfo()

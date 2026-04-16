@@ -21,6 +21,9 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+# ── RAG Knowledge Base ───────────────────────────────────────
+from app.services.rag_service import retrieve_medical_context
+
 # ── Gemini Model Configuration ───────────────────────────────
 
 TRIAGE_MODEL = "gemini-2.5-flash"       # correct model for accurate triage
@@ -180,6 +183,11 @@ async def ask_triage(
             "en": "[User's language: English. Respond in English only.]",
         }.get(language, "")
 
+        # RAG: Retrieve relevant medical knowledge for the user's symptoms
+        rag_context = retrieve_medical_context(symptom_text, language)
+        if rag_context:
+            logger.info(f"RAG: Retrieved medical context ({len(rag_context)} chars)")
+
         # Build message parts
         message_parts = []
 
@@ -216,8 +224,9 @@ async def ask_triage(
                 logger.warning(f"Failed to decode image, sending text-only: {img_err}")
                 # Fall through — text-only if image parsing fails
         else:
-            # Text-only message
-            text_content = f"{language_hint}\n{symptom_text}" if language_hint else symptom_text
+            # Text-only message with RAG context
+            parts = [p for p in [language_hint, rag_context, symptom_text] if p]
+            text_content = "\n\n".join(parts)
             message_parts.append(text_content)
 
         # For image+text, use generate_content directly (chat sessions can fail with multimodal)

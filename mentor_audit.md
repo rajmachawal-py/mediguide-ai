@@ -8,9 +8,9 @@
 | 🧠 AI + Multilingual | ✅ Strong | 3/3 |
 | 🗺️ Offline Hospital Navigation | ✅ **Complete** | **5/5** |
 | ⚠️ Safety & Guardrails | ✅ Strong | 3/3 |
-| 🏗️ Architecture | ⚠️ Partial | 3/5 |
+| 🏗️ Architecture | ✅ **Complete** | **5/5** |
 
-**Overall: ~21/22 requirements met. 1 critical gap remaining (audit trail). RAG is optional.**
+**Overall: ~22/22 requirements met. All critical gaps resolved.**
 
 ---
 
@@ -76,8 +76,8 @@
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
 | 5.1 | Chat interface + backend API | ✅ **Done** | React frontend (ChatPage, VoiceAutoMode) ↔ FastAPI backend (9 routers). Clean separation. |
-| 5.2 | AI layer + knowledge base (RAG preferred) | ⚠️ **Partial** | AI layer via Gemini ✅. But **no RAG / knowledge base**. The prompts are static text files. No vector database, no document retrieval for medical knowledge. |
-| 5.3 | Secure logging & audit trail | ❌ **MISSING** | Python `logging` throughout ✅, but **no persistent audit trail**. No database table logging user interactions, triage results, or data access events. |
+| 5.2 | AI layer + knowledge base (RAG preferred) | ✅ **Done** | AI layer via Gemini ✅. **RAG knowledge base** implemented in [rag_service.py](file:///d:/mediguide-ai/backend/app/services/rag_service.py) — 10 medical conditions with keyword-based retrieval. Context injected into Gemini prompt via [gemini_service.py](file:///d:/mediguide-ai/backend/app/services/gemini_service.py). Covers: cardiac, stroke, diabetes, respiratory, dengue, GI, pregnancy, mental health, orthopedic, allergic emergencies. |
+| 5.3 | Secure logging & audit trail | ✅ **Done** | Persistent audit trail via `audit_logs` table ([schema_audit_logs.sql](file:///d:/mediguide-ai/supabase/schema_audit_logs.sql)). [AuditMiddleware](file:///d:/mediguide-ai/backend/app/middleware/audit_middleware.py) auto-logs every API request. [audit_service.py](file:///d:/mediguide-ai/backend/app/services/audit_service.py) provides explicit logging for triage/emergency events. DPDPA-compliant: users can access their own logs via `GET /api/profile/audit-logs`. Immutable (no UPDATE/DELETE). |
 
 ---
 
@@ -100,9 +100,9 @@
 | ~~🔴 P0~~ | ~~Add **QR code scanner** for indoor navigation~~ | ✅ Done | [QRScanner.jsx](file:///d:/mediguide-ai/frontend/src/components/map/QRScanner.jsx) |
 | ~~🟡 P1~~ | ~~Add **offline map caching** (localStorage/IndexedDB)~~ | ✅ Done | [offlineMapCache.js](file:///d:/mediguide-ai/frontend/src/services/offlineMapCache.js) |
 | ~~🟡 P1~~ | ~~Create **professional SVG floor plans** for demo hospital~~ | ✅ Done | [SVGFloorPlan.jsx](file:///d:/mediguide-ai/frontend/src/components/map/SVGFloorPlan.jsx) — Ruby Hall Clinic, 3 floors |
-| 🟡 P1 | Add **audit trail** table + logging middleware | 1 hr | Medium — architecture requirement |
-| ~~🟢 P2~~ | ~~Add **PWA manifest** + Service Worker~~ | ✅ Done | [manifest.json](file:///d:/mediguide-ai/frontend/public/manifest.json) + [sw.js](file:///d:/mediguide-ai/frontend/public/sw.js) |
-| 🟢 P2 | Add **RAG knowledge base** (optional but impressive) | 2-3 hrs | Medium — architecture bonus |
+| ~~🟡 P1~~ | ~~Add **audit trail** table + logging middleware~~ | ✅ Done | [audit_service.py](file:///d:/mediguide-ai/backend/app/services/audit_service.py) + [AuditMiddleware](file:///d:/mediguide-ai/backend/app/middleware/audit_middleware.py) |
+| ~~🟡 P1~~ | ~~Add **PWA manifest** + Service Worker~~ | ✅ Done | [manifest.json](file:///d:/mediguide-ai/frontend/public/manifest.json) + [sw.js](file:///d:/mediguide-ai/frontend/public/sw.js) |
+| ~~🟢 P2~~ | ~~Add **RAG knowledge base** (optional but impressive)~~ | ✅ Done | [rag_service.py](file:///d:/mediguide-ai/backend/app/services/rag_service.py) — 10 medical conditions |
 
 ---
 
@@ -120,5 +120,7 @@
 | PWA + Service Worker | ✅ | [manifest.json](file:///d:/mediguide-ai/frontend/public/manifest.json) + [sw.js](file:///d:/mediguide-ai/frontend/public/sw.js) |
 | QR Code Generation API | ✅ | [navigation.py](file:///d:/mediguide-ai/backend/app/routers/navigation.py) — `/api/navigation/{id}/qr-codes` |
 | Professional SVG Floor Plans | ✅ | [SVGFloorPlan.jsx](file:///d:/mediguide-ai/frontend/src/components/map/SVGFloorPlan.jsx) — Ruby Hall Clinic (Ground, 1st, 2nd floor) with rooms, corridors, beds, OTs, legends |
-| Ruby Hall Map Seed Data | ✅ | [seed_ruby_hall_map.sql](file:///d:/mediguide-ai/supabase/seed_ruby_hall_map.sql) — 40 nodes + 45 edges across 3 floors |
+| Ruby Hall Map Seed Data | ✅ | [seed_ruby_hall_map.sql](file:///d:/mediguide-ai/supabase/seed_ruby_hall_map.sql) — corridor-aligned graph: ~70 nodes + ~100 edges across 3 floors |
 | LLM Guidelines (Vertex AI) | ✅ | [LLM_GUIDELINES.md](file:///d:/mediguide-ai/LLM_GUIDELINES.md) — Governance doc to prevent SDK regressions |
+| Audit Trail (Architecture 5.3) | ✅ | [schema_audit_logs.sql](file:///d:/mediguide-ai/supabase/schema_audit_logs.sql) + [audit_service.py](file:///d:/mediguide-ai/backend/app/services/audit_service.py) + [AuditMiddleware](file:///d:/mediguide-ai/backend/app/middleware/audit_middleware.py) — Persistent, immutable audit log with DPDPA user access |
+| RAG Knowledge Base (Architecture 5.2) | ✅ | [rag_service.py](file:///d:/mediguide-ai/backend/app/services/rag_service.py) — 10 medical conditions, keyword retrieval, context injection into Gemini prompt |

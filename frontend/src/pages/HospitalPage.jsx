@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react'
 import useGeolocation from '../hooks/useGeolocation'
 import { getNearbyHospitals } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 import Spinner from '../components/shared/Spinner'
 import HospitalCard from '../components/hospital/HospitalCard'
 import HospitalMapView from '../components/map/HospitalMapView'
@@ -25,7 +26,7 @@ export default function HospitalPage() {
   const [filter, setFilter] = useState('all')
   const [viewMode, setViewMode] = useState('list') // 'list' | 'map'
   const [error, setError] = useState(null)
-  const language = localStorage.getItem('mediguide_lang') || 'en'
+  const { language } = useLanguage()
 
   useEffect(() => {
     if (!lat || !lng) return

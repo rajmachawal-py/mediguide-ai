@@ -5,6 +5,7 @@ Run with: uvicorn main:app --reload  (from the /backend directory)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.middleware.audit_middleware import AuditMiddleware
 
 from app.config import settings
 from app.routers import (
@@ -49,6 +50,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ── Audit Trail Middleware ────────────────────────────────────
+# Logs every API request to the audit_logs table (Architecture Req 5.3)
+app.add_middleware(AuditMiddleware)
 
 
 # ── Routers ──────────────────────────────────────────────────

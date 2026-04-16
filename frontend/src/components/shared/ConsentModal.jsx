@@ -34,6 +34,8 @@ export function revokeConsent() {
   localStorage.removeItem('mediguide_patient_name')
   localStorage.removeItem('mediguide_patient_age')
   localStorage.removeItem('mediguide_patient_gender')
+  localStorage.removeItem('mediguide_patient_state')
+  localStorage.removeItem('mediguide_profile_complete')
   localStorage.removeItem('mediguide_lang')
   localStorage.removeItem('mediguide_location')
   localStorage.removeItem('mediguide_guest')

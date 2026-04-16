@@ -23,6 +23,7 @@ import {
 } from '../services/api'
 import { supabase, getSession } from '../services/supabase'
 import { initPushNotifications } from '../services/firebase'
+import { useLanguage } from '../contexts/LanguageContext'
 import toast from 'react-hot-toast'
 
 const RELATIONSHIPS = [
@@ -36,7 +37,7 @@ const RELATIONSHIPS = [
 
 export default function CaregiverDashboard() {
   const navigate = useNavigate()
-  const language = localStorage.getItem('mediguide_lang') || 'en'
+  const { language } = useLanguage()
 
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -177,6 +178,21 @@ export default function CaregiverDashboard() {
       noAlerts: 'कोई अलर्ट नहीं',
       alerts: 'हाल के अलर्ट',
       loginRequired: 'केयरगिवर मोड के लिए लॉगिन करें',
+    },
+    mr: {
+      title: 'केयरगिव्हर',
+      myCaregiver: 'माझे केयरगिव्हर',
+      myPatients: 'माझे रुग्ण',
+      addCaregiver: 'केयरगिव्हर जोडा',
+      name: 'नाव',
+      phone: 'फोन',
+      relation: 'नाते',
+      save: 'जोडा',
+      cancel: 'रद्द करा',
+      noLinks: 'कोणीही केयरगिव्हर जोडलेला नाही',
+      noAlerts: 'कोणतेही अलर्ट नाहीत',
+      alerts: 'अलीकडील अलर्ट',
+      loginRequired: 'केयरगिव्हर मोडसाठी साइन इन करा',
     },
     en: {
       title: 'Caregiver',

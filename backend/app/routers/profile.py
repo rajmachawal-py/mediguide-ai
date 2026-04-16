@@ -222,3 +222,40 @@ async def save_fcm_token(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to save FCM token.",
         )
+
+
+# ── GET /api/profile/audit-logs ──────────────────────────────
+
+@router.get(
+    "/profile/audit-logs",
+    summary="Get user's audit trail",
+    description=(
+        "Returns the authenticated user's recent audit log entries. "
+        "Supports DPDPA right to access — users can see what data was "
+        "accessed and what actions were performed on their behalf."
+    ),
+)
+async def get_audit_logs(
+    user_id: str = Depends(get_current_user_id),
+    limit: int = 50,
+):
+    """
+    Fetch the audit trail for the current user.
+    Returns the most recent `limit` audit log entries.
+    DPDPA compliance: Right to Access.
+    """
+    from app.services.audit_service import get_user_audit_logs
+
+    try:
+        logs = await get_user_audit_logs(user_id=user_id, limit=limit)
+        return {
+            "status": "ok",
+            "count": len(logs),
+            "logs": logs,
+        }
+    except Exception as e:
+        logger.error(f"Audit logs fetch error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to fetch audit logs.",
+        )

@@ -9,12 +9,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, signInWithEmail, signUpWithEmail, signInWithGoogle } from '../services/supabase'
+import { useLanguage } from '../contexts/LanguageContext'
 import { FiMail, FiLock, FiArrowRight, FiLoader, FiCheck, FiEye, FiEyeOff, FiUser } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [language, setLanguage] = useState(localStorage.getItem('mediguide_lang') || 'hi')
+  const { language, changeLanguage } = useLanguage()
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -24,9 +25,32 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Check if already logged in + handle OAuth callback
+  // Check if already logged in + handle OAuth callback + handle email verification errors
   useEffect(() => {
     const handleAuth = async () => {
+      // Handle email verification errors (e.g. expired link)
+      if (window.location.hash && window.location.hash.includes('error=')) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const errorCode = hashParams.get('error_code')
+        const errorDesc = hashParams.get('error_description')?.replace(/\+/g, ' ')
+
+        if (errorCode === 'otp_expired') {
+          setError(
+            language === 'hi'
+              ? 'ईमेल लिंक की समय सीमा समाप्त हो गई है। कृपया फिर से लॉगिन करें।'
+              : language === 'mr'
+                ? 'ईमेल लिंकची मुदत संपली आहे. कृपया पुन्हा लॉगिन करा.'
+                : 'Email verification link has expired. Please log in again with your email and password.'
+          )
+        } else {
+          setError(errorDesc || 'Authentication error. Please try again.')
+        }
+
+        // Clean the URL
+        window.history.replaceState({}, '', '/login')
+        return
+      }
+
       // Handle OAuth PKCE code exchange (code is in URL after Google redirect)
       const params = new URLSearchParams(window.location.search)
       const code = params.get('code')
@@ -35,7 +59,6 @@ export default function LoginPage() {
         try {
           const { data, error } = await supabase.auth.exchangeCodeForSession(code)
           if (!error && data?.session) {
-            // Clean the URL of the code parameter
             window.history.replaceState({}, '', '/login')
             localStorage.removeItem('mediguide_guest')
             navigate('/chat', { replace: true })
@@ -55,7 +78,6 @@ export default function LoginPage() {
 
       // Also check for hash-based tokens (older Supabase flow)
       if (window.location.hash && window.location.hash.includes('access_token')) {
-        // Supabase will auto-detect hash tokens; wait a moment for processing
         setTimeout(async () => {
           const { data: { session: hashSession } } = await supabase.auth.getSession()
           if (hashSession) {
@@ -82,8 +104,7 @@ export default function LoginPage() {
   }, [navigate])
 
   const handleLanguageSelect = (lang) => {
-    setLanguage(lang)
-    localStorage.setItem('mediguide_lang', lang)
+    changeLanguage(lang)
   }
 
   const handleSkipLogin = () => {

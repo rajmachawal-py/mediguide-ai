@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { sendTriage, generateSummary } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const MAX_HISTORY = 50
 
@@ -10,15 +11,12 @@ export default function useChat() {
   const [isLoading, setIsLoading] = useState(false)
   const [isFinal, setIsFinal] = useState(false)
   const [summary, setSummary] = useState(null)
-  const [language, setLanguage] = useState(() => localStorage.getItem('mediguide_lang') || 'hi')
+
+  // Language from centralized context — changes here update the entire app
+  const { language, changeLanguage } = useLanguage()
+
   const abortRef = useRef(null)
   const loadingRef = useRef(false) // ref to avoid stale closure
-
-  /** Update and persist language preference. */
-  const changeLanguage = useCallback((lang) => {
-    setLanguage(lang)
-    localStorage.setItem('mediguide_lang', lang)
-  }, [])
 
   /** Build conversation history for the API from messages state. */
   const buildHistory = useCallback((msgs) => {
@@ -70,6 +68,9 @@ export default function useChat() {
       if (response.is_final) {
         setIsFinal(true)
       }
+
+      // Extract demographics from AI response for guest mode
+      extractDemographics(response.message || response.response, text.trim())
 
       return response
     } catch (error) {
@@ -131,5 +132,50 @@ export default function useChat() {
     sendMessage,
     getSummary,
     resetChat,
+  }
+}
+
+
+/**
+ * Extract patient demographics from chat messages for guest mode.
+ * Scans user input and AI responses for age, gender, and name mentions.
+ * Stores in localStorage for health card and FHIR export.
+ */
+function extractDemographics(aiResponse, userText) {
+  const combined = `${userText} ${aiResponse}`.toLowerCase()
+
+  // Extract age — patterns like "30 years", "age 45", "I am 25", "मेरी उम्र 30"
+  if (!localStorage.getItem('mediguide_patient_age')) {
+    const ageMatch = combined.match(
+      /(?:i am|i'm|age is|age:|my age is|मेरी उम्र|वय)\s*(\d{1,3})/i
+    ) || userText.match(/^(\d{1,3})$/i)  // plain number reply
+
+    if (ageMatch && parseInt(ageMatch[1]) > 0 && parseInt(ageMatch[1]) <= 120) {
+      localStorage.setItem('mediguide_patient_age', ageMatch[1])
+    }
+  }
+
+  // Extract gender
+  if (!localStorage.getItem('mediguide_patient_gender')) {
+    const genderPatterns = {
+      male: /\b(male|man|पुरुष|लड़का|मर्द|पुरुष)\b/i,
+      female: /\b(female|woman|महिला|लड़की|स्त्री|महिला|बाई)\b/i,
+    }
+    for (const [gender, pattern] of Object.entries(genderPatterns)) {
+      if (pattern.test(combined)) {
+        localStorage.setItem('mediguide_patient_gender', gender)
+        break
+      }
+    }
+  }
+
+  // Extract name — patterns like "my name is", "I am [Name]", "मेरा नाम"
+  if (!localStorage.getItem('mediguide_patient_name')) {
+    const nameMatch = userText.match(
+      /(?:my name is|i am|i'm|मेरा नाम|माझे नाव)\s+([A-Za-z\u0900-\u097F\u0980-\u09FF]+(?:\s+[A-Za-z\u0900-\u097F\u0980-\u09FF]+)?)/i
+    )
+    if (nameMatch && nameMatch[1].length > 1) {
+      localStorage.setItem('mediguide_patient_name', nameMatch[1].trim())
+    }
   }
 }
