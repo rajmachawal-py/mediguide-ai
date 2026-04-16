@@ -1,21 +1,21 @@
 /**
  * MediGuide AI — Spinner
- * Loading spinner with optional text.
+ * Clinical Intelligence loading spinner.
  */
 
-export default function Spinner({ size = 'md', text = '' }) {
-  const sizeClasses = {
-    sm: 'w-4 h-4 border-2',
-    md: 'w-8 h-8 border-3',
-    lg: 'w-12 h-12 border-4',
+export default function Spinner({ size = 'md', className = '' }) {
+  const sizeMap = {
+    sm: 'w-5 h-5',
+    md: 'w-8 h-8',
+    lg: 'w-12 h-12',
   }
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className={`flex items-center justify-center ${className}`}>
       <div
-        className={`${sizeClasses[size]} rounded-full border-surface-700 border-t-primary-500 animate-spin`}
+        className={`${sizeMap[size]} border-3 border-surface-container-high border-t-primary-container rounded-full animate-spin`}
+        style={{ borderWidth: '3px' }}
       />
-      {text && <p className="text-sm text-surface-300 animate-pulse">{text}</p>}
     </div>
   )
 }

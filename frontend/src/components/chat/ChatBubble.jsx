@@ -1,6 +1,8 @@
 /**
  * MediGuide AI — ChatBubble
- * Renders a single chat message (user or AI).
+ * Clinical Intelligence chat bubble.
+ * User: solid primary blue with white text.
+ * AI: white card with Clinical Bloom shadow.
  */
 
 export default function ChatBubble({ message }) {
@@ -12,12 +14,12 @@ export default function ChatBubble({ message }) {
       className={`flex ${isUser ? 'justify-end' : 'justify-start'} animate-slide-up`}
     >
       <div
-        className={`max-w-[85%] px-4 py-3 ${
+        className={`max-w-[85%] lg:max-w-[65%] px-4 py-3 ${
           isUser
-            ? 'chat-bubble-user text-white'
+            ? 'chat-bubble-user'
             : isError
-              ? 'chat-bubble-ai border-red-500/30 text-red-300'
-              : 'chat-bubble-ai text-surface-200'
+              ? 'chat-bubble-ai border-error/30'
+              : 'chat-bubble-ai'
         }`}
       >
         {/* Image thumbnail (for visual symptom uploads) */}
@@ -26,7 +28,7 @@ export default function ChatBubble({ message }) {
             <img
               src={message.image}
               alt="Symptom image"
-              className="rounded-lg max-w-[200px] max-h-[200px] object-cover border border-white/10"
+              className="rounded-clinical max-w-[200px] max-h-[200px] object-cover"
             />
           </div>
         )}
@@ -34,22 +36,24 @@ export default function ChatBubble({ message }) {
         {/* Urgency indicator on AI messages */}
         {!isUser && message.urgency && (
           <span
-            className={`inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-2 ${
+            className={`triage-badge mb-2 ${
               message.urgency === 'emergency'
-                ? 'bg-red-500/20 text-red-400'
+                ? 'triage-badge-emergency'
                 : message.urgency === 'moderate'
-                  ? 'bg-yellow-500/20 text-yellow-400'
-                  : 'bg-green-500/20 text-green-400'
+                  ? 'triage-badge-moderate'
+                  : 'triage-badge-mild'
             }`}
           >
             {message.urgency === 'emergency' ? '🔴' : message.urgency === 'moderate' ? '🟡' : '🟢'}{' '}
-            {message.urgency}
+            {message.urgency.toUpperCase()}
           </span>
         )}
 
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isError ? 'text-error' : ''}`}>
+          {message.content}
+        </p>
 
-        <span className="block text-[10px] mt-1.5 opacity-40">
+        <span className={`block text-[10px] mt-1.5 ${isUser ? 'text-white/50' : 'text-outline'}`}>
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </span>
       </div>

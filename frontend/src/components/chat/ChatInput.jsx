@@ -1,6 +1,7 @@
 /**
  * MediGuide AI — ChatInput
- * Text input with send button, auto-disables during loading.
+ * Clinical Intelligence text input with send button.
+ * Uses prescription-line style input with Clinical Bloom focus.
  */
 
 import { useState, useRef, useEffect } from 'react'
@@ -45,7 +46,7 @@ export default function ChatInput({ onSend, isLoading, language, placeholder }) 
           placeholder={placeholder || defaultPlaceholder[language] || defaultPlaceholder.en}
           disabled={isLoading}
           rows={1}
-          className="w-full bg-surface-800/80 text-white placeholder-surface-400 rounded-2xl px-4 py-3 pr-4 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/50 border border-surface-700/50 transition-all disabled:opacity-50"
+          className="w-full bg-surface-container-low text-on-surface placeholder-outline rounded-clinical-lg px-4 py-3 text-sm resize-none focus:outline-none focus:bg-white focus:shadow-clinical border-b-2 border-transparent focus:border-primary-container transition-all disabled:opacity-50"
           style={{ maxHeight: '120px' }}
         />
       </div>
@@ -53,7 +54,7 @@ export default function ChatInput({ onSend, isLoading, language, placeholder }) 
       <button
         type="submit"
         disabled={!text.trim() || isLoading}
-        className="flex-shrink-0 w-11 h-11 rounded-xl bg-primary-600 hover:bg-primary-700 text-white flex items-center justify-center transition-all duration-200 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-primary-600/20"
+        className="flex-shrink-0 w-11 h-11 rounded-clinical bg-primary-container hover:bg-primary text-white flex items-center justify-center transition-all duration-200 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed shadow-clinical"
       >
         <FiSend className="w-4 h-4" />
       </button>

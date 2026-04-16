@@ -18,9 +18,9 @@ export default function DisclaimerBanner({ language = 'en' }) {
   const text = DISCLAIMER[language] || DISCLAIMER.en
 
   return (
-    <div className="mx-4 mt-1 mb-0 flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-      <FiInfo className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-      <p className="flex-1 text-[10px] text-amber-300/90 leading-relaxed font-medium">
+    <div className="mx-4 mt-1 mb-0 flex items-center gap-2 px-3 py-2 rounded-clinical bg-surface-container-low">
+      <FiInfo className="w-3.5 h-3.5 text-outline flex-shrink-0" />
+      <p className="flex-1 text-[10px] text-on-surface-variant leading-relaxed font-medium">
         {text}
       </p>
     </div>

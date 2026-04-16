@@ -1,6 +1,7 @@
 /**
  * MediGuide AI — HospitalPage
  * Shows nearby hospitals, filtered by type, with distance and details.
+ * Clinical Intelligence design.
  */
 
 import { useState, useEffect } from 'react'
@@ -61,33 +62,33 @@ export default function HospitalPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-4 pb-20 space-y-4 font-sans">
+    <div className="max-w-lg mx-auto lg:max-w-4xl px-4 py-4 pb-20 space-y-4 font-sans">
       {/* Header */}
       <div className="flex justify-between items-end">
         <div className="space-y-1">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <FiMapPin className="text-primary-400" />
+          <h1 className="text-xl font-bold font-display text-on-surface flex items-center gap-2">
+            <FiMapPin className="text-primary" />
             {language === 'hi' ? 'नजदीकी अस्पताल' : language === 'mr' ? 'जवळची रुग्णालये' : 'Nearby Hospitals'}
           </h1>
-          <p className="text-xs text-surface-400">
+          <p className="text-xs text-on-surface-variant">
             {filtered.length} {language === 'en' ? 'hospitals found' : language === 'hi' ? 'अस्पताल मिले' : 'रुग्णालये सापडली'}
           </p>
         </div>
         
         {/* List / Map Toggle */}
-        <div className="flex bg-surface-800/80 rounded-lg p-1">
+        <div className="flex bg-surface-container rounded-clinical p-1">
           <button 
             onClick={() => setViewMode('list')}
-            className={`p-1.5 rounded-md flex items-center justify-center transition-all ${
-              viewMode === 'list' ? 'bg-primary-600 text-white shadow' : 'text-surface-400 hover:text-white'
+            className={`p-1.5 rounded-[0.5rem] flex items-center justify-center transition-all ${
+              viewMode === 'list' ? 'bg-primary-container text-white shadow-clinical' : 'text-on-surface-variant hover:text-primary'
             }`}
           >
             <FiList className="w-4 h-4" />
           </button>
           <button 
             onClick={() => setViewMode('map')}
-            className={`p-1.5 rounded-md flex items-center justify-center transition-all ${
-              viewMode === 'map' ? 'bg-primary-600 text-white shadow' : 'text-surface-400 hover:text-white'
+            className={`p-1.5 rounded-[0.5rem] flex items-center justify-center transition-all ${
+              viewMode === 'map' ? 'bg-primary-container text-white shadow-clinical' : 'text-on-surface-variant hover:text-primary'
             }`}
           >
             <FiMap className="w-4 h-4" />
@@ -103,8 +104,8 @@ export default function HospitalPage() {
             onClick={() => setFilter(key)}
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
               filter === key
-                ? 'bg-primary-600 text-white'
-                : 'bg-surface-800/60 text-surface-400 hover:text-white'
+                ? 'bg-primary-container text-white shadow-clinical'
+                : 'bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30'
             }`}
           >
             {labels[language] || labels.en}
@@ -114,7 +115,7 @@ export default function HospitalPage() {
 
       {/* Content Area */}
       {error && (
-        <div className="glass-card p-4 text-center text-red-400 text-sm">{error}</div>
+        <div className="clinical-card p-4 text-center text-error text-sm">{error}</div>
       )}
 
       {viewMode === 'list' ? (
@@ -124,7 +125,7 @@ export default function HospitalPage() {
           ))}
 
           {filtered.length === 0 && !loading && (
-            <div className="glass-card p-8 text-center text-surface-400 text-sm">
+            <div className="clinical-card-flat p-8 text-center text-on-surface-variant text-sm">
               {language === 'hi' ? 'कोई अस्पताल नहीं मिला' : 'No hospitals found in this category'}
             </div>
           )}
@@ -135,4 +136,3 @@ export default function HospitalPage() {
     </div>
   )
 }
-

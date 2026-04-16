@@ -73,8 +73,8 @@ function PreviewOverlay({ preview, onSend, onCancel }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        backdropFilter: 'blur(8px)',
+        backgroundColor: 'rgba(25, 28, 29, 0.5)',
+        backdropFilter: 'blur(12px)',
         padding: '24px',
       }}
       onClick={onCancel}
@@ -83,9 +83,8 @@ function PreviewOverlay({ preview, onSend, onCancel }) {
         style={{
           width: '100%',
           maxWidth: '380px',
-          backgroundColor: 'rgba(30, 41, 59, 0.95)',
-          border: '1px solid rgba(71, 85, 105, 0.5)',
-          borderRadius: '16px',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '12px',
           padding: '16px',
           display: 'flex',
           flexDirection: 'column',
@@ -95,7 +94,7 @@ function PreviewOverlay({ preview, onSend, onCancel }) {
       >
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#fff', margin: 0 }}>
+          <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#191C1D', margin: 0 }}>
             📸 Symptom Image
           </h3>
           <button
@@ -103,7 +102,7 @@ function PreviewOverlay({ preview, onSend, onCancel }) {
             style={{
               background: 'none',
               border: 'none',
-              color: '#94a3b8',
+              color: '#727783',
               cursor: 'pointer',
               padding: '4px',
               display: 'flex',
@@ -119,7 +118,7 @@ function PreviewOverlay({ preview, onSend, onCancel }) {
             borderRadius: '12px',
             overflow: 'hidden',
             border: '1px solid rgba(71, 85, 105, 0.5)',
-            backgroundColor: '#0f172a',
+            backgroundColor: '#F3F4F5',
           }}
         >
           <img
@@ -142,11 +141,11 @@ function PreviewOverlay({ preview, onSend, onCancel }) {
               flex: 1,
               padding: '12px 16px',
               borderRadius: '12px',
-              backgroundColor: '#1e293b',
-              color: '#94a3b8',
+              backgroundColor: '#F3F4F5',
+              color: '#727783',
               fontSize: '14px',
               fontWeight: 500,
-              border: '1px solid rgba(71, 85, 105, 0.5)',
+              border: 'none',
               cursor: 'pointer',
             }}
           >
@@ -158,7 +157,7 @@ function PreviewOverlay({ preview, onSend, onCancel }) {
               flex: 1,
               padding: '12px 16px',
               borderRadius: '12px',
-              backgroundColor: '#2563eb',
+              backgroundColor: '#005EB8',
               color: '#fff',
               fontSize: '14px',
               fontWeight: 600,
@@ -168,7 +167,7 @@ function PreviewOverlay({ preview, onSend, onCancel }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+              boxShadow: '0 4px 12px rgba(0, 94, 184, 0.25)',
             }}
           >
             <FiSend size={16} />
@@ -245,14 +244,14 @@ export default function ImageUploadButton({ onImageCapture, disabled }) {
         onClick={handleClick}
         disabled={disabled || isProcessing}
         title="Upload symptom image"
-        className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
+        className={`w-11 h-11 rounded-clinical flex items-center justify-center transition-all duration-200 active:scale-90 ${
           isProcessing
-            ? 'bg-surface-700 text-surface-400'
-            : 'bg-surface-800 hover:bg-surface-700 text-surface-300 hover:text-white border border-surface-700/50'
+            ? 'bg-surface-container text-outline'
+            : 'bg-surface-container-low hover:bg-primary-fixed/40 text-on-surface-variant hover:text-primary'
         } disabled:opacity-30 disabled:cursor-not-allowed`}
       >
         {isProcessing ? (
-          <div className="w-4 h-4 border-2 border-surface-500 border-t-white rounded-full animate-spin" />
+          <div className="w-4 h-4 border-2 border-outline border-t-primary rounded-full animate-spin" />
         ) : (
           <FiCamera className="w-4 h-4" />
         )}

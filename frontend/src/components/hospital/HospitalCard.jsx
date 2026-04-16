@@ -1,6 +1,6 @@
 /**
  * MediGuide AI — HospitalCard
- * Presentational component for a hospital card in the hospital list.
+ * Clinical Intelligence hospital card component.
  */
 
 import { Link } from 'react-router-dom'
@@ -15,48 +15,48 @@ export default function HospitalCard({ hospital, language = 'en' }) {
   }
 
   return (
-    <div className="glass-card p-4 space-y-3">
+    <div className="clinical-card p-4 space-y-3">
       {/* Name + Type Badge */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-white text-sm truncate">
+          <h3 className="font-semibold text-on-surface text-sm truncate">
             {getHospitalName(hospital)}
           </h3>
-          <p className="text-xs text-surface-400 mt-0.5 truncate">
+          <p className="text-xs text-on-surface-variant mt-0.5 truncate">
             {hospital.address}
           </p>
         </div>
         <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-          hospital.hospital_type === 'government' ? 'bg-green-500/20 text-green-400' :
-          hospital.hospital_type === 'trust'      ? 'bg-blue-500/20 text-blue-400' :
-          'bg-purple-500/20 text-purple-400'
+          hospital.hospital_type === 'government' ? 'bg-tertiary/10 text-tertiary' :
+          hospital.hospital_type === 'trust'      ? 'bg-primary/10 text-primary' :
+          'bg-secondary/10 text-secondary'
         }`}>
           {hospital.hospital_type}
         </span>
       </div>
 
       {/* Info Row */}
-      <div className="flex flex-wrap items-center gap-3 text-xs text-surface-300">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant">
         {hospital.distance_km != null && (
           <span className="flex items-center gap-1" title="Distance from current location">
-            <FiNavigation className="w-3 h-3 text-primary-400" />
+            <FiNavigation className="w-3 h-3 text-primary" />
             ~{formatDistance(hospital.distance_km)}
           </span>
         )}
         {hospital.rating && (
           <span className="flex items-center gap-1" title="Google rating">
-            <FiStar className="w-3 h-3 text-yellow-400" />
+            <FiStar className="w-3 h-3 text-moderate" />
             {hospital.rating}
           </span>
         )}
         {hospital.is_24x7 && (
           <span className="flex items-center gap-1" title="Open 24/7">
-            <FiClock className="w-3 h-3 text-green-400" />
+            <FiClock className="w-3 h-3 text-tertiary" />
             24/7
           </span>
         )}
         {hospital.has_emergency && (
-          <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 text-[10px] font-bold">
+          <span className="triage-badge triage-badge-emergency">
             🚨 Emergency
           </span>
         )}
@@ -66,12 +66,12 @@ export default function HospitalCard({ hospital, language = 'en' }) {
       {hospital.specialties?.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {hospital.specialties.slice(0, 5).map(s => (
-            <span key={s} className="px-2 py-0.5 rounded-full bg-surface-800/80 text-surface-300 text-[10px]">
+            <span key={s} className="px-2 py-0.5 rounded-full bg-surface-container-low text-on-surface-variant text-[10px]">
               {s}
             </span>
           ))}
           {hospital.specialties.length > 5 && (
-            <span className="text-[10px] text-surface-400">+{hospital.specialties.length - 5}</span>
+            <span className="text-[10px] text-outline">+{hospital.specialties.length - 5}</span>
           )}
         </div>
       )}
@@ -82,7 +82,7 @@ export default function HospitalCard({ hospital, language = 'en' }) {
           href={getDirectionsUrl(hospital.lat, hospital.lng, hospital.name, hospital.city)}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary-600/20 text-primary-400 text-xs font-medium hover:bg-primary-600/30 transition-all font-sans"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-clinical bg-primary/10 text-primary text-xs font-medium hover:bg-primary/15 transition-all"
         >
           <FiNavigation className="w-3 h-3" />
           {language === 'hi' ? 'दिशा' : language === 'mr' ? 'दिशा' : 'Directions'}
@@ -91,7 +91,6 @@ export default function HospitalCard({ hospital, language = 'en' }) {
           <a
             href={`tel:${hospital.phone.replace(/[^\d+]/g, '')}`}
             onClick={(e) => {
-              // On desktop, tel: links may not work — copy number instead
               if (!/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
                 e.preventDefault()
                 navigator.clipboard.writeText(hospital.phone).then(() => {
@@ -99,7 +98,7 @@ export default function HospitalCard({ hospital, language = 'en' }) {
                 })
               }
             }}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-green-600/20 text-green-400 text-xs font-medium hover:bg-green-600/30 transition-all"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-clinical bg-tertiary/10 text-tertiary text-xs font-medium hover:bg-tertiary/15 transition-all"
             title={hospital.phone}
           >
             <FiPhone className="w-3 h-3" />
@@ -117,7 +116,7 @@ export default function HospitalCard({ hospital, language = 'en' }) {
                 })
               }
             }}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-red-600/20 text-red-400 text-xs font-medium hover:bg-red-600/30 transition-all"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-clinical bg-error/10 text-error text-xs font-medium hover:bg-error/15 transition-all"
             title="Call Ambulance: 108"
           >
             🚑 108
@@ -126,14 +125,14 @@ export default function HospitalCard({ hospital, language = 'en' }) {
         {hospital.id === '00000000-0000-0000-0000-000000000003' ? (
           <Link
             to={`/map/${hospital.id}`}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-accent-600/20 text-accent-400 text-xs font-medium hover:bg-accent-600/30 transition-all"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-clinical bg-secondary/10 text-secondary text-xs font-medium hover:bg-secondary/15 transition-all"
           >
             <FiMap className="w-3 h-3" />
             {language === 'hi' ? 'नक्शा' : language === 'mr' ? 'नकाशा' : 'Indoor Map'}
           </Link>
         ) : (
           <span
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-surface-800/50 text-surface-500 text-xs font-medium cursor-not-allowed"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-clinical bg-surface-container text-outline text-xs font-medium cursor-not-allowed"
             title={language === 'hi' ? 'जल्द आ रहा है' : 'Coming Soon'}
           >
             <FiMap className="w-3 h-3" />

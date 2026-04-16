@@ -1,6 +1,6 @@
 /**
  * MediGuide AI — ChatPage
- * Main chat interface for symptom assessment and triage.
+ * Clinical Intelligence chat interface for symptom assessment and triage.
  *
  * Voice I/O Architecture:
  * - Text Input: User types → text response (no audio)
@@ -27,7 +27,7 @@ import Spinner from '../components/shared/Spinner'
 import { getNearbyHospitals, getEligibleSchemes } from '../services/api'
 import { generateHealthCard } from '../services/healthCardGenerator'
 import { downloadFHIRBundle } from '../services/fhirExport'
-import { FiRefreshCw, FiFileText, FiDownload, FiCode, FiVolume2 } from 'react-icons/fi'
+import { FiRefreshCw, FiFileText, FiDownload, FiCode, FiVolume2, FiShield } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 const welcomeMessage = {
@@ -59,14 +59,10 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
 
-  // NOTE: No auto-TTS here — mic button input gets text-only responses.
-  // TTS output only happens in Voice Mode (useVoiceAutoMode).
-
   // Trigger emergency alert when urgency is emergency
   useEffect(() => {
     if (urgency === 'emergency' && !showEmergency) {
       setShowEmergency(true)
-      // Find nearest emergency hospital
       if (lat && lng) {
         getNearbyHospitals(lat, lng, 15, 'emergency')
           .then(data => {
@@ -132,18 +128,21 @@ export default function ChatPage() {
   const showWelcome = messages.length === 0
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] max-w-lg mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 glass-light rounded-b-2xl">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-sm">
-            🏥
+    <div className="flex flex-col h-[calc(100vh-64px)] max-w-lg mx-auto lg:max-w-4xl">
+      {/* Header — Clinical Intelligence */}
+      <div className="flex items-center justify-between px-4 py-3 bg-white shadow-clinical">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-clinical bg-primary-fixed/60 flex items-center justify-center">
+            <span className="text-lg">🏥</span>
           </div>
           <div>
-            <h1 className="text-sm font-bold text-white">MediGuide AI</h1>
-            <p className="text-[10px] text-surface-400">
-              {language === 'hi' ? 'स्वास्थ्य सहायक' : language === 'mr' ? 'आरोग्य सहाय्यक' : 'Health Assistant'}
-            </p>
+            <h1 className="text-sm font-bold font-display text-on-surface">MediGuide Clinical AI</h1>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" />
+              <p className="text-clinical-meta">
+                {language === 'hi' ? 'एन्क्रिप्टेड सत्र' : language === 'mr' ? 'एन्क्रिप्टेड सत्र' : 'Encrypted Session'}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -151,10 +150,10 @@ export default function ChatPage() {
           {!isFinal && (
             <button
               onClick={isAutoMode ? stopAutoMode : startAutoMode}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-clinical text-xs font-semibold transition-all duration-200 ${
                 isAutoMode
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  : 'bg-primary-500/15 text-primary-400 border border-primary-500/30 hover:bg-primary-500/25'
+                  ? 'bg-error/10 text-error'
+                  : 'bg-primary-fixed/40 text-primary hover:bg-primary-fixed/60'
               }`}
               title={isAutoMode
                 ? (language === 'hi' ? 'वॉइस मोड बंद करें' : language === 'mr' ? 'व्हॉइस मोड बंद करा' : 'Stop Voice Mode')
@@ -162,11 +161,11 @@ export default function ChatPage() {
               }
             >
               <FiVolume2 className="w-3.5 h-3.5" />
-              {isAutoMode ? '🔴 Stop' : '🗣️ Voice'}
+              {isAutoMode ? '⬤ Stop' : '🗣️ Voice'}
             </button>
           )}
           {messages.length > 0 && (
-            <button onClick={resetChat} className="btn-ghost p-2" title="New chat">
+            <button onClick={resetChat} className="btn-ghost p-2 rounded-clinical" title="New chat">
               <FiRefreshCw className="w-4 h-4" />
             </button>
           )}
@@ -184,16 +183,16 @@ export default function ChatPage() {
       )}
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-surface">
         {/* Welcome */}
         {showWelcome && (
           <div className="flex flex-col items-center justify-center h-full text-center space-y-6 animate-fade-in">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center text-4xl">
+            <div className="w-20 h-20 rounded-clinical-xl bg-primary-fixed/30 flex items-center justify-center text-4xl shadow-clinical">
               🏥
             </div>
             <div className="space-y-2">
-              <h2 className="text-lg font-bold gradient-text">MediGuide AI</h2>
-              <p className="text-sm text-surface-300 max-w-xs leading-relaxed">
+              <h2 className="text-xl font-bold font-display gradient-text">MediGuide Clinical AI</h2>
+              <p className="text-sm text-on-surface-variant max-w-xs leading-relaxed">
                 {welcomeMessage[language] || welcomeMessage.en}
               </p>
             </div>
@@ -207,7 +206,7 @@ export default function ChatPage() {
                 <button
                   key={hint}
                   onClick={() => handleSend(hint)}
-                  className="px-3 py-1.5 rounded-full text-xs bg-surface-800/60 text-surface-300 hover:bg-primary-600/20 hover:text-primary-300 border border-surface-700/30 transition-all"
+                  className="px-3 py-1.5 rounded-full text-xs bg-surface-container-low text-on-surface-variant hover:bg-primary-fixed/40 hover:text-primary font-medium transition-all"
                 >
                   {hint}
                 </button>
@@ -250,17 +249,13 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Download Health Card + FHIR Export (shown after summary generated) */}
+        {/* Download Health Card + FHIR Export */}
         {summary && (
-          <div className="flex flex-col items-center gap-2 py-2 animate-slide-up">
+          <div className="flex flex-col items-center gap-2 py-3 animate-slide-up">
             <button
               onClick={handleDownloadHealthCard}
               disabled={isDownloading}
-              className="w-full max-w-xs flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm text-white transition-all duration-200 active:scale-95 disabled:opacity-50 shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, #16a34a, #15803d)',
-                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.3)',
-              }}
+              className="w-full max-w-xs flex items-center justify-center gap-2 px-5 py-3.5 rounded-clinical font-semibold text-sm text-white transition-all duration-200 active:scale-95 disabled:opacity-50 bg-tertiary-container hover:bg-tertiary shadow-triage-mild"
             >
               {isDownloading ? (
                 <>
@@ -295,7 +290,7 @@ export default function ChatPage() {
                   'FHIR report downloaded!'
                 )
               }}
-              className="w-full max-w-xs flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium text-surface-300 bg-surface-800/60 hover:bg-surface-800/90 border border-surface-700/40 hover:border-surface-600/60 transition-all active:scale-95"
+              className="w-full max-w-xs flex items-center justify-center gap-2 px-4 py-2.5 rounded-clinical text-xs font-medium text-on-surface-variant bg-surface-container-low hover:bg-surface-container transition-all active:scale-95"
             >
               <FiCode className="w-3.5 h-3.5" />
               {language === 'hi' ? '🏥 HL7 FHIR फॉर्मेट में डाउनलोड करें' :
@@ -313,8 +308,8 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="px-4 py-3 glass-light rounded-t-2xl border-t border-surface-700/30">
+      {/* Input Area — Clinical Glass */}
+      <div className="px-4 py-3 bg-white shadow-clinical border-t border-outline-variant/20">
         <div className="flex items-end gap-2">
           <VoiceButton
             language={language}
@@ -356,7 +351,7 @@ export default function ChatPage() {
   )
 }
 
-/** Inline Government Schemes — self-contained, no external component */
+/** Inline Government Schemes — Clinical Intelligence style */
 function InlineSchemes({ language, schemes, setSchemes }) {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
@@ -391,54 +386,58 @@ function InlineSchemes({ language, schemes, setSchemes }) {
   }[language] || { title: 'Government Health Schemes', sub: 'Schemes you may be eligible for', loading: 'Searching...', none: 'No eligible schemes found' }
 
   if (loading) return (
-    <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: 14, margin: '8px 0' }}>
-      <p style={{ color: '#10b981', fontSize: 13, fontWeight: 600, margin: 0 }}>🛡️ {t.title}</p>
-      <p style={{ color: '#94a3b8', fontSize: 11, margin: '4px 0 0' }}>{t.loading}</p>
+    <div className="clinical-card-flat p-4 my-2 animate-fade-in">
+      <p className="text-sm font-semibold text-tertiary flex items-center gap-2">
+        <FiShield className="w-4 h-4" /> {t.title}
+      </p>
+      <p className="text-xs text-outline mt-1">{t.loading}</p>
     </div>
   )
 
   if (!schemes || schemes.length === 0) return null
 
   return (
-    <div style={{ margin: '8px 0', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(16,185,129,0.2)' }}>
+    <div className="my-2 clinical-card overflow-hidden animate-slide-up">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.1))', padding: '12px 14px', borderBottom: '1px solid rgba(16,185,129,0.15)' }}>
-        <p style={{ color: '#10b981', fontSize: 13, fontWeight: 700, margin: 0 }}>🛡️ {t.title}</p>
-        <p style={{ color: '#64748b', fontSize: 10, margin: '2px 0 0' }}>{t.sub}</p>
+      <div className="bg-tertiary/5 px-4 py-3 border-b border-outline-variant/20">
+        <p className="text-sm font-bold text-tertiary flex items-center gap-2">
+          <FiShield className="w-4 h-4" /> {t.title}
+        </p>
+        <p className="text-[10px] text-outline mt-0.5">{t.sub}</p>
       </div>
       {/* Scheme Cards */}
       {schemes.map((s, i) => (
-        <div key={s.id} style={{ background: 'rgba(15,23,42,0.6)', borderBottom: i < schemes.length - 1 ? '1px solid rgba(100,116,139,0.15)' : 'none' }}>
+        <div key={s.id} className={i < schemes.length - 1 ? 'border-b border-outline-variant/15' : ''}>
           <button
             onClick={() => setExpanded(expanded === s.id ? null : s.id)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface-container-low transition-colors"
           >
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>💚</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ color: '#fff', fontSize: 12, fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div className="w-8 h-8 rounded-clinical bg-tertiary/10 flex items-center justify-center text-sm flex-shrink-0">💚</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-on-surface truncate">
                 {language === 'hi' && s.name_hi ? s.name_hi : language === 'mr' && s.name_mr ? s.name_mr : s.name}
               </p>
               {s.benefit_amount && (
-                <p style={{ color: '#10b981', fontSize: 10, margin: '2px 0 0' }}>
+                <p className="text-[10px] text-tertiary mt-0.5">
                   💰 ₹{Number(s.benefit_amount).toLocaleString('en-IN')}
                 </p>
               )}
             </div>
-            <span style={{ color: '#64748b', fontSize: 14 }}>{expanded === s.id ? '▲' : '▼'}</span>
+            <span className="text-outline text-xs">{expanded === s.id ? '▲' : '▼'}</span>
           </button>
           {expanded === s.id && (
-            <div style={{ padding: '0 14px 12px 56px' }}>
-              <p style={{ color: '#cbd5e1', fontSize: 11, lineHeight: '1.5', margin: '0 0 8px' }}>
+            <div className="px-4 pb-3 pl-[60px] animate-fade-in">
+              <p className="text-xs text-on-surface-variant leading-relaxed mb-2">
                 {language === 'hi' && s.description_hi ? s.description_hi : language === 'mr' && s.description_mr ? s.description_mr : s.description}
               </p>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div className="flex gap-2 flex-wrap">
                 {s.helpline && (
-                  <a href={`tel:${s.helpline.replace(/[^0-9+]/g, '')}`} style={{ fontSize: 10, color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 6, padding: '3px 8px', textDecoration: 'none' }}>
+                  <a href={`tel:${s.helpline.replace(/[^0-9+]/g, '')}`} className="text-[10px] text-moderate-dark bg-moderate/10 rounded-clinical px-2 py-1 font-medium">
                     📞 {s.helpline}
                   </a>
                 )}
                 {s.scheme_url && (
-                  <a href={s.scheme_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: '#3b82f6', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 6, padding: '3px 8px', textDecoration: 'none' }}>
+                  <a href={s.scheme_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary bg-primary-fixed/30 rounded-clinical px-2 py-1 font-medium">
                     🔗 Website
                   </a>
                 )}

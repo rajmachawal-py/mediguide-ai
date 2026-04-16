@@ -202,8 +202,8 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
 
   if (isProcessing) {
     return (
-      <button disabled className="w-11 h-11 rounded-xl bg-surface-700 flex items-center justify-center">
-        <FiLoader className="w-4 h-4 text-surface-400 animate-spin" />
+      <button disabled className="w-11 h-11 rounded-clinical bg-surface-container flex items-center justify-center">
+        <FiLoader className="w-4 h-4 text-outline animate-spin" />
       </button>
     )
   }
@@ -213,10 +213,10 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
       onClick={handlePress}
       disabled={disabled}
       title={isRecording ? 'Stop & send' : 'Voice input (text reply)'}
-      className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-90 ${
+      className={`w-11 h-11 rounded-clinical flex items-center justify-center transition-all duration-200 active:scale-90 ${
         isRecording
-          ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30'
-          : 'bg-surface-800 hover:bg-surface-700 text-surface-300 hover:text-white border border-surface-700/50'
+          ? 'bg-error text-white shadow-triage-emergency'
+          : 'bg-surface-container-low hover:bg-primary-fixed/40 text-on-surface-variant hover:text-primary'
       } disabled:opacity-30 disabled:cursor-not-allowed`}
       style={isRecording ? { animation: 'pulse 1.5s ease-in-out infinite' } : {}}
     >

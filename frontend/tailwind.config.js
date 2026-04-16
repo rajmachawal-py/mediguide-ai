@@ -4,71 +4,137 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        /* ── Clinical Intelligence Design System ─────────────── */
+
+        /* Primary: "Trust Anchor" — core navigation, CTAs */
         primary: {
-          50:  '#eef7ff',
-          100: '#d9edff',
-          200: '#bbe0ff',
-          300: '#8ccdff',
-          400: '#56b0ff',
-          500: '#2f8fff',
-          600: '#1a6ff5',
-          700: '#1259e1',
-          800: '#1648b6',
-          900: '#183f8f',
-          950: '#132857',
+          DEFAULT: '#00478D',
+          container: '#005EB8',
+          fixed: '#D6E3FF',
+          'fixed-dim': '#A9C7FF',
+          on: '#FFFFFF',
+          'on-container': '#C8DAFF',
         },
-        accent: {
-          50:  '#fdf4ff',
-          100: '#fae8ff',
-          200: '#f5d0fe',
-          300: '#f0abfc',
-          400: '#e879f9',
-          500: '#d946ef',
-          600: '#c026d3',
-          700: '#a21caf',
-          800: '#86198f',
-          900: '#701a75',
-          950: '#4a044e',
+
+        /* Secondary: "AI Intelligence" — AI insights, automated suggestions */
+        secondary: {
+          DEFAULT: '#7043C2',
+          container: '#A97DFF',
+          fixed: '#EBDDFF',
+          'fixed-dim': '#D3BBFF',
+          on: '#FFFFFF',
+          'on-container': '#3D0088',
         },
+
+        /* Tertiary: "Clinical Validation" — success, health-positive */
+        tertiary: {
+          DEFAULT: '#00541A',
+          container: '#006F25',
+          fixed: '#83FC8E',
+          'fixed-dim': '#66DF75',
+          on: '#FFFFFF',
+        },
+
+        /* Error / Emergency */
+        error: {
+          DEFAULT: '#BA1A1A',
+          container: '#FFDAD6',
+          on: '#FFFFFF',
+          'on-container': '#93000A',
+        },
+
+        /* Triage Status Colors */
         emergency: {
-          light: '#fef2f2',
-          DEFAULT: '#ef4444',
-          dark: '#991b1b',
+          light: '#FFDAD6',
+          DEFAULT: '#BA1A1A',
+          dark: '#93000A',
         },
         moderate: {
-          light: '#fffbeb',
-          DEFAULT: '#f59e0b',
-          dark: '#92400e',
+          light: '#FFDEAE',
+          DEFAULT: '#E68A00',
+          dark: '#7A4900',
         },
         mild: {
-          light: '#f0fdf4',
-          DEFAULT: '#22c55e',
-          dark: '#166534',
+          light: '#DAFEE0',
+          DEFAULT: '#00541A',
+          dark: '#003D12',
         },
+
+        /* Surface System: Tonal Layering */
         surface: {
-          50:  '#f8fafc',
-          100: '#f1f5f9',
-          200: '#e2e8f0',
-          300: '#cbd5e1',
-          700: '#334155',
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
+          DEFAULT: '#F8F9FA',
+          dim: '#D9DADB',
+          bright: '#F8F9FA',
+          container: {
+            DEFAULT: '#EDEEEF',
+            low: '#F3F4F5',
+            high: '#E7E8E9',
+            highest: '#E1E3E4',
+            lowest: '#FFFFFF',
+          },
+          variant: '#E1E3E4',
+          tint: '#005DB6',
+        },
+
+        /* On-Surface (text colors) */
+        'on-surface': {
+          DEFAULT: '#191C1D',
+          variant: '#424752',
+        },
+
+        /* Inverse */
+        'inverse-surface': '#2E3132',
+        'inverse-on-surface': '#F0F1F2',
+        'inverse-primary': '#A9C7FF',
+
+        /* Outline */
+        outline: {
+          DEFAULT: '#727783',
+          variant: '#C2C6D4',
         },
       },
+
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Manrope', 'Inter', 'system-ui', 'sans-serif'],
       },
+
+      fontSize: {
+        'display-lg': ['3.5rem', { lineHeight: '1.1', fontWeight: '800' }],
+        'display-md': ['2.5rem', { lineHeight: '1.15', fontWeight: '700' }],
+        'title-lg': ['1.375rem', { lineHeight: '1.3', fontWeight: '700' }],
+        'title-md': ['1.125rem', { lineHeight: '1.4', fontWeight: '600' }],
+        'label-lg': ['0.875rem', { lineHeight: '1.4', fontWeight: '600' }],
+        'label-md': ['0.75rem', { lineHeight: '1.5', fontWeight: '500' }],
+        'label-sm': ['0.6875rem', { lineHeight: '1.4', fontWeight: '500', letterSpacing: '0.05em' }],
+      },
+
+      borderRadius: {
+        'clinical': '0.75rem',
+        'clinical-lg': '1rem',
+        'clinical-xl': '1.25rem',
+      },
+
+      boxShadow: {
+        'clinical': '0 2px 8px rgba(0, 71, 141, 0.06)',
+        'clinical-md': '0 8px 24px rgba(0, 71, 141, 0.06)',
+        'clinical-lg': '0 20px 40px rgba(0, 71, 141, 0.06)',
+        'clinical-xl': '0 25px 60px rgba(0, 71, 141, 0.08)',
+        'triage-emergency': '0 4px 16px rgba(186, 26, 26, 0.12)',
+        'triage-moderate': '0 4px 16px rgba(230, 138, 0, 0.12)',
+        'triage-mild': '0 4px 16px rgba(0, 84, 26, 0.12)',
+      },
+
       animation: {
         'pulse-slow': 'pulse 3s ease-in-out infinite',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
+        'slide-up': 'slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        'slide-down': 'slideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
         'fade-in': 'fadeIn 0.3s ease-out',
-        'bounce-in': 'bounceIn 0.4s ease-out',
+        'bounce-in': 'bounceIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        'scale-in': 'scaleIn 0.2s ease-out',
       },
       keyframes: {
         slideUp: {
@@ -86,6 +152,10 @@ export default {
         bounceIn: {
           '0%': { transform: 'scale(0.9)', opacity: '0' },
           '50%': { transform: 'scale(1.02)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        scaleIn: {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },

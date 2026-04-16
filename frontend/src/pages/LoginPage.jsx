@@ -316,21 +316,21 @@ export default function LoginPage() {
   const text = t[language] || t.en
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-      {/* Logo */}
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-surface">
+      {/* Logo — Editorial */}
       <div className="text-center space-y-4 mb-10 animate-fade-in">
-        <div className="w-24 h-24 mx-auto rounded-3xl bg-gradient-to-br from-primary-500/30 to-accent-500/30 flex items-center justify-center text-5xl shadow-2xl shadow-primary-600/10">
+        <div className="w-24 h-24 mx-auto rounded-clinical-xl bg-primary-fixed/40 flex items-center justify-center text-5xl shadow-clinical-lg">
           🏥
         </div>
-        <h1 className="text-3xl font-extrabold gradient-text">{text.title}</h1>
-        <p className="text-surface-400 text-sm max-w-xs mx-auto leading-relaxed">
+        <h1 className="text-3xl font-extrabold font-display gradient-text">{text.title}</h1>
+        <p className="text-on-surface-variant text-sm max-w-xs mx-auto leading-relaxed">
           {text.subtitle}
         </p>
       </div>
 
       {/* Language Selection */}
       <div className="w-full max-w-xs space-y-3 mb-8 animate-slide-up">
-        <p className="text-xs text-surface-400 text-center uppercase tracking-wider">
+        <p className="text-clinical-meta text-center">
           {text.chooseLang}
         </p>
         <div className="grid grid-cols-3 gap-2">
@@ -342,13 +342,13 @@ export default function LoginPage() {
             <button
               key={lang.code}
               onClick={() => handleLanguageSelect(lang.code)}
-              className={`py-3 rounded-xl text-center transition-all ${
+              className={`py-3 rounded-clinical text-center transition-all duration-200 ${
                 language === lang.code
-                  ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20 scale-105'
-                  : 'glass-card text-surface-300 hover:text-white'
+                  ? 'bg-primary-container text-white shadow-clinical-md scale-105'
+                  : 'clinical-card text-on-surface-variant hover:text-primary'
               }`}
             >
-              <span className="block text-lg font-bold">{lang.label}</span>
+              <span className="block text-lg font-bold font-display">{lang.label}</span>
               <span className="block text-[10px] opacity-60">{lang.sub}</span>
             </button>
           ))}
@@ -357,13 +357,13 @@ export default function LoginPage() {
 
       {/* Login / Sign-Up Tabs */}
       <div className="w-full max-w-xs animate-slide-up" style={{ animationDelay: '0.1s' }}>
-        <div className="flex rounded-xl overflow-hidden mb-6 border border-surface-700/50">
+        <div className="flex rounded-clinical overflow-hidden mb-6 bg-surface-container">
           <button
             onClick={() => { setMode('login'); setError('') }}
             className={`flex-1 py-2.5 text-sm font-semibold transition-all ${
               mode === 'login'
-                ? 'bg-primary-600 text-white'
-                : 'bg-surface-800/60 text-surface-400 hover:text-white'
+                ? 'bg-primary-container text-white shadow-clinical'
+                : 'text-on-surface-variant hover:text-primary'
             }`}
           >
             {text.loginTab}
@@ -372,8 +372,8 @@ export default function LoginPage() {
             onClick={() => { setMode('signup'); setError('') }}
             className={`flex-1 py-2.5 text-sm font-semibold transition-all ${
               mode === 'signup'
-                ? 'bg-primary-600 text-white'
-                : 'bg-surface-800/60 text-surface-400 hover:text-white'
+                ? 'bg-primary-container text-white shadow-clinical'
+                : 'text-on-surface-variant hover:text-primary'
             }`}
           >
             {text.signupTab}
@@ -384,7 +384,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div className="space-y-1.5">
-            <label className="block text-xs text-surface-300 font-medium">
+            <label className="block text-xs text-on-surface-variant font-medium">
               <FiMail className="inline w-3 h-3 mr-1.5" />
               {text.emailLabel}
             </label>
@@ -396,13 +396,13 @@ export default function LoginPage() {
               placeholder={text.emailPlaceholder}
               autoComplete="email"
               autoFocus
-              className="w-full bg-surface-800/80 text-white placeholder-surface-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 border border-surface-700/50 transition-all"
+              className="clinical-input"
             />
           </div>
 
           {/* Password */}
           <div className="space-y-1.5">
-            <label className="block text-xs text-surface-300 font-medium">
+            <label className="block text-xs text-on-surface-variant font-medium">
               <FiLock className="inline w-3 h-3 mr-1.5" />
               {text.passwordLabel}
             </label>
@@ -414,12 +414,12 @@ export default function LoginPage() {
                 onChange={(e) => { setPassword(e.target.value); setError('') }}
                 placeholder={text.passwordPlaceholder}
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                className="w-full bg-surface-800/80 text-white placeholder-surface-500 rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 border border-surface-700/50 transition-all"
+                className="clinical-input pr-11"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors"
                 tabIndex={-1}
               >
                 {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
@@ -430,7 +430,7 @@ export default function LoginPage() {
           {/* Confirm Password (sign-up only) */}
           {mode === 'signup' && (
             <div className="space-y-1.5 animate-fade-in">
-              <label className="block text-xs text-surface-300 font-medium">
+              <label className="block text-xs text-on-surface-variant font-medium">
                 <FiLock className="inline w-3 h-3 mr-1.5" />
                 {text.confirmPasswordLabel}
               </label>
@@ -441,14 +441,14 @@ export default function LoginPage() {
                 onChange={(e) => { setConfirmPassword(e.target.value); setError('') }}
                 placeholder={text.confirmPasswordPlaceholder}
                 autoComplete="new-password"
-                className="w-full bg-surface-800/80 text-white placeholder-surface-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 border border-surface-700/50 transition-all"
+                className="clinical-input"
               />
             </div>
           )}
 
           {/* Error */}
           {error && (
-            <p className="text-xs text-red-400 animate-fade-in">{error}</p>
+            <p className="text-xs text-error animate-fade-in">{error}</p>
           )}
 
           {/* Submit Button */}
@@ -470,18 +470,18 @@ export default function LoginPage() {
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-surface-700/50" />
-          <span className="text-[10px] text-surface-500 uppercase tracking-wider">
+          <div className="flex-1 h-px bg-outline-variant/40" />
+          <span className="text-clinical-meta">
             {text.orDivider}
           </span>
-          <div className="flex-1 h-px bg-surface-700/50" />
+          <div className="flex-1 h-px bg-outline-variant/40" />
         </div>
 
         {/* Google Sign-In Button */}
         <button
           onClick={handleGoogleSignIn}
           disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-surface-800/60 text-surface-200 hover:text-white hover:bg-surface-800/90 transition-all text-sm font-medium border border-surface-700/50 hover:border-surface-600/80 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-clinical bg-white text-on-surface hover:shadow-clinical-md transition-all text-sm font-medium shadow-clinical disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {googleLoading ? (
             <FiLoader className="w-4 h-4 animate-spin" />
@@ -500,20 +500,20 @@ export default function LoginPage() {
       {/* Guest Mode Separator */}
       <div className="w-full max-w-xs mt-6 space-y-3 animate-slide-up" style={{ animationDelay: '0.15s' }}>
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-surface-700/50" />
-          <span className="text-[10px] text-surface-500 uppercase tracking-wider">
+          <div className="flex-1 h-px bg-outline-variant/40" />
+          <span className="text-clinical-meta">
             {text.orDivider}
           </span>
-          <div className="flex-1 h-px bg-surface-700/50" />
+          <div className="flex-1 h-px bg-outline-variant/40" />
         </div>
 
         <button
           onClick={handleSkipLogin}
-          className="w-full px-4 py-3 rounded-xl bg-surface-800/40 text-surface-300 hover:text-white hover:bg-surface-800/70 transition-all text-sm border border-surface-700/30 text-center"
+          className="w-full px-4 py-3 rounded-clinical bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-primary-fixed/20 transition-all text-sm text-center font-medium"
         >
           {text.guestMode}
         </button>
-        <p className="text-[10px] text-surface-500 text-center">
+        <p className="text-[10px] text-outline text-center">
           {text.guestNote}
         </p>
       </div>
