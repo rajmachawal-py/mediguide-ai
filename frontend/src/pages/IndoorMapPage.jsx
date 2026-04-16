@@ -238,9 +238,9 @@ export default function IndoorMapPage() {
   if (error) {
     return (
       <div className="max-w-lg mx-auto px-4 py-12 text-center">
-        <div className="glass-card p-8 space-y-4">
-          <FiMap className="w-12 h-12 text-surface-500 mx-auto" />
-          <p className="text-sm text-surface-300">{error}</p>
+        <div className="clinical-card p-8 space-y-4">
+          <FiMap className="w-12 h-12 text-outline mx-auto" />
+          <p className="text-sm text-on-surface-variant">{error}</p>
           <button onClick={() => navigate(-1)} className="btn-primary text-sm">
             {language === 'hi' ? '← वापस जाएं' : '← Go Back'}
           </button>
@@ -255,26 +255,26 @@ export default function IndoorMapPage() {
       <div className="flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
-          className="w-9 h-9 rounded-xl bg-surface-800/80 flex items-center justify-center text-surface-300 hover:text-white hover:bg-surface-700 transition-all border border-surface-700/30"
+          className="w-9 h-9 rounded-clinical bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 transition-all"
         >
           <FiArrowLeft className="w-4 h-4" />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-bold text-white truncate flex items-center gap-2">
-            <FiMap className="w-4 h-4 text-primary-400 flex-shrink-0" />
+          <h1 className="text-sm font-bold font-display text-on-surface truncate flex items-center gap-2">
+            <FiMap className="w-4 h-4 text-primary flex-shrink-0" />
             {language === 'hi' ? 'अंदरूनी नक्शा' : language === 'mr' ? 'अंतर्गत नकाशा' : 'Indoor Map'}
           </h1>
           <div className="flex items-center gap-2">
-            <p className="text-[10px] text-surface-400 truncate">{hospitalName}</p>
+            <p className="text-[10px] text-on-surface-variant truncate">{hospitalName}</p>
             {/* Offline badge */}
             {isOffline && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-[8px] font-semibold text-amber-400">
+              <span className="triage-badge triage-badge-moderate">
                 <FiWifiOff className="w-2.5 h-2.5" />
                 Offline
               </span>
             )}
             {!isOffline && mapData && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/15 border border-green-500/25 text-[8px] font-semibold text-green-400">
+              <span className="triage-badge triage-badge-mild">
                 <FiWifi className="w-2.5 h-2.5" />
                 Live
               </span>
@@ -285,7 +285,7 @@ export default function IndoorMapPage() {
         {/* QR Scanner Button */}
         <button
           onClick={() => setShowQR(true)}
-          className="w-9 h-9 rounded-xl bg-accent-500/15 hover:bg-accent-500/25 flex items-center justify-center text-accent-400 hover:text-accent-300 transition-all border border-accent-500/30"
+          className="w-9 h-9 rounded-clinical bg-secondary/10 hover:bg-secondary/18 flex items-center justify-center text-secondary transition-all"
           title={language === 'hi' ? 'QR कोड स्कैन करें' : language === 'mr' ? 'QR कोड स्कॅन करा' : 'Scan QR Code'}
         >
           <FiMaximize className="w-4 h-4" />
@@ -296,10 +296,10 @@ export default function IndoorMapPage() {
           <button
             onClick={handleVoiceNavigation}
             disabled={speakingStep}
-            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all border ${
+            className={`w-9 h-9 rounded-clinical flex items-center justify-center transition-all ${
               speakingStep
-                ? 'bg-primary-600/20 text-primary-400 border-primary-500/30 animate-pulse'
-                : 'bg-surface-800/80 text-surface-300 hover:text-white hover:bg-surface-700 border-surface-700/30'
+                ? 'bg-primary/15 text-primary animate-pulse'
+                : 'bg-surface-container text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30'
             }`}
             title={language === 'hi' ? 'आवाज़ निर्देश' : 'Voice directions'}
           >
@@ -328,19 +328,21 @@ export default function IndoorMapPage() {
 
       {/* SVG Floor Plan */}
       {mapData && (
-        <SVGFloorPlan
-          hospitalId={hospitalId}
-          nodes={mapData.nodes || []}
-          edges={mapData.edges || []}
-          routeSteps={route?.steps || []}
-          activeFloor={activeFloor}
-          onNodeTap={handleNodeTap}
-          selectedNodeId={
-            selectedDept
-              ? (mapData.nodes || []).find(n => n.department_id === selectedDept.id)?.id
-              : null
-          }
-        />
+        <div className="clinical-card overflow-hidden">
+          <SVGFloorPlan
+            hospitalId={hospitalId}
+            nodes={mapData.nodes || []}
+            edges={mapData.edges || []}
+            routeSteps={route?.steps || []}
+            activeFloor={activeFloor}
+            onNodeTap={handleNodeTap}
+            selectedNodeId={
+              selectedDept
+                ? (mapData.nodes || []).find(n => n.department_id === selectedDept.id)?.id
+                : null
+            }
+          />
+        </div>
       )}
 
       {/* Route Directions Panel */}
@@ -354,9 +356,9 @@ export default function IndoorMapPage() {
 
       {/* Offline route indicator */}
       {route?.is_offline && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
-          <FiWifiOff className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-          <p className="text-[10px] text-amber-300 font-medium">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-clinical urgency-moderate">
+          <FiWifiOff className="w-3.5 h-3.5 flex-shrink-0" />
+          <p className="text-[10px] font-medium">
             {language === 'hi' ? 'यह रूट ऑफ़लाइन (कैश्ड) डेटा से बनाया गया है' :
              language === 'mr' ? 'हा मार्ग ऑफलाइन (कॅश) डेटावरून तयार केला आहे' :
              'This route was calculated offline using cached map data'}
@@ -366,9 +368,9 @@ export default function IndoorMapPage() {
 
       {/* No Map Data */}
       {mapData && (!mapData.nodes || mapData.nodes.length === 0) && (
-        <div className="glass-card p-8 text-center space-y-3">
-          <FiMap className="w-10 h-10 text-surface-500 mx-auto" />
-          <p className="text-sm text-surface-300">
+        <div className="clinical-card p-8 text-center space-y-3">
+          <FiMap className="w-10 h-10 text-outline mx-auto" />
+          <p className="text-sm text-on-surface-variant">
             {language === 'hi'
               ? 'इस अस्पताल का अंदरूनी नक्शा अभी उपलब्ध नहीं है'
               : language === 'mr'

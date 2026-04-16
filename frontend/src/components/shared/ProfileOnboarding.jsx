@@ -143,36 +143,23 @@ export default function ProfileOnboarding({ onComplete }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 backdrop-blur-sm px-5">
-      <div
-        className="w-full max-w-sm rounded-2xl overflow-hidden animate-slide-up"
-        style={{
-          background: 'linear-gradient(180deg, rgba(15,23,42,0.98) 0%, rgba(10,15,30,0.99) 100%)',
-          border: '1px solid rgba(51, 65, 85, 0.4)',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
-        }}
-      >
+    <div className="fixed inset-0 z-[999] flex items-center justify-center clinical-glass-overlay px-5">
+      <div className="w-full max-w-sm rounded-clinical-xl overflow-hidden animate-slide-up bg-white shadow-clinical-xl">
         {/* Header */}
-        <div
-          className="px-6 py-5 text-center"
-          style={{
-            background: 'linear-gradient(135deg, rgba(26,111,245,0.15) 0%, rgba(124,58,237,0.1) 100%)',
-            borderBottom: '1px solid rgba(51, 65, 85, 0.3)',
-          }}
-        >
-          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary-500/30 to-accent-500/30 flex items-center justify-center">
-            <FiUser className="w-7 h-7 text-primary-400" />
+        <div className="px-6 py-6 text-center bg-primary-fixed/30">
+          <div className="w-14 h-14 mx-auto mb-3 rounded-clinical-lg bg-primary/10 flex items-center justify-center">
+            <FiUser className="w-7 h-7 text-primary" />
           </div>
-          <h2 className="text-lg font-bold text-white">{text.title}</h2>
-          <p className="text-xs text-surface-400 mt-1">{text.subtitle}</p>
+          <h2 className="text-lg font-bold font-display text-on-surface">{text.title}</h2>
+          <p className="text-xs text-on-surface-variant mt-1">{text.subtitle}</p>
         </div>
 
         {/* Form */}
         <div className="px-6 py-5 space-y-4">
           {/* Name */}
           <div className="space-y-1.5">
-            <label className="text-[10px] text-surface-400 uppercase tracking-wider font-semibold">
-              {text.name} <span className="text-red-400">*</span>
+            <label className="text-clinical-meta">
+              {text.name} <span className="text-error">*</span>
             </label>
             <input
               type="text"
@@ -180,15 +167,15 @@ export default function ProfileOnboarding({ onComplete }) {
               onChange={(e) => { setName(e.target.value); setError('') }}
               placeholder={text.namePlaceholder}
               autoFocus
-              className="w-full bg-surface-800/80 text-white placeholder-surface-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 border border-surface-700/50 transition-all"
+              className="clinical-input"
             />
           </div>
 
           {/* Age + Gender */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[10px] text-surface-400 uppercase tracking-wider font-semibold">
-                {text.age} <span className="text-red-400">*</span>
+              <label className="text-clinical-meta">
+                {text.age} <span className="text-error">*</span>
               </label>
               <input
                 type="number"
@@ -197,17 +184,17 @@ export default function ProfileOnboarding({ onComplete }) {
                 placeholder={text.agePlaceholder}
                 min="0"
                 max="120"
-                className="w-full bg-surface-800/80 text-white placeholder-surface-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 border border-surface-700/50 transition-all"
+                className="clinical-input"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] text-surface-400 uppercase tracking-wider font-semibold">
-                {text.gender} <span className="text-red-400">*</span>
+              <label className="text-clinical-meta">
+                {text.gender} <span className="text-error">*</span>
               </label>
               <select
                 value={gender}
                 onChange={(e) => { setGender(e.target.value); setError('') }}
-                className="w-full bg-surface-800/80 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 border border-surface-700/50 transition-all"
+                className="clinical-input"
               >
                 <option value="">—</option>
                 <option value="male">{text.male}</option>
@@ -219,13 +206,13 @@ export default function ProfileOnboarding({ onComplete }) {
 
           {/* State (optional) */}
           <div className="space-y-1.5">
-            <label className="text-[10px] text-surface-400 uppercase tracking-wider font-semibold">
+            <label className="text-clinical-meta">
               {text.state}
             </label>
             <select
               value={state}
               onChange={(e) => setState(e.target.value)}
-              className="w-full bg-surface-800/80 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 border border-surface-700/50 transition-all"
+              className="clinical-input"
             >
               <option value="">—</option>
               {INDIAN_STATES.map(s => (
@@ -236,9 +223,9 @@ export default function ProfileOnboarding({ onComplete }) {
 
           {/* Language Selection */}
           <div className="space-y-1.5">
-            <label className="text-[10px] text-surface-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+            <label className="text-clinical-meta flex items-center gap-1">
               <FiGlobe className="w-3 h-3" />
-              {text.languageLabel} <span className="text-red-400">*</span>
+              {text.languageLabel} <span className="text-error">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
               {[
@@ -250,10 +237,10 @@ export default function ProfileOnboarding({ onComplete }) {
                   key={lang.code}
                   type="button"
                   onClick={() => handleLangChange(lang.code)}
-                  className={`py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  className={`py-2.5 rounded-clinical text-xs font-semibold transition-all duration-200 ${
                     selectedLang === lang.code
-                      ? 'bg-primary-600/30 text-primary-300 border-primary-500/50 ring-2 ring-primary-500/20'
-                      : 'bg-surface-800/60 text-surface-400 border-surface-700/40 hover:bg-surface-700/60'
+                      ? 'bg-primary-container text-white shadow-clinical'
+                      : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'
                   }`}
                 >
                   {lang.label}
@@ -264,7 +251,7 @@ export default function ProfileOnboarding({ onComplete }) {
 
           {/* Error */}
           {error && (
-            <p className="text-xs text-red-400 text-center animate-fade-in">{error}</p>
+            <p className="text-xs text-error text-center animate-fade-in">{error}</p>
           )}
 
           {/* Submit */}

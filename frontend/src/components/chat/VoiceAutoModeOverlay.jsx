@@ -10,26 +10,30 @@ import { FiMic, FiVolume2, FiLoader, FiX } from 'react-icons/fi'
 const PHASE_CONFIG = {
   speaking: {
     icon: FiVolume2,
-    color: '#3b82f6',
-    pulseColor: 'rgba(59, 130, 246, 0.3)',
+    color: '#005EB8',
+    pulseColor: 'rgba(0, 94, 184, 0.25)',
+    bgClass: 'bg-primary-container',
     label: { hi: 'AI बोल रहा है...', mr: 'AI बोलत आहे...', en: 'AI is speaking...' },
   },
   listening: {
     icon: FiMic,
-    color: '#22c55e',
-    pulseColor: 'rgba(34, 197, 94, 0.3)',
+    color: '#006F25',
+    pulseColor: 'rgba(0, 111, 37, 0.25)',
+    bgClass: 'bg-tertiary-container',
     label: { hi: 'सुन रहा हूँ... बोलिए', mr: 'ऐकतोय... बोला', en: 'Listening... Speak now' },
   },
   processing: {
     icon: FiLoader,
-    color: '#a855f7',
-    pulseColor: 'rgba(168, 85, 247, 0.3)',
+    color: '#7043C2',
+    pulseColor: 'rgba(112, 67, 194, 0.25)',
+    bgClass: 'ai-pulse',
     label: { hi: 'प्रोसेसिंग...', mr: 'प्रक्रिया सुरू...', en: 'Processing...' },
   },
   idle: {
     icon: FiMic,
-    color: '#64748b',
-    pulseColor: 'rgba(100, 116, 139, 0.3)',
+    color: '#727783',
+    pulseColor: 'rgba(114, 119, 131, 0.2)',
+    bgClass: 'bg-outline',
     label: { hi: 'शुरू हो रहा है...', mr: 'सुरू होत आहे...', en: 'Starting...' },
   },
 }
@@ -48,8 +52,9 @@ export default function VoiceAutoModeOverlay({ phase, liveTranscript, language, 
         right: 0,
         bottom: 0,
         zIndex: 9999,
-        backgroundColor: 'rgba(2, 6, 23, 0.95)',
-        backdropFilter: 'blur(20px)',
+        backgroundColor: 'rgba(25, 28, 29, 0.6)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -69,13 +74,14 @@ export default function VoiceAutoModeOverlay({ phase, liveTranscript, language, 
           width: '44px',
           height: '44px',
           borderRadius: '12px',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          color: '#94a3b8',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          border: 'none',
+          color: '#424752',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(0, 71, 141, 0.1)',
         }}
       >
         <FiX size={20} />
@@ -83,11 +89,12 @@ export default function VoiceAutoModeOverlay({ phase, liveTranscript, language, 
 
       {/* Title */}
       <div style={{
-        fontSize: '13px',
+        fontSize: '11px',
         fontWeight: 600,
-        color: '#94a3b8',
+        fontFamily: "'Manrope', 'Inter', system-ui, sans-serif",
+        color: 'rgba(255, 255, 255, 0.7)',
         textTransform: 'uppercase',
-        letterSpacing: '2px',
+        letterSpacing: '3px',
         marginBottom: '48px',
       }}>
         🗣️ {language === 'hi' ? 'वॉइस मोड' : language === 'mr' ? 'व्हॉइस मोड' : 'Voice Mode'}
@@ -133,7 +140,7 @@ export default function VoiceAutoModeOverlay({ phase, liveTranscript, language, 
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: `0 0 40px ${config.pulseColor}`,
+          boxShadow: `0 8px 32px ${config.pulseColor}`,
         }}>
           <Icon
             size={40}
@@ -148,8 +155,9 @@ export default function VoiceAutoModeOverlay({ phase, liveTranscript, language, 
       {/* Phase label */}
       <div style={{
         fontSize: '18px',
-        fontWeight: 600,
-        color: config.color,
+        fontWeight: 700,
+        fontFamily: "'Manrope', 'Inter', system-ui, sans-serif",
+        color: '#FFFFFF',
         marginBottom: '16px',
       }}>
         {label}
@@ -159,16 +167,16 @@ export default function VoiceAutoModeOverlay({ phase, liveTranscript, language, 
       {liveTranscript && (
         <div style={{
           maxWidth: '320px',
-          padding: '12px 20px',
-          borderRadius: '16px',
-          backgroundColor: 'rgba(255, 255, 255, 0.08)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          color: '#e2e8f0',
-          fontSize: '16px',
+          padding: '14px 24px',
+          borderRadius: '12px',
+          backgroundColor: 'rgba(255, 255, 255, 0.92)',
+          color: '#191C1D',
+          fontSize: '15px',
           textAlign: 'center',
           lineHeight: 1.5,
           marginBottom: '24px',
           minHeight: '48px',
+          boxShadow: '0 8px 24px rgba(0, 71, 141, 0.1)',
         }}>
           "{liveTranscript}"
         </div>
@@ -181,16 +189,17 @@ export default function VoiceAutoModeOverlay({ phase, liveTranscript, language, 
           position: 'absolute',
           bottom: '48px',
           padding: '14px 40px',
-          borderRadius: '16px',
-          backgroundColor: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
-          color: '#ef4444',
+          borderRadius: '12px',
+          backgroundColor: 'rgba(255, 255, 255, 0.92)',
+          border: 'none',
+          color: '#BA1A1A',
           fontSize: '15px',
           fontWeight: 600,
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
+          boxShadow: '0 4px 16px rgba(186, 26, 26, 0.12)',
         }}
       >
         <FiX size={18} />

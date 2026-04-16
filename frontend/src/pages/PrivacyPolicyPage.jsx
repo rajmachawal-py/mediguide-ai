@@ -105,28 +105,24 @@ export default function PrivacyPolicyPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-surface-950 pb-12">
+    <div className="min-h-screen bg-surface pb-12">
       {/* Header */}
       <div
-        className="relative px-6 py-8 text-center"
-        style={{
-          background: 'linear-gradient(135deg, rgba(26,111,245,0.1), rgba(124,58,237,0.08))',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}
+        className="relative px-6 py-8 text-center bg-primary-fixed/30"
       >
         <button
           onClick={() => navigate(-1)}
-          className="absolute left-4 top-6 w-9 h-9 rounded-xl bg-surface-800/80 flex items-center justify-center text-surface-300 hover:text-white hover:bg-surface-700 transition-all border border-surface-700/30"
+          className="absolute left-4 top-6 w-9 h-9 rounded-clinical bg-white/80 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-white transition-all shadow-clinical"
         >
           <FiArrowLeft className="w-4 h-4" />
         </button>
 
-        <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
-          <FiShield className="w-7 h-7 text-primary-400" />
+        <div className="w-14 h-14 mx-auto mb-3 rounded-clinical-xl bg-primary/10 flex items-center justify-center">
+          <FiShield className="w-7 h-7 text-primary" />
         </div>
-        <h1 className="text-xl font-bold text-white">Privacy Policy</h1>
-        <p className="text-xs text-surface-400 mt-1">गोपनीयता नीति · गोपनीयता धोरण</p>
-        <p className="text-[10px] text-surface-500 mt-2">
+        <h1 className="text-xl font-bold font-display text-on-surface">Privacy Policy</h1>
+        <p className="text-xs text-on-surface-variant mt-1">गोपनीयता नीति · गोपनीयता धोरण</p>
+        <p className="text-[10px] text-outline mt-2">
           MediGuide AI — Digital Personal Data Protection Act, 2023 Compliant
         </p>
       </div>
@@ -134,17 +130,17 @@ export default function PrivacyPolicyPage() {
       {/* Content */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {SECTIONS.map((section, i) => (
-          <div key={i} className="glass-card rounded-xl p-5 space-y-3">
-            <h2 className="text-sm font-bold text-white flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-primary-500/15 flex items-center justify-center text-[10px] font-bold text-primary-400">
+          <div key={i} className="clinical-card rounded-clinical p-5 space-y-3">
+            <h2 className="text-sm font-bold font-display text-on-surface flex items-center gap-2">
+              <div className="w-6 h-6 rounded-clinical bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                 {i + 1}
               </div>
               {section.title.replace(/^\d+\.\s*/, '')}
             </h2>
-            <div className="text-xs text-surface-300 leading-relaxed whitespace-pre-line">
+            <div className="text-xs text-on-surface-variant leading-relaxed whitespace-pre-line">
               {section.content.split('**').map((part, j) =>
                 j % 2 === 1
-                  ? <strong key={j} className="text-surface-200">{part}</strong>
+                  ? <strong key={j} className="text-on-surface">{part}</strong>
                   : <span key={j}>{part}</span>
               )}
             </div>
@@ -156,14 +152,14 @@ export default function PrivacyPolicyPage() {
           {['DPDPA 2023', 'HIPAA Aligned', 'GDPR Aware', 'HL7 FHIR'].map(badge => (
             <div
               key={badge}
-              className="px-3 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 text-[10px] font-semibold text-primary-400"
+              className="px-3 py-1.5 rounded-full bg-primary/8 text-[10px] font-semibold text-primary"
             >
               ✓ {badge}
             </div>
           ))}
         </div>
 
-        <p className="text-center text-[10px] text-surface-500 pt-2">
+        <p className="text-center text-[10px] text-outline pt-2">
           © 2026 MediGuide AI. All rights reserved.
         </p>
       </div>

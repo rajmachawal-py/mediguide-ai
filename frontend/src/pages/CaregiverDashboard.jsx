@@ -216,7 +216,7 @@ export default function CaregiverDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <FiLoader className="w-6 h-6 text-primary-400 animate-spin" />
+        <FiLoader className="w-6 h-6 text-primary animate-spin" />
       </div>
     )
   }
@@ -224,10 +224,10 @@ export default function CaregiverDashboard() {
   if (!isAuthenticated) {
     return (
       <div className="max-w-lg mx-auto px-4 py-12 text-center">
-        <div className="glass-card p-8 space-y-4">
-          <FiHeart className="w-12 h-12 text-accent-400 mx-auto" />
-          <h2 className="text-lg font-bold text-white">{text.title}</h2>
-          <p className="text-sm text-surface-300">{text.loginRequired}</p>
+        <div className="clinical-card p-8 space-y-4">
+          <FiHeart className="w-12 h-12 text-error mx-auto" />
+          <h2 className="text-lg font-bold font-display text-on-surface">{text.title}</h2>
+          <p className="text-sm text-on-surface-variant">{text.loginRequired}</p>
           <button onClick={() => navigate('/login')} className="btn-primary text-sm">
             {language === 'hi' ? 'लॉगिन करें' : 'Sign In'}
           </button>
@@ -240,35 +240,35 @@ export default function CaregiverDashboard() {
     <div className="max-w-lg mx-auto px-4 py-4 pb-20 space-y-4 font-sans">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-500/20 to-primary-500/20 flex items-center justify-center">
-          <FiHeart className="w-5 h-5 text-accent-400" />
+        <div className="w-10 h-10 rounded-clinical bg-error/10 flex items-center justify-center">
+          <FiHeart className="w-5 h-5 text-error" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-white">{text.title}</h1>
-          <p className="text-[10px] text-surface-400">
+          <h1 className="text-lg font-bold font-display text-on-surface">{text.title}</h1>
+          <p className="text-clinical-meta">
             {links.as_patient.length + links.as_caregiver.length} {language === 'hi' ? 'लिंक' : 'links'}
           </p>
         </div>
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex bg-surface-800/80 rounded-xl p-1">
+      <div className="flex bg-surface-container rounded-clinical p-1">
         <button
           onClick={() => setActiveTab('patient')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-clinical text-xs font-semibold transition-all ${
             activeTab === 'patient'
-              ? 'bg-primary-600 text-white shadow'
-              : 'text-surface-400 hover:text-white'
+              ? 'bg-primary-container text-white shadow-clinical'
+              : 'text-on-surface-variant hover:text-primary'
           }`}
         >
           <FiShield className="w-3.5 h-3.5" /> {text.myCaregiver}
         </button>
         <button
           onClick={() => setActiveTab('caregiver')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-clinical text-xs font-semibold transition-all ${
             activeTab === 'caregiver'
-              ? 'bg-primary-600 text-white shadow'
-              : 'text-surface-400 hover:text-white'
+              ? 'bg-primary-container text-white shadow-clinical'
+              : 'text-on-surface-variant hover:text-primary'
           }`}
         >
           <FiUsers className="w-3.5 h-3.5" /> {text.myPatients}
@@ -282,7 +282,7 @@ export default function CaregiverDashboard() {
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="w-full glass-card p-4 flex items-center justify-center gap-2 text-sm text-primary-400 hover:text-primary-300 hover:border-primary-500/30 transition-all"
+              className="w-full clinical-card p-4 flex items-center justify-center gap-2 text-sm text-primary font-medium hover:bg-primary-fixed/20 transition-all"
             >
               <FiUserPlus className="w-4 h-4" /> {text.addCaregiver}
             </button>
@@ -290,9 +290,9 @@ export default function CaregiverDashboard() {
 
           {/* Add Caregiver Form */}
           {showForm && (
-            <div className="glass-card p-4 space-y-3 animate-slide-up">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <FiUserPlus className="w-4 h-4 text-primary-400" />
+            <div className="clinical-card p-4 space-y-3 animate-slide-up">
+              <h3 className="text-sm font-bold font-display text-on-surface flex items-center gap-2">
+                <FiUserPlus className="w-4 h-4 text-primary" />
                 {text.addCaregiver}
               </h3>
 
@@ -301,11 +301,11 @@ export default function CaregiverDashboard() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder={text.name}
-                className="w-full bg-surface-900/60 text-white placeholder-surface-500 rounded-xl px-4 py-2.5 text-sm border border-surface-700/30 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                className="clinical-input"
               />
 
               <div className="flex items-center gap-2">
-                <span className="flex-shrink-0 px-3 py-2.5 rounded-xl bg-surface-900/60 border border-surface-700/30 text-surface-400 text-sm">
+                <span className="flex-shrink-0 px-3 py-2.5 rounded-t-clinical bg-surface-container text-on-surface-variant text-sm">
                   🇮🇳 +91
                 </span>
                 <input
@@ -314,14 +314,14 @@ export default function CaregiverDashboard() {
                   onChange={(e) => setFormPhone(e.target.value.replace(/[^\d\s]/g, ''))}
                   placeholder={text.phone}
                   maxLength={12}
-                  className="flex-1 bg-surface-900/60 text-white placeholder-surface-500 rounded-xl px-4 py-2.5 text-sm border border-surface-700/30 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                  className="clinical-input flex-1"
                 />
               </div>
 
               <select
                 value={formRelation}
                 onChange={(e) => setFormRelation(e.target.value)}
-                className="w-full bg-surface-900/60 text-white rounded-xl px-4 py-2.5 text-sm border border-surface-700/30 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                className="clinical-input"
               >
                 {RELATIONSHIPS.map(r => (
                   <option key={r.value} value={r.value}>
@@ -351,7 +351,7 @@ export default function CaregiverDashboard() {
 
           {/* Caregiver List */}
           {links.as_patient.length === 0 ? (
-            <div className="glass-card p-8 text-center text-sm text-surface-400">
+            <div className="clinical-card p-8 text-center text-sm text-on-surface-variant">
               <FiUsers className="w-8 h-8 mx-auto mb-2 opacity-40" />
               {text.noLinks}
             </div>
@@ -373,7 +373,7 @@ export default function CaregiverDashboard() {
       {activeTab === 'caregiver' && (
         <div className="space-y-3 animate-fade-in">
           {links.as_caregiver.length === 0 ? (
-            <div className="glass-card p-8 text-center text-sm text-surface-400">
+            <div className="clinical-card p-8 text-center text-sm text-on-surface-variant">
               <FiHeart className="w-8 h-8 mx-auto mb-2 opacity-40" />
               {language === 'hi'
                 ? 'कोई मरीज़ नहीं जुड़ा — जब कोई आपको केयरगिवर के रूप में जोड़ेगा तो यहाँ दिखेगा'
@@ -396,8 +396,8 @@ export default function CaregiverDashboard() {
       {/* ── Alert History ─────────────────────────────────────── */}
       {alerts.length > 0 && (
         <div className="space-y-2">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2 px-1">
-            <FiBell className="w-4 h-4 text-accent-400" /> {text.alerts}
+          <h3 className="text-sm font-bold font-display text-on-surface flex items-center gap-2 px-1">
+            <FiBell className="w-4 h-4 text-error" /> {text.alerts}
           </h3>
           <div className="space-y-2 max-h-60 overflow-y-auto">
             {alerts.slice(0, 10).map(alert => (
@@ -413,12 +413,6 @@ export default function CaregiverDashboard() {
 
 /** Caregiver/Patient link card. */
 function CaregiverLinkCard({ link, language, onRevoke, role }) {
-  const urgencyColors = {
-    emergency: 'border-red-500/30 bg-red-500/5',
-    moderate: 'border-yellow-500/30 bg-yellow-500/5',
-    mild: 'border-green-500/30 bg-green-500/5',
-  }
-
   const displayName = role === 'patient'
     ? link.caregiver_name || link.caregiver_phone
     : link.patient_name || link.patient_id?.slice(0, 8)
@@ -429,20 +423,20 @@ function CaregiverLinkCard({ link, language, onRevoke, role }) {
     : link.relationship
 
   return (
-    <div className="glass-card p-4 space-y-2 animate-slide-up">
+    <div className="clinical-card p-4 space-y-2 animate-slide-up">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center flex-shrink-0">
-            <FiHeart className="w-4 h-4 text-accent-400" />
+          <div className="w-9 h-9 rounded-full bg-primary-fixed/40 flex items-center justify-center flex-shrink-0">
+            <FiHeart className="w-4 h-4 text-primary" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{displayName}</p>
-            <p className="text-[10px] text-surface-400">{relationLabel}</p>
+            <p className="text-sm font-semibold text-on-surface truncate">{displayName}</p>
+            <p className="text-clinical-meta">{relationLabel}</p>
           </div>
         </div>
         <button
           onClick={onRevoke}
-          className="p-2 rounded-lg text-surface-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+          className="p-2 rounded-clinical text-outline hover:text-error hover:bg-error/8 transition-all"
           title={language === 'hi' ? 'हटाएं' : 'Remove'}
         >
           <FiTrash2 className="w-3.5 h-3.5" />
@@ -452,7 +446,7 @@ function CaregiverLinkCard({ link, language, onRevoke, role }) {
       {link.caregiver_phone && (
         <a
           href={`tel:${link.caregiver_phone}`}
-          className="flex items-center gap-1.5 text-xs text-primary-400 hover:text-primary-300"
+          className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-container font-medium"
         >
           <FiPhone className="w-3 h-3" /> {link.caregiver_phone}
         </a>
@@ -470,10 +464,10 @@ function AlertCard({ alert, language }) {
     mild: '🟢',
   }
 
-  const urgencyBg = {
-    emergency: 'border-l-red-500',
-    moderate: 'border-l-yellow-500',
-    mild: 'border-l-green-500',
+  const urgencyClass = {
+    emergency: 'urgency-emergency',
+    moderate: 'urgency-moderate',
+    mild: 'urgency-mild',
   }
 
   const timeAgo = (dateStr) => {
@@ -488,16 +482,16 @@ function AlertCard({ alert, language }) {
   }
 
   return (
-    <div className={`glass-card p-3 border-l-2 ${urgencyBg[alert.urgency] || 'border-l-surface-500'}`}>
+    <div className={`clinical-card p-3 ${urgencyClass[alert.urgency] || ''}`}>
       <div className="flex items-start gap-2">
         <span className="text-sm flex-shrink-0">{urgencyEmoji[alert.urgency] || 'ℹ️'}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-white font-medium capitalize">{alert.urgency}</p>
+          <p className="text-xs text-on-surface font-medium capitalize">{alert.urgency}</p>
           {alert.summary && (
-            <p className="text-[10px] text-surface-400 mt-0.5 line-clamp-2">{alert.summary}</p>
+            <p className="text-[10px] text-on-surface-variant mt-0.5 line-clamp-2">{alert.summary}</p>
           )}
         </div>
-        <span className="text-[10px] text-surface-500 flex-shrink-0 flex items-center gap-1">
+        <span className="text-[10px] text-outline flex-shrink-0 flex items-center gap-1">
           <FiClock className="w-2.5 h-2.5" />
           {timeAgo(alert.created_at)}
         </span>

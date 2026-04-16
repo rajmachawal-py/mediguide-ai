@@ -102,7 +102,6 @@ export default function SchemeRecommendation({ urgency, specialty }) {
       const gender = localStorage.getItem('mediguide_patient_gender')
       const state = localStorage.getItem('mediguide_patient_state')
 
-      console.log('[SchemeRecommendation] Fetching schemes...', { age, gender, state, specialty })
       const result = await getEligibleSchemes({
         state: state || undefined,
         age: age ? parseInt(age) : undefined,
@@ -110,10 +109,9 @@ export default function SchemeRecommendation({ urgency, specialty }) {
         condition: specialty || undefined,
       })
 
-      console.log('[SchemeRecommendation] API result:', result)
       setSchemes(result.schemes || [])
     } catch (err) {
-      console.error('[SchemeRecommendation] Fetch error:', err)
+      console.error('Scheme fetch error:', err)
       setError(t.error)
     } finally {
       setLoading(false)
@@ -171,8 +169,8 @@ export default function SchemeRecommendation({ urgency, specialty }) {
 
   if (loading) {
     return (
-      <div className="mx-4 my-2 p-4 rounded-xl bg-surface-800/50 border border-surface-700/30 animate-pulse">
-        <div className="flex items-center gap-2 text-surface-400 text-xs">
+      <div className="mx-0 my-2 p-4 rounded-clinical bg-surface-container-low animate-pulse">
+        <div className="flex items-center gap-2 text-on-surface-variant text-xs">
           <FiLoader className="w-3.5 h-3.5 animate-spin" />
           {t.loading}
         </div>
@@ -186,24 +184,18 @@ export default function SchemeRecommendation({ urgency, specialty }) {
   return (
     <div className="mx-0 my-3 animate-slide-up">
       {/* Section Header */}
-      <div
-        className="flex items-center gap-2.5 px-4 py-3 rounded-t-xl"
-        style={{
-          background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(6,182,212,0.08) 100%)',
-          borderBottom: '1px solid rgba(16,185,129,0.15)',
-        }}
-      >
-        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-          <FiShield className="w-4 h-4 text-emerald-400" />
+      <div className="flex items-center gap-2.5 px-4 py-3 rounded-t-clinical bg-tertiary/8">
+        <div className="w-8 h-8 rounded-clinical bg-tertiary/12 flex items-center justify-center flex-shrink-0">
+          <FiShield className="w-4 h-4 text-tertiary" />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-white">{t.title}</h3>
-          <p className="text-[10px] text-surface-400">{t.icuNote}</p>
+          <h3 className="text-sm font-bold font-display text-on-surface">{t.title}</h3>
+          <p className="text-[10px] text-on-surface-variant">{t.icuNote}</p>
         </div>
       </div>
 
       {/* Scheme Cards */}
-      <div className="space-y-0 rounded-b-xl overflow-hidden border border-surface-700/20 border-t-0">
+      <div className="space-y-0 rounded-b-clinical overflow-hidden bg-white shadow-clinical">
         {schemes.map((scheme, index) => {
           const isExpanded = expandedId === scheme.id
           const localName = getLocalizedName(scheme)
@@ -212,35 +204,34 @@ export default function SchemeRecommendation({ urgency, specialty }) {
           return (
             <div
               key={scheme.id}
-              className={`${index < schemes.length - 1 ? 'border-b border-surface-700/20' : ''}`}
-              style={{ background: 'rgba(15,23,42,0.6)' }}
+              className={`${index < schemes.length - 1 ? 'border-b border-outline-variant/20' : ''}`}
             >
               {/* Card Header — always visible */}
               <button
                 onClick={() => toggleExpand(scheme.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface-800/40 transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface-container-low transition-colors"
               >
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 flex items-center justify-center flex-shrink-0">
-                  <FiHeart className="w-4 h-4 text-emerald-400" />
+                <div className="w-9 h-9 rounded-clinical bg-tertiary/8 flex items-center justify-center flex-shrink-0">
+                  <FiHeart className="w-4 h-4 text-tertiary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-white truncate">{localName}</p>
+                  <p className="text-xs font-semibold text-on-surface truncate">{localName}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     {scheme.benefit_amount && (
-                      <span className="text-[10px] text-emerald-400 font-medium">
+                      <span className="text-[10px] text-tertiary font-medium">
                         {t.coverageUpTo}{formatAmount(scheme.benefit_amount)}
                       </span>
                     )}
                     {scheme.eligibility_states && (
-                      <span className="text-[10px] text-surface-500">
+                      <span className="text-[10px] text-on-surface-variant">
                         {scheme.eligibility_states.join(', ')}
                       </span>
                     )}
                   </div>
                 </div>
                 {isExpanded
-                  ? <FiChevronUp className="w-4 h-4 text-surface-400 flex-shrink-0" />
-                  : <FiChevronDown className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                  ? <FiChevronUp className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
+                  : <FiChevronDown className="w-4 h-4 text-on-surface-variant flex-shrink-0" />
                 }
               </button>
 
@@ -248,24 +239,24 @@ export default function SchemeRecommendation({ urgency, specialty }) {
               {isExpanded && (
                 <div className="px-4 pb-4 space-y-3 animate-fade-in">
                   {/* Description */}
-                  <p className="text-xs text-surface-300 leading-relaxed pl-12">
+                  <p className="text-xs text-on-surface-variant leading-relaxed pl-12">
                     {localDesc}
                   </p>
 
                   {/* Quick Info Pills */}
                   <div className="flex flex-wrap gap-1.5 pl-12">
                     {scheme.benefit_amount && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-medium border border-emerald-500/20">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary/8 text-tertiary text-[10px] font-medium">
                         💰 {t.coverageUpTo}{formatAmount(scheme.benefit_amount)}
                       </span>
                     )}
                     {scheme.max_annual_income && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-medium border border-blue-500/20">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/8 text-primary text-[10px] font-medium">
                         {t.incomeLimit}{formatAmount(scheme.max_annual_income)}
                       </span>
                     )}
                     {(scheme.min_age != null || scheme.max_age != null) && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 text-[10px] font-medium border border-purple-500/20">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary/8 text-secondary text-[10px] font-medium">
                         {t.ageRange}{scheme.min_age || 0}–{scheme.max_age || 120}
                       </span>
                     )}
@@ -273,8 +264,8 @@ export default function SchemeRecommendation({ urgency, specialty }) {
 
                   {/* AI Explanation */}
                   {explanations[scheme.id] && (
-                    <div className="ml-12 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
-                      <p className="text-xs text-surface-200 leading-relaxed">
+                    <div className="ml-12 p-3 rounded-clinical bg-tertiary/5">
+                      <p className="text-xs text-on-surface leading-relaxed">
                         {explanations[scheme.id]}
                       </p>
                     </div>
@@ -287,7 +278,7 @@ export default function SchemeRecommendation({ urgency, specialty }) {
                       <button
                         onClick={() => handleExplain(scheme.id)}
                         disabled={explaining === scheme.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical text-[10px] font-medium bg-tertiary/8 text-tertiary hover:bg-tertiary/15 transition-all disabled:opacity-50"
                       >
                         {explaining === scheme.id ? (
                           <>
@@ -309,7 +300,7 @@ export default function SchemeRecommendation({ urgency, specialty }) {
                         href={scheme.scheme_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium bg-primary-500/10 text-primary-400 border border-primary-500/20 hover:bg-primary-500/20 transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical text-[10px] font-medium bg-primary/8 text-primary hover:bg-primary/15 transition-all"
                       >
                         <FiExternalLink className="w-3 h-3" />
                         {t.visitWebsite}
@@ -320,7 +311,7 @@ export default function SchemeRecommendation({ urgency, specialty }) {
                     {scheme.helpline && (
                       <a
                         href={`tel:${scheme.helpline.replace(/[^0-9+]/g, '')}`}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical text-[10px] font-medium bg-moderate/8 text-moderate-dark hover:bg-moderate/15 transition-all"
                       >
                         <FiPhone className="w-3 h-3" />
                         {t.callHelpline} ({scheme.helpline})

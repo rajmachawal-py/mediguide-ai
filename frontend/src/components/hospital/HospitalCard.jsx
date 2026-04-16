@@ -37,12 +37,7 @@ export default function HospitalCard({ hospital, language = 'en' }) {
 
       {/* Info Row */}
       <div className="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant">
-        {hospital.distance_km != null && (
-          <span className="flex items-center gap-1" title="Distance from current location">
-            <FiNavigation className="w-3 h-3 text-primary" />
-            ~{formatDistance(hospital.distance_km)}
-          </span>
-        )}
+
         {hospital.rating && (
           <span className="flex items-center gap-1" title="Google rating">
             <FiStar className="w-3 h-3 text-moderate" />

@@ -120,26 +120,20 @@ export default function ConsentModal({ language = 'en', onAccept }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-      <div className="glass-card max-w-md w-full rounded-2xl overflow-hidden shadow-2xl border border-surface-700/50 animate-bounce-in">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center clinical-glass-overlay p-4">
+      <div className="clinical-glass max-w-md w-full overflow-hidden animate-bounce-in">
         {/* Header */}
-        <div
-          className="px-6 py-5 text-center"
-          style={{
-            background: 'linear-gradient(135deg, rgba(26,111,245,0.15), rgba(124,58,237,0.15))',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
-          }}
-        >
-          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-primary-500/20 to-accent-500/20 flex items-center justify-center">
-            <FiShield className="w-7 h-7 text-primary-400" />
+        <div className="px-6 py-6 text-center bg-primary-fixed/30">
+          <div className="w-14 h-14 mx-auto mb-3 rounded-clinical-lg bg-tertiary/10 flex items-center justify-center">
+            <FiShield className="w-7 h-7 text-tertiary" />
           </div>
-          <h2 className="text-lg font-bold text-white">{t.title}</h2>
-          <p className="text-xs text-surface-400 mt-1">{t.subtitle}</p>
+          <h2 className="text-lg font-bold font-display text-on-surface">{t.title}</h2>
+          <p className="text-xs text-on-surface-variant mt-1">{t.subtitle}</p>
         </div>
 
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
-          <p className="text-xs text-surface-300 leading-relaxed">
+          <p className="text-xs text-on-surface-variant leading-relaxed">
             {t.intro}
           </p>
 
@@ -149,10 +143,10 @@ export default function ConsentModal({ language = 'en', onAccept }) {
               const Icon = ICONS[point.icon] || FiCheck
               return (
                 <div key={i} className="flex items-start gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-surface-800/80 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Icon className="w-3.5 h-3.5 text-primary-400" />
+                  <div className="w-7 h-7 rounded-clinical bg-primary-fixed/40 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Icon className="w-3.5 h-3.5 text-primary" />
                   </div>
-                  <p className="text-xs text-surface-300 leading-relaxed">{point.text}</p>
+                  <p className="text-xs text-on-surface-variant leading-relaxed">{point.text}</p>
                 </div>
               )
             })}
@@ -162,7 +156,7 @@ export default function ConsentModal({ language = 'en', onAccept }) {
           <button
             type="button"
             onClick={() => window.open('/privacy', '_blank')}
-            className="inline-flex items-center gap-1.5 text-xs text-primary-400 hover:text-primary-300 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:text-primary-container transition-colors cursor-pointer"
           >
             <FiFileText className="w-3 h-3" />
             {t.privacyLink}
@@ -170,8 +164,8 @@ export default function ConsentModal({ language = 'en', onAccept }) {
 
           {/* Decline warning */}
           {declined && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 animate-fade-in">
-              <p className="text-xs text-red-400">{t.declineMsg}</p>
+            <div className="bg-error/8 rounded-clinical p-3 animate-fade-in">
+              <p className="text-xs text-error">{t.declineMsg}</p>
             </div>
           )}
         </div>
@@ -187,7 +181,7 @@ export default function ConsentModal({ language = 'en', onAccept }) {
           </button>
           <button
             onClick={handleDecline}
-            className="btn-ghost w-full text-xs text-surface-500 hover:text-surface-300"
+            className="btn-ghost w-full text-xs text-on-surface-variant"
           >
             {t.declineBtn}
           </button>

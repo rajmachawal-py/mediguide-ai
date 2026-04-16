@@ -266,7 +266,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <FiLoader className="w-6 h-6 text-primary-400 animate-spin" />
+        <FiLoader className="w-6 h-6 text-primary animate-spin" />
       </div>
     )
   }
@@ -275,14 +275,14 @@ export default function ProfilePage() {
     <div className="max-w-lg mx-auto px-4 py-6 pb-20 space-y-6">
       {/* Header */}
       <div className="text-center space-y-3">
-        <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-primary-500/30 to-accent-500/30 flex items-center justify-center">
-          <FiUser className="w-8 h-8 text-primary-400" />
+        <div className="w-20 h-20 mx-auto rounded-full bg-primary-fixed/40 flex items-center justify-center">
+          <FiUser className="w-8 h-8 text-primary" />
         </div>
-        <h1 className="text-xl font-bold text-white">{text.profile}</h1>
+        <h1 className="text-xl font-bold font-display text-on-surface">{text.profile}</h1>
         <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
           isAuthenticated
-            ? 'bg-green-500/20 text-green-400'
-            : 'bg-yellow-500/20 text-yellow-400'
+            ? 'bg-tertiary/10 text-tertiary'
+            : 'bg-moderate/10 text-moderate-dark'
         }`}>
           <FiShield className="w-3 h-3" />
           {isAuthenticated ? text.authenticated : text.guest}
@@ -291,7 +291,7 @@ export default function ProfilePage() {
 
       {/* Not authenticated message */}
       {!isAuthenticated && (
-        <div className="glass-card p-4 text-center text-sm text-surface-300 space-y-2">
+        <div className="clinical-card p-4 text-center text-sm text-on-surface-variant space-y-2">
           <p>{text.loginFirst}</p>
           <button
             onClick={() => navigate('/login')}
@@ -306,11 +306,11 @@ export default function ProfilePage() {
       <div className="space-y-3">
         {/* Email (read-only) */}
         {profile.email && (
-          <div className="glass-card p-4 flex items-center gap-3">
-            <FiUser className="w-5 h-5 text-primary-400 flex-shrink-0" />
+          <div className="clinical-card p-4 flex items-center gap-3">
+            <FiUser className="w-5 h-5 text-primary flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-[10px] text-surface-400 uppercase tracking-wider">{text.email}</p>
-              <p className="text-sm text-white font-medium">{profile.email}</p>
+              <p className="text-clinical-meta">{text.email}</p>
+              <p className="text-sm text-on-surface font-medium">{profile.email}</p>
             </div>
           </div>
         )}
@@ -323,7 +323,7 @@ export default function ProfilePage() {
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-1.5 text-xs text-primary-400 hover:text-primary-300 transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-primary font-medium hover:text-primary-container transition-colors"
                 >
                   <FiEdit2 className="w-3 h-3" /> {text.edit}
                 </button>
@@ -331,7 +331,7 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300 transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-tertiary font-medium hover:text-tertiary-container transition-colors"
                 >
                   {saving ? <FiLoader className="w-3 h-3 animate-spin" /> : <FiCheck className="w-3 h-3" />}
                   {text.save}
@@ -340,7 +340,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Name */}
-            <ProfileField label={text.name} isEditing={isEditing}>
+            <ProfileField label={text.name}>
               <input
                 type="text"
                 value={profile.full_name || ''}
@@ -353,7 +353,7 @@ export default function ProfilePage() {
 
             {/* Age + Gender Row */}
             <div className="grid grid-cols-2 gap-3">
-              <ProfileField label={text.age} isEditing={isEditing}>
+              <ProfileField label={text.age}>
                 <input
                   type="number"
                   value={profile.age || ''}
@@ -366,7 +366,7 @@ export default function ProfilePage() {
                 />
               </ProfileField>
 
-              <ProfileField label={text.gender} isEditing={isEditing}>
+              <ProfileField label={text.gender}>
                 <select
                   value={profile.gender || 'prefer_not_to_say'}
                   onChange={(e) => handleChange('gender', e.target.value)}
@@ -383,7 +383,7 @@ export default function ProfilePage() {
 
             {/* State + District Row */}
             <div className="grid grid-cols-2 gap-3">
-              <ProfileField label={text.state} isEditing={isEditing}>
+              <ProfileField label={text.state}>
                 <select
                   value={profile.state || ''}
                   onChange={(e) => handleChange('state', e.target.value)}
@@ -397,7 +397,7 @@ export default function ProfilePage() {
                 </select>
               </ProfileField>
 
-              <ProfileField label={text.district} isEditing={isEditing}>
+              <ProfileField label={text.district}>
                 <input
                   type="text"
                   value={profile.district || ''}
@@ -410,7 +410,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Language */}
-            <ProfileField label={text.language} isEditing={isEditing}>
+            <ProfileField label={text.language}>
               <div className="flex gap-2">
                 {[
                   { code: 'hi', label: 'हिंदी' },
@@ -421,11 +421,11 @@ export default function ProfilePage() {
                     key={lang.code}
                     onClick={() => isEditing && handleChange('preferred_lang', lang.code)}
                     disabled={!isEditing}
-                    className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+                    className={`flex-1 py-2 rounded-clinical text-xs font-medium transition-all ${
                       profile.preferred_lang === lang.code
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-surface-800/60 text-surface-400'
-                    } ${isEditing ? 'hover:bg-surface-700 cursor-pointer' : 'cursor-default'}`}
+                        ? 'bg-primary-container text-white'
+                        : 'bg-surface-container text-on-surface-variant'
+                    } ${isEditing ? 'hover:bg-surface-container-high cursor-pointer' : 'cursor-default'}`}
                   >
                     {lang.label}
                   </button>
@@ -434,7 +434,7 @@ export default function ProfilePage() {
             </ProfileField>
 
             {/* Annual Income */}
-            <ProfileField label={text.income} isEditing={isEditing}>
+            <ProfileField label={text.income}>
               <select
                 value={profile.annual_income || 0}
                 onChange={(e) => handleChange('annual_income', parseInt(e.target.value))}
@@ -450,7 +450,7 @@ export default function ProfilePage() {
             </ProfileField>
 
             {/* Scheme note */}
-            <p className="text-[10px] text-surface-500 text-center px-4 leading-relaxed">
+            <p className="text-[10px] text-outline text-center px-4 leading-relaxed">
               💡 {text.schemeNote}
             </p>
           </>
@@ -458,10 +458,10 @@ export default function ProfilePage() {
 
         {/* Language (guest mode — interactive selector) */}
         {!isAuthenticated && (
-          <div className="glass-card p-4 space-y-2">
+          <div className="clinical-card p-4 space-y-2">
             <div className="flex items-center gap-2">
-              <FiGlobe className="w-5 h-5 text-primary-400 flex-shrink-0" />
-              <p className="text-xs text-surface-400">{text.language}</p>
+              <FiGlobe className="w-5 h-5 text-primary flex-shrink-0" />
+              <p className="text-xs text-on-surface-variant">{text.language}</p>
             </div>
             <div className="flex gap-2">
               {[
@@ -476,10 +476,10 @@ export default function ProfilePage() {
                     localStorage.setItem('mediguide_language', lang.code)
                     toast.success(lang.label)
                   }}
-                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+                  className={`flex-1 py-2 rounded-clinical text-xs font-medium transition-all ${
                     language === lang.code
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-surface-800/60 text-surface-400 hover:bg-surface-700'
+                      ? 'bg-primary-container text-white'
+                      : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
                   }`}
                 >
                   {lang.label}
@@ -491,23 +491,23 @@ export default function ProfilePage() {
       </div>
 
       {/* ── DPDPA Data Rights Section ─────────────────────── */}
-      <div className="glass-card rounded-xl p-4 space-y-4">
+      <div className="clinical-card rounded-clinical p-4 space-y-4">
         <div className="flex items-center gap-2">
-          <FiShield className="w-4 h-4 text-primary-400" />
-          <h2 className="text-sm font-bold text-white">{text.dataPrivacy}</h2>
-          <span className="ml-auto px-2 py-0.5 rounded-full bg-primary-500/10 border border-primary-500/20 text-[9px] font-semibold text-primary-400">
+          <FiShield className="w-4 h-4 text-primary" />
+          <h2 className="text-sm font-bold font-display text-on-surface">{text.dataPrivacy}</h2>
+          <span className="ml-auto px-2 py-0.5 rounded-full bg-primary/8 text-[9px] font-semibold text-primary">
             DPDPA 2023
           </span>
         </div>
 
         {/* Consent Status */}
         {consentInfo.given && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
-            <FiCheck className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-2 rounded-clinical bg-tertiary/8">
+            <FiCheck className="w-3.5 h-3.5 text-tertiary flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-[10px] text-green-400 font-semibold">{text.consentGiven}</p>
+              <p className="text-[10px] text-tertiary font-semibold">{text.consentGiven}</p>
               {consentInfo.timestamp && (
-                <p className="text-[9px] text-green-400/60">
+                <p className="text-[9px] text-tertiary/60">
                   {text.consentOn}: {new Date(consentInfo.timestamp).toLocaleDateString(
                     language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN',
                     { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
@@ -521,22 +521,22 @@ export default function ProfilePage() {
         {/* Privacy Policy Link */}
         <button
           onClick={() => navigate('/privacy')}
-          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-surface-800/60 hover:bg-surface-800/90 text-surface-300 hover:text-white transition-all text-xs"
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-clinical bg-surface-container-low hover:bg-surface-container text-on-surface-variant hover:text-primary transition-all text-xs"
         >
-          <FiFileText className="w-3.5 h-3.5 text-primary-400" />
+          <FiFileText className="w-3.5 h-3.5 text-primary" />
           {text.viewPrivacy}
         </button>
 
         {/* Withdraw Consent */}
         <button
           onClick={handleWithdrawConsent}
-          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-red-500/5 hover:bg-red-500/15 text-red-400/70 hover:text-red-400 border border-red-500/10 hover:border-red-500/30 transition-all text-xs"
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-clinical bg-error/5 hover:bg-error/10 text-error/70 hover:text-error transition-all text-xs"
         >
           <FiAlertTriangle className="w-3.5 h-3.5" />
           {text.withdrawConsent}
         </button>
 
-        <p className="text-[9px] text-surface-500 text-center leading-relaxed px-2">
+        <p className="text-[9px] text-outline text-center leading-relaxed px-2">
           🔒 {text.dpdpaNote}
         </p>
       </div>
@@ -544,7 +544,7 @@ export default function ProfilePage() {
       {/* Sign Out */}
       <button
         onClick={handleLogout}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-surface-800/60 text-surface-400 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm"
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-clinical bg-surface-container text-on-surface-variant hover:text-error hover:bg-error/8 transition-all text-sm"
       >
         <FiLogOut className="w-4 h-4" />
         {text.logout}
@@ -554,38 +554,14 @@ export default function ProfilePage() {
 }
 
 
-/** Reusable profile field wrapper. */
-function ProfileField({ label, isEditing, children }) {
+/** Reusable profile field wrapper — Clinical Intelligence style. */
+function ProfileField({ label, children }) {
   return (
-    <div className="glass-card p-3 space-y-1.5">
-      <label className="text-[10px] text-surface-400 uppercase tracking-wider font-medium">
+    <div className="clinical-card p-3 space-y-1.5">
+      <label className="text-clinical-meta">
         {label}
       </label>
       {children}
-      <style>{`
-        .profile-input {
-          width: 100%;
-          background: rgba(15, 23, 42, 0.5);
-          color: #e2e8f0;
-          border: 1px solid rgba(51, 65, 85, 0.3);
-          border-radius: 10px;
-          padding: 8px 12px;
-          font-size: 13px;
-          transition: all 0.2s;
-          outline: none;
-        }
-        .profile-input:focus {
-          border-color: rgba(47, 143, 255, 0.5);
-          box-shadow: 0 0 0 2px rgba(47, 143, 255, 0.15);
-        }
-        .profile-input:disabled {
-          opacity: 0.7;
-          cursor: default;
-          border-color: transparent;
-          background: transparent;
-          padding-left: 0;
-        }
-      `}</style>
     </div>
   )
 }
