@@ -64,7 +64,7 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // App shell / static assets: cache-first, network-fallback
+  // App shell / static assets: network-first in dev to ensure fresh code
   if (
     event.request.destination === 'document' ||
     event.request.destination === 'script' ||
@@ -72,7 +72,7 @@ self.addEventListener('fetch', (event) => {
     event.request.destination === 'image' ||
     event.request.destination === 'font'
   ) {
-    event.respondWith(cacheFirstThenNetwork(event.request))
+    event.respondWith(networkFirstThenCache(event.request))
     return
   }
 })

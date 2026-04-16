@@ -228,46 +228,5 @@ export async function getCaregiverAlerts(limit = 50) {
   return data
 }
 
-// ═══════════════════════════════════════════════════════════════
-// GOVERNMENT SCHEMES
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * Fetch eligible government healthcare schemes based on user profile.
- * @param {Object} params
- * @param {string} [params.state]     - Indian state (e.g. 'Maharashtra')
- * @param {number} [params.income]    - Annual income in INR
- * @param {number} [params.age]       - Patient age
- * @param {string} [params.gender]    - 'male' | 'female' | 'other'
- * @param {string} [params.condition] - Medical condition (e.g. 'kidney', 'pregnancy')
- */
-export async function getEligibleSchemes({ state, income, age, gender, condition } = {}) {
-  const params = {}
-  if (state) params.state = state
-  if (income) params.income = income
-  if (age) params.age = age
-  if (gender) params.gender = gender
-  if (condition) params.condition = condition
-
-  const { data } = await api.get('/schemes/eligible', { params })
-  return data
-}
-
-/**
- * Get AI-powered explanation of a scheme in the user's language.
- * @param {string} schemeId  - Scheme UUID
- * @param {string} language  - 'hi' | 'mr' | 'en'
- * @param {Object} profile   - { state, age, gender, income }
- */
-export async function explainScheme(schemeId, language = 'hi', profile = {}) {
-  const params = { language }
-  if (profile.state) params.state = profile.state
-  if (profile.age) params.age = profile.age
-  if (profile.gender) params.gender = profile.gender
-  if (profile.income) params.income = profile.income
-
-  const { data } = await api.get(`/schemes/${schemeId}/explain`, { params })
-  return data
-}
 
 export default api

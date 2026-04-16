@@ -16,9 +16,9 @@ import UrgencyBanner from '../components/chat/UrgencyBanner'
 import LanguageBadge from '../components/chat/LanguageBadge'
 import DisclaimerBanner from '../components/shared/DisclaimerBanner'
 import EmergencyAlert from '../components/shared/EmergencyAlert'
-import SchemeRecommendation from '../components/chat/SchemeRecommendation'
+// SchemeRecommendation removed — inline implementation below
 import Spinner from '../components/shared/Spinner'
-import { getNearbyHospitals, textToSpeech } from '../services/api'
+import { getNearbyHospitals, textToSpeech, getEligibleSchemes } from '../services/api'
 import { generateHealthCard } from '../services/healthCardGenerator'
 import { downloadFHIRBundle } from '../services/fhirExport'
 import { playAudioBlob } from '../services/sarvam'
@@ -42,6 +42,7 @@ export default function ChatPage() {
   const [showEmergency, setShowEmergency] = useState(false)
   const [nearestHospital, setNearestHospital] = useState(null)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [schemes, setSchemes] = useState(null) // null = not fetched, [] = fetched empty
 
   // Voice Auto-Mode
   const { isAutoMode, phase, liveTranscript, startAutoMode, stopAutoMode } =
@@ -190,16 +191,6 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Government Scheme Recommendations — shown for moderate/emergency cases */}
-      {isFinal && (urgency === 'moderate' || urgency === 'emergency') && (
-        <div className="px-4">
-          <SchemeRecommendation
-            urgency={urgency}
-            specialty={urgencyData?.recommend_specialty}
-          />
-        </div>
-      )}
-
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 py-2 space-y-3">
         {/* Welcome */}
@@ -322,6 +313,11 @@ export default function ChatPage() {
           </div>
         )}
 
+        {/* Government Scheme Recommendations — inline version */}
+        {isFinal && (
+          <InlineSchemes language={language} schemes={schemes} setSchemes={setSchemes} />
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -364,6 +360,101 @@ export default function ChatPage() {
           onDismiss={() => setShowEmergency(false)}
         />
       )}
+    </div>
+  )
+}
+
+/** Inline Government Schemes — self-contained, no external component */
+function InlineSchemes({ language, schemes, setSchemes }) {
+  const [loading, setLoading] = useState(true)
+  const [expanded, setExpanded] = useState(null)
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const age = localStorage.getItem('mediguide_patient_age')
+        const gender = localStorage.getItem('mediguide_patient_gender')
+        const state = localStorage.getItem('mediguide_patient_state')
+        const res = await getEligibleSchemes({
+          state: state || undefined,
+          age: age ? parseInt(age) : undefined,
+          gender: gender || undefined,
+        })
+        setSchemes(res.schemes || [])
+      } catch (err) {
+        console.error('Scheme fetch error:', err)
+        setSchemes([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (schemes === null) load()
+    else setLoading(false)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const t = {
+    hi: { title: 'सरकारी स्वास्थ्य योजनाएं', sub: 'आपके लिए उपलब्ध योजनाएं', loading: 'खोज रहे हैं...', none: 'कोई योजना नहीं मिली' },
+    mr: { title: 'सरकारी आरोग्य योजना', sub: 'तुमच्यासाठी उपलब्ध योजना', loading: 'शोधत आहोत...', none: 'कोणतीही योजना सापडली नाही' },
+    en: { title: 'Government Health Schemes', sub: 'Schemes you may be eligible for', loading: 'Searching...', none: 'No eligible schemes found' },
+  }[language] || { title: 'Government Health Schemes', sub: 'Schemes you may be eligible for', loading: 'Searching...', none: 'No eligible schemes found' }
+
+  if (loading) return (
+    <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 12, padding: 14, margin: '8px 0' }}>
+      <p style={{ color: '#10b981', fontSize: 13, fontWeight: 600, margin: 0 }}>🛡️ {t.title}</p>
+      <p style={{ color: '#94a3b8', fontSize: 11, margin: '4px 0 0' }}>{t.loading}</p>
+    </div>
+  )
+
+  if (!schemes || schemes.length === 0) return null
+
+  return (
+    <div style={{ margin: '8px 0', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(16,185,129,0.2)' }}>
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(6,182,212,0.1))', padding: '12px 14px', borderBottom: '1px solid rgba(16,185,129,0.15)' }}>
+        <p style={{ color: '#10b981', fontSize: 13, fontWeight: 700, margin: 0 }}>🛡️ {t.title}</p>
+        <p style={{ color: '#64748b', fontSize: 10, margin: '2px 0 0' }}>{t.sub}</p>
+      </div>
+      {/* Scheme Cards */}
+      {schemes.map((s, i) => (
+        <div key={s.id} style={{ background: 'rgba(15,23,42,0.6)', borderBottom: i < schemes.length - 1 ? '1px solid rgba(100,116,139,0.15)' : 'none' }}>
+          <button
+            onClick={() => setExpanded(expanded === s.id ? null : s.id)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+          >
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>💚</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ color: '#fff', fontSize: 12, fontWeight: 600, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {language === 'hi' && s.name_hi ? s.name_hi : language === 'mr' && s.name_mr ? s.name_mr : s.name}
+              </p>
+              {s.benefit_amount && (
+                <p style={{ color: '#10b981', fontSize: 10, margin: '2px 0 0' }}>
+                  💰 ₹{Number(s.benefit_amount).toLocaleString('en-IN')}
+                </p>
+              )}
+            </div>
+            <span style={{ color: '#64748b', fontSize: 14 }}>{expanded === s.id ? '▲' : '▼'}</span>
+          </button>
+          {expanded === s.id && (
+            <div style={{ padding: '0 14px 12px 56px' }}>
+              <p style={{ color: '#cbd5e1', fontSize: 11, lineHeight: '1.5', margin: '0 0 8px' }}>
+                {language === 'hi' && s.description_hi ? s.description_hi : language === 'mr' && s.description_mr ? s.description_mr : s.description}
+              </p>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                {s.helpline && (
+                  <a href={`tel:${s.helpline.replace(/[^0-9+]/g, '')}`} style={{ fontSize: 10, color: '#f59e0b', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 6, padding: '3px 8px', textDecoration: 'none' }}>
+                    📞 {s.helpline}
+                  </a>
+                )}
+                {s.scheme_url && (
+                  <a href={s.scheme_url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: '#3b82f6', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 6, padding: '3px 8px', textDecoration: 'none' }}>
+                    🔗 Website
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

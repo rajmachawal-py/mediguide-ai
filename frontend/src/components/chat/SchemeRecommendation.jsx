@@ -102,6 +102,7 @@ export default function SchemeRecommendation({ urgency, specialty }) {
       const gender = localStorage.getItem('mediguide_patient_gender')
       const state = localStorage.getItem('mediguide_patient_state')
 
+      console.log('[SchemeRecommendation] Fetching schemes...', { age, gender, state, specialty })
       const result = await getEligibleSchemes({
         state: state || undefined,
         age: age ? parseInt(age) : undefined,
@@ -109,9 +110,10 @@ export default function SchemeRecommendation({ urgency, specialty }) {
         condition: specialty || undefined,
       })
 
+      console.log('[SchemeRecommendation] API result:', result)
       setSchemes(result.schemes || [])
     } catch (err) {
-      console.error('Scheme fetch error:', err)
+      console.error('[SchemeRecommendation] Fetch error:', err)
       setError(t.error)
     } finally {
       setLoading(false)

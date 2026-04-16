@@ -93,7 +93,7 @@ def _get_triage_model():
         system_instruction=system_prompt,
         generation_config=GenerationConfig(
             temperature=0.4,        # low temp for consistent medical responses
-            max_output_tokens=1024,
+            max_output_tokens=4096, # increased — triage JSON results can be large
         ),
         safety_settings=[
             # Allow medical content — Gemini blocks some health topics by default
@@ -233,7 +233,13 @@ async def ask_triage(
         if image_base64 and len(message_parts) > 1:
             response = model.generate_content(message_parts)
         else:
-            response = chat.send_message(message_parts)
+            try:
+                response = chat.send_message(message_parts)
+            except Exception as chat_err:
+                # Fallback: retry without response validation (handles finish_reason=2)
+                logger.warning(f"Chat send failed ({chat_err}), retrying with validation disabled")
+                chat_no_val = model.start_chat(history=gemini_history, response_validation=False)
+                response = chat_no_val.send_message(message_parts)
 
         raw_text = response.text
 
