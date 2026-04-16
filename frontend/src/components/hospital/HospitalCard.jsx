@@ -123,13 +123,23 @@ export default function HospitalCard({ hospital, language = 'en' }) {
             🚑 108
           </a>
         )}
-        <Link
-          to={`/map/${hospital.id}`}
-          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-accent-600/20 text-accent-400 text-xs font-medium hover:bg-accent-600/30 transition-all"
-        >
-          <FiMap className="w-3 h-3" />
-          {language === 'hi' ? 'नक्शा' : language === 'mr' ? 'नकाशा' : 'Indoor Map'}
-        </Link>
+        {hospital.id === '00000000-0000-0000-0000-000000000003' ? (
+          <Link
+            to={`/map/${hospital.id}`}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-accent-600/20 text-accent-400 text-xs font-medium hover:bg-accent-600/30 transition-all"
+          >
+            <FiMap className="w-3 h-3" />
+            {language === 'hi' ? 'नक्शा' : language === 'mr' ? 'नकाशा' : 'Indoor Map'}
+          </Link>
+        ) : (
+          <span
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-surface-800/50 text-surface-500 text-xs font-medium cursor-not-allowed"
+            title={language === 'hi' ? 'जल्द आ रहा है' : 'Coming Soon'}
+          >
+            <FiMap className="w-3 h-3" />
+            {language === 'hi' ? 'जल्द ही' : language === 'mr' ? 'लवकरच' : 'Coming Soon'}
+          </span>
+        )}
       </div>
     </div>
   )

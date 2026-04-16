@@ -329,6 +329,7 @@ export default function IndoorMapPage() {
       {/* SVG Floor Plan */}
       {mapData && (
         <SVGFloorPlan
+          hospitalId={hospitalId}
           nodes={mapData.nodes || []}
           edges={mapData.edges || []}
           routeSteps={route?.steps || []}

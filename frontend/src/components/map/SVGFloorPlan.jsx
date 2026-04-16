@@ -12,6 +12,9 @@
 
 import { useMemo } from 'react'
 
+// Only Ruby Hall Clinic has SVG floor plans for now
+const RUBY_HALL_ID = '00000000-0000-0000-0000-000000000003'
+
 // Node type → color mapping for hotspot highlights
 const NODE_COLORS = {
   entrance:   { fill: '#22c55e', stroke: '#16a34a', glow: '#22c55e' },
@@ -28,7 +31,9 @@ export default function SVGFloorPlan({
   activeFloor = 0,
   onNodeTap,
   selectedNodeId,
+  hospitalId,
 }) {
+  const hasFloorPlan = hospitalId === RUBY_HALL_ID
   // Filter nodes & edges for active floor
   const floorNodes = useMemo(
     () => nodes.filter(n => n.floor_number === activeFloor),
@@ -114,10 +119,22 @@ export default function SVGFloorPlan({
           `}</style>
         </defs>
 
-        {/* Render the actual floor plan SVG */}
-        {activeFloor === 0 && <GroundFloorPlan />}
-        {activeFloor === 1 && <FirstFloorPlan />}
-        {activeFloor === 2 && <SecondFloorPlan />}
+        {/* Render the actual floor plan SVG (Ruby Hall only) */}
+        {hasFloorPlan && activeFloor === 0 && <GroundFloorPlan />}
+        {hasFloorPlan && activeFloor === 1 && <FirstFloorPlan />}
+        {hasFloorPlan && activeFloor === 2 && <SecondFloorPlan />}
+
+        {/* Placeholder for hospitals without SVG floor plans */}
+        {!hasFloorPlan && (
+          <g>
+            <rect width="1100" height="750" fill="#0f172a" />
+            <rect x="300" y="220" width="500" height="310" rx="20" fill="#1e293b" stroke="#334155" strokeWidth="2" />
+            <text x="550" y="320" textAnchor="middle" fill="#64748b" fontSize="60">🏥</text>
+            <text x="550" y="380" textAnchor="middle" fill="#94a3b8" fontSize="18" fontWeight="600">Floor Plan Coming Soon</text>
+            <text x="550" y="410" textAnchor="middle" fill="#64748b" fontSize="13">This hospital has not uploaded their SVG floor plans yet.</text>
+            <text x="550" y="440" textAnchor="middle" fill="#64748b" fontSize="13">Contact administration to enable indoor navigation.</text>
+          </g>
+        )}
 
         {/* Route path overlay */}
         {routePolyline && (

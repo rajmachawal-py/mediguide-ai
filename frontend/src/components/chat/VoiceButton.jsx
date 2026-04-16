@@ -6,7 +6,7 @@
  */
 
 import { FiMic, FiMicOff, FiLoader } from 'react-icons/fi'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { speechToText } from '../../services/api'
 import toast from 'react-hot-toast'
 
@@ -25,6 +25,11 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
   const useWebSpeech = useRef(true)
+  // ── Ref mirrors isRecording state so recognition callbacks are never stale ──
+  // React state captured in useCallback closures goes stale; refs always read
+  // the latest value, which is critical for the no-speech restart logic.
+  const isRecordingRef = useRef(false)
+  useEffect(() => { isRecordingRef.current = isRecording }, [isRecording])
 
   // Check if Web Speech API is available
   const hasWebSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition)
@@ -54,8 +59,8 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
     }
 
     recognition.onerror = (event) => {
-      if (event.error === 'no-speech' && isRecording) {
-        // Silently restart
+      // Use isRecordingRef (not isRecording state) to avoid stale closure
+      if (event.error === 'no-speech' && isRecordingRef.current) {
         try { recognition.start() } catch { /* ignore */ }
       } else if (event.error !== 'aborted') {
         console.warn('[VoiceButton] Web Speech error:', event.error)
@@ -63,7 +68,11 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
     }
 
     recognition.onend = () => {
-      // Will be handled by stopRecording
+      // Chrome stops Web Speech after silence even with continuous=true.
+      // Restart immediately if the user hasn't tapped Stop yet.
+      if (isRecordingRef.current) {
+        try { recognition.start() } catch { /* ignore */ }
+      }
     }
 
     recognitionRef.current = recognition
@@ -73,7 +82,10 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
     } catch {
       return false
     }
-  }, [language, isRecording])
+  // isRecording intentionally removed from deps — we use isRecordingRef inside
+  // the callbacks instead to avoid recreating the recognition on every state tick.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language])
 
   /** Start with MediaRecorder (fallback for Sarvam API) */
   const startMediaRecorder = useCallback(async () => {
