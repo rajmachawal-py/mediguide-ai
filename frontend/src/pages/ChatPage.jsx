@@ -16,6 +16,7 @@ import UrgencyBanner from '../components/chat/UrgencyBanner'
 import LanguageBadge from '../components/chat/LanguageBadge'
 import DisclaimerBanner from '../components/shared/DisclaimerBanner'
 import EmergencyAlert from '../components/shared/EmergencyAlert'
+import SchemeRecommendation from '../components/chat/SchemeRecommendation'
 import Spinner from '../components/shared/Spinner'
 import { getNearbyHospitals, textToSpeech } from '../services/api'
 import { generateHealthCard } from '../services/healthCardGenerator'
@@ -186,6 +187,16 @@ export default function ChatPage() {
       {urgency && (
         <div className="px-4 py-1">
           <UrgencyBanner urgency={urgency} language={language} />
+        </div>
+      )}
+
+      {/* Government Scheme Recommendations — shown for moderate/emergency cases */}
+      {isFinal && (urgency === 'moderate' || urgency === 'emergency') && (
+        <div className="px-4">
+          <SchemeRecommendation
+            urgency={urgency}
+            specialty={urgencyData?.recommend_specialty}
+          />
         </div>
       )}
 
