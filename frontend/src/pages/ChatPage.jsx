@@ -13,7 +13,6 @@ import VoiceButton from '../components/chat/VoiceButton'
 import ImageUploadButton from '../components/chat/ImageUploadButton'
 import VoiceAutoModeOverlay from '../components/chat/VoiceAutoModeOverlay'
 import UrgencyBanner from '../components/chat/UrgencyBanner'
-import LanguageBadge from '../components/chat/LanguageBadge'
 import DisclaimerBanner from '../components/shared/DisclaimerBanner'
 import EmergencyAlert from '../components/shared/EmergencyAlert'
 // SchemeRecommendation removed — inline implementation below
@@ -174,11 +173,6 @@ export default function ChatPage() {
             </button>
           )}
         </div>
-      </div>
-
-      {/* Language Selector */}
-      <div className="px-4 py-2 flex justify-center">
-        <LanguageBadge selected={language} onChange={changeLanguage} />
       </div>
 
       {/* Medical Disclaimer */}

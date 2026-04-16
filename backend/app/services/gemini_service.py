@@ -35,9 +35,8 @@ SUMMARY_MODEL = "gemini-2.5-flash"      # structured JSON output
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 
-@lru_cache()
 def _load_prompt(filename: str) -> str:
-    """Load and cache a prompt file from the prompts directory."""
+    """Load a prompt file from the prompts directory (always fresh, no cache)."""
     path = PROMPTS_DIR / filename
     if not path.exists():
         raise FileNotFoundError(f"Prompt file not found: {path}")
@@ -146,16 +145,18 @@ async def ask_triage(
     language: str,
     history: list[dict],
     image_base64: str = None,
+    patient_context: dict = None,
 ) -> dict:
     """
     Send a user message to Gemini for triage assessment.
     Supports multimodal input when an image is provided.
 
     Args:
-        symptom_text: The user's current message (symptom description or answer)
-        language:     Language code — "hi" | "mr" | "en"
-        history:      Previous conversation turns [{"role": ..., "content": ...}]
-        image_base64: Optional base64-encoded image for visual symptom analysis
+        symptom_text:    The user's current message (symptom description or answer)
+        language:        Language code — "hi" | "mr" | "en"
+        history:         Previous conversation turns [{"role": ..., "content": ...}]
+        image_base64:    Optional base64-encoded image for visual symptom analysis
+        patient_context: Optional dict with patient demographics {name, age, gender, state}
 
     Returns:
         {
@@ -183,6 +184,26 @@ async def ask_triage(
             "en": "[User's language: English. Respond in English only.]",
         }.get(language, "")
 
+        # Build patient context preamble (so Gemini won't re-ask for demographics)
+        patient_preamble = ""
+        if patient_context:
+            parts = []
+            if patient_context.get("name"):
+                parts.append(f"Name: {patient_context['name']}")
+            if patient_context.get("age"):
+                parts.append(f"Age: {patient_context['age']}")
+            if patient_context.get("gender"):
+                parts.append(f"Gender: {patient_context['gender']}")
+            if patient_context.get("state"):
+                parts.append(f"State: {patient_context['state']}")
+            if parts:
+                patient_preamble = (
+                    "[PATIENT DETAILS ALREADY COLLECTED — DO NOT ask for name, age, or gender again. "
+                    "Use these details in your assessment and final JSON output:\n"
+                    + ", ".join(parts) + "]"
+                )
+                logger.info(f"Patient context injected: {', '.join(parts)}")
+
         # RAG: Retrieve relevant medical knowledge for the user's symptoms
         rag_context = retrieve_medical_context(symptom_text, language)
         if rag_context:
@@ -200,7 +221,7 @@ async def ask_triage(
                 "describe the appearance and suggest possible conditions. "
                 "Always add a disclaimer that visual AI analysis is not a clinical diagnosis.]"
             )
-            text_content = f"{language_hint}\n{vision_prompt}\n{symptom_text}" if language_hint else f"{vision_prompt}\n{symptom_text}"
+            text_content = f"{language_hint}\n{patient_preamble}\n{vision_prompt}\n{symptom_text}" if language_hint else f"{patient_preamble}\n{vision_prompt}\n{symptom_text}"
             message_parts.append(text_content)
 
             # Decode base64 image and attach as Vertex AI Part

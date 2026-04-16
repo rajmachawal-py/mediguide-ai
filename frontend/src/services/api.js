@@ -43,7 +43,7 @@ api.interceptors.response.use(
 // ═══════════════════════════════════════════════════════════════
 
 /** Send symptom text for triage assessment. */
-export async function sendTriage(symptomText, language, history, lat, lng, imageBase64 = null) {
+export async function sendTriage(symptomText, language, history, lat, lng, imageBase64 = null, patientContext = null) {
   const payload = {
     symptom: symptomText,
     language,
@@ -53,6 +53,9 @@ export async function sendTriage(symptomText, language, history, lat, lng, image
   }
   if (imageBase64) {
     payload.image_base64 = imageBase64
+  }
+  if (patientContext) {
+    payload.patient_context = patientContext
   }
   const { data } = await api.post('/triage', payload)
   return data

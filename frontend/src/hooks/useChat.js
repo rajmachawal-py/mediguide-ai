@@ -46,7 +46,21 @@ export default function useChat() {
 
     try {
       const history = buildHistory([...messages, userMsg])
-      const response = await sendTriage(text.trim(), language, history, lat, lng, imageBase64)
+
+      // Build patient context from localStorage so Gemini doesn't re-ask
+      const patientContext = {
+        name: localStorage.getItem('mediguide_patient_name') || null,
+        age: localStorage.getItem('mediguide_patient_age') || null,
+        gender: localStorage.getItem('mediguide_patient_gender') || null,
+        state: localStorage.getItem('mediguide_patient_state') || null,
+      }
+      // Only send if at least one field is filled
+      const hasContext = patientContext.name || patientContext.age || patientContext.gender
+      
+      const response = await sendTriage(
+        text.trim(), language, history, lat, lng, imageBase64,
+        hasContext ? patientContext : null
+      )
 
       const aiMsg = {
         role: 'assistant',

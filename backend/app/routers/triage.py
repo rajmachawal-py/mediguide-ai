@@ -64,6 +64,7 @@ async def triage_symptom(request: TriageRequest, raw_request: Request) -> Triage
             language=request.language,
             history=[msg.model_dump() for msg in request.history],
             image_base64=request.image_base64,
+            patient_context=request.patient_context,
         )
 
         # Step 3: Determine final urgency using combined rule + AI classification

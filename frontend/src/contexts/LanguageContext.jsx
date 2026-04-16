@@ -15,12 +15,17 @@ import { createContext, useContext, useState, useCallback } from 'react'
 const LanguageContext = createContext({ language: 'en', changeLanguage: () => {} })
 
 export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState(
-    () => localStorage.getItem('mediguide_lang') || 'hi'
-  )
+  const [language, setLanguage] = useState(() => {
+    // Check new key first, then fall back to legacy key for backward compatibility
+    return localStorage.getItem('mediguide_language')
+      || localStorage.getItem('mediguide_lang')
+      || 'hi'
+  })
 
   const changeLanguage = useCallback((lang) => {
     setLanguage(lang)
+    localStorage.setItem('mediguide_language', lang)
+    // Also write to legacy key for any components still reading it
     localStorage.setItem('mediguide_lang', lang)
   }, [])
 

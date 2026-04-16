@@ -129,6 +129,8 @@ export default function ProfilePage() {
       if (profile.full_name) localStorage.setItem('mediguide_patient_name', profile.full_name)
       if (profile.age) localStorage.setItem('mediguide_patient_age', String(profile.age))
       if (profile.gender) localStorage.setItem('mediguide_patient_gender', profile.gender)
+      if (profile.state) localStorage.setItem('mediguide_patient_state', profile.state)
+      localStorage.setItem('mediguide_language', profile.preferred_lang)
 
       toast.success(language === 'hi' ? 'प्रोफ़ाइल सेव हो गई ✅' : 'Profile saved ✅')
       setIsEditing(false)
@@ -454,15 +456,35 @@ export default function ProfilePage() {
           </>
         )}
 
-        {/* Language (guest mode) */}
+        {/* Language (guest mode — interactive selector) */}
         {!isAuthenticated && (
-          <div className="glass-card p-4 flex items-center gap-3">
-            <FiGlobe className="w-5 h-5 text-primary-400 flex-shrink-0" />
-            <div>
+          <div className="glass-card p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <FiGlobe className="w-5 h-5 text-primary-400 flex-shrink-0" />
               <p className="text-xs text-surface-400">{text.language}</p>
-              <p className="text-sm text-white font-medium">
-                {language === 'hi' ? 'हिंदी' : language === 'mr' ? 'मराठी' : 'English'}
-              </p>
+            </div>
+            <div className="flex gap-2">
+              {[
+                { code: 'hi', label: 'हिंदी' },
+                { code: 'mr', label: 'मराठी' },
+                { code: 'en', label: 'English' },
+              ].map(lang => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setAppLanguage(lang.code)
+                    localStorage.setItem('mediguide_language', lang.code)
+                    toast.success(lang.label)
+                  }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+                    language === lang.code
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-surface-800/60 text-surface-400 hover:bg-surface-700'
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
             </div>
           </div>
         )}

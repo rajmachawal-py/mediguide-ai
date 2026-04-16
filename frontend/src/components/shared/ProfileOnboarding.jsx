@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react'
-import { FiUser, FiLoader, FiArrowRight } from 'react-icons/fi'
+import { FiUser, FiLoader, FiArrowRight, FiGlobe } from 'react-icons/fi'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { updateProfile } from '../../services/api'
 import toast from 'react-hot-toast'
@@ -23,6 +23,7 @@ const t = {
     female: 'महिला',
     other: 'अन्य',
     state: 'राज्य (वैकल्पिक)',
+    languageLabel: 'भाषा चुनें',
     continue: 'जारी रखें',
     required: 'कृपया सभी ज़रूरी जानकारी भरें',
   },
@@ -38,6 +39,7 @@ const t = {
     female: 'स्त्री',
     other: 'इतर',
     state: 'राज्य (पर्यायी)',
+    languageLabel: 'भाषा निवडा',
     continue: 'पुढे चला',
     required: 'कृपया सर्व आवश्यक माहिती भरा',
   },
@@ -53,6 +55,7 @@ const t = {
     female: 'Female',
     other: 'Other',
     state: 'State (optional)',
+    languageLabel: 'Select Language',
     continue: 'Continue',
     required: 'Please fill all required fields',
   },
@@ -69,15 +72,22 @@ const INDIAN_STATES = [
 ]
 
 export default function ProfileOnboarding({ onComplete }) {
-  const { language } = useLanguage()
+  const { language, changeLanguage } = useLanguage()
   const text = t[language] || t.en
 
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
   const [gender, setGender] = useState('')
   const [state, setState] = useState('')
+  const [selectedLang, setSelectedLang] = useState(language)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // When user picks a language in the form, update the UI language immediately
+  const handleLangChange = (code) => {
+    setSelectedLang(code)
+    changeLanguage(code)
+  }
 
   const handleSubmit = async () => {
     if (!name.trim() || !age || !gender) {
@@ -93,6 +103,7 @@ export default function ProfileOnboarding({ onComplete }) {
       localStorage.setItem('mediguide_patient_name', name.trim())
       localStorage.setItem('mediguide_patient_age', age)
       localStorage.setItem('mediguide_patient_gender', gender)
+      localStorage.setItem('mediguide_language', selectedLang)
       if (state) localStorage.setItem('mediguide_patient_state', state)
 
       // If authenticated (not guest), also save to backend profile
@@ -104,7 +115,7 @@ export default function ProfileOnboarding({ onComplete }) {
             age: parseInt(age),
             gender,
             state: state || null,
-            preferred_lang: language,
+            preferred_lang: selectedLang,
           })
         } catch (apiErr) {
           // Don't block — data is already in localStorage
@@ -221,6 +232,34 @@ export default function ProfileOnboarding({ onComplete }) {
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
+          </div>
+
+          {/* Language Selection */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] text-surface-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+              <FiGlobe className="w-3 h-3" />
+              {text.languageLabel} <span className="text-red-400">*</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { code: 'hi', label: '🇮🇳 हिंदी', sublabel: 'Hindi' },
+                { code: 'mr', label: '🇮🇳 मराठी', sublabel: 'Marathi' },
+                { code: 'en', label: '🌐 English', sublabel: 'English' },
+              ].map(lang => (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => handleLangChange(lang.code)}
+                  className={`py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                    selectedLang === lang.code
+                      ? 'bg-primary-600/30 text-primary-300 border-primary-500/50 ring-2 ring-primary-500/20'
+                      : 'bg-surface-800/60 text-surface-400 border-surface-700/40 hover:bg-surface-700/60'
+                  }`}
+                >
+                  {lang.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Error */}

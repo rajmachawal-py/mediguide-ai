@@ -40,6 +40,13 @@ class TriageRequest(BaseModel):
     lat: Optional[float] = Field(default=None, description="User latitude (optional)")
     lng: Optional[float] = Field(default=None, description="User longitude (optional)")
 
+    # Patient context — sent from frontend so Gemini doesn't re-ask for demographics
+    patient_context: Optional[dict] = Field(
+        default=None,
+        description="Patient demographic data: {name, age, gender, state}. "
+                    "If provided, Gemini will NOT re-ask for these details.",
+    )
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -48,6 +55,12 @@ class TriageRequest(BaseModel):
                 "history": [],
                 "lat": 18.5204,
                 "lng": 73.8567,
+                "patient_context": {
+                    "name": "Rahul",
+                    "age": 30,
+                    "gender": "male",
+                    "state": "Maharashtra"
+                },
             }
         }
 
