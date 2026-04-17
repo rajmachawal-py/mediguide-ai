@@ -121,6 +121,8 @@ package-lock.json
 frontend/package-lock.json
 yarn.lock
 pnpm-lock.yaml
+pyproject.toml
+uv.lock
 
 # Debug Logs
 npm-debug.log*

@@ -2,6 +2,7 @@
  * MediGuide AI — ChecklistCard
  * Pre-consultation checklist displayed after triage.
  * Shows documents to bring, fasting instructions, etc.
+ * Uses Clinical Intelligence Design System (light theme).
  */
 
 import { useState } from 'react'
@@ -70,9 +71,9 @@ export default function ChecklistCard({ urgency = 'moderate', language = 'en' })
   }
 
   return (
-    <div className="glass-card p-4 space-y-3 animate-slide-up">
-      <h3 className="text-sm font-bold text-white flex items-center gap-2">
-        <FiClipboard className="w-4 h-4 text-primary-400" />
+    <div className="clinical-card p-4 space-y-3 animate-slide-up ghost-border">
+      <h3 className="text-sm font-bold text-on-surface flex items-center gap-2">
+        <FiClipboard className="w-4 h-4 text-primary" />
         {language === 'hi' ? 'डॉक्टर के पास जाने से पहले' : 'Before Your Visit'}
       </h3>
 
@@ -81,15 +82,15 @@ export default function ChecklistCard({ urgency = 'moderate', language = 'en' })
           <button
             key={i}
             onClick={() => toggle(i)}
-            className={`w-full flex items-start gap-2.5 text-left px-3 py-2 rounded-lg transition-all ${
+            className={`w-full flex items-start gap-2.5 text-left px-3 py-2 rounded-clinical transition-all ${
               checked.has(i)
-                ? 'bg-green-500/10 text-green-300'
-                : 'bg-surface-800/40 text-surface-300 hover:bg-surface-800/70'
+                ? 'bg-mild-light/50 text-mild'
+                : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
             }`}
           >
             {checked.has(i)
-              ? <FiCheckSquare className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-              : <FiSquare className="w-4 h-4 text-surface-500 flex-shrink-0 mt-0.5" />
+              ? <FiCheckSquare className="w-4 h-4 text-mild flex-shrink-0 mt-0.5" />
+              : <FiSquare className="w-4 h-4 text-outline flex-shrink-0 mt-0.5" />
             }
             <span className={`text-xs leading-relaxed ${checked.has(i) ? 'line-through opacity-60' : ''}`}>
               {item}
@@ -98,7 +99,7 @@ export default function ChecklistCard({ urgency = 'moderate', language = 'en' })
         ))}
       </div>
 
-      <p className="text-[10px] text-surface-500 text-center">
+      <p className="text-[10px] text-on-surface-variant text-center">
         {checked.size}/{items.length} {language === 'hi' ? 'पूरा हुआ' : 'completed'}
       </p>
     </div>

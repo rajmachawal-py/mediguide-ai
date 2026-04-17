@@ -79,7 +79,7 @@ export default function SVGFloorPlan({
     : null
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-surface-700/50 bg-surface-900/50 shadow-xl">
+    <div className="relative rounded-clinical-lg overflow-hidden border border-outline-variant/40 bg-white shadow-clinical-md">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 1100 750"

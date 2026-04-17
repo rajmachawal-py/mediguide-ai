@@ -2,6 +2,7 @@
  * MediGuide AI — SummaryCard
  * Formatted doctor-ready symptom summary card.
  * Supports sharing via Web Share API and print.
+ * Uses Clinical Intelligence Design System (light theme).
  */
 
 import { FiFileText, FiShare2, FiPrinter, FiCopy, FiCheck } from 'react-icons/fi'
@@ -68,20 +69,20 @@ export default function SummaryCard({ summary, urgency, language = 'en' }) {
   }
 
   const urgencyBadge = {
-    emergency: { bg: 'bg-red-500/20', text: 'text-red-400', label: '🔴 Emergency' },
-    moderate:  { bg: 'bg-yellow-500/20', text: 'text-yellow-400', label: '🟡 Moderate' },
-    mild:      { bg: 'bg-green-500/20', text: 'text-green-400', label: '🟢 Mild' },
+    emergency: { bg: 'bg-error-container', text: 'text-error', label: '🔴 Emergency' },
+    moderate:  { bg: 'bg-moderate-light', text: 'text-moderate-dark', label: '🟡 Moderate' },
+    mild:      { bg: 'bg-mild-light', text: 'text-mild', label: '🟢 Mild' },
   }
 
   const badge = urgencyBadge[urgency]
 
   return (
-    <div className="glass-card overflow-hidden animate-slide-up">
+    <div className="clinical-card overflow-hidden animate-slide-up ghost-border">
       {/* Header */}
-      <div className="px-4 py-3 bg-primary-600/10 border-b border-surface-700/30 flex items-center justify-between">
+      <div className="px-4 py-3 bg-primary-fixed/30 border-b border-outline-variant/20 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FiFileText className="w-4 h-4 text-primary-400" />
-          <span className="text-sm font-bold text-white">
+          <FiFileText className="w-4 h-4 text-primary" />
+          <span className="text-sm font-bold text-on-surface">
             {language === 'hi' ? 'डॉक्टर रिपोर्ट' : 'Doctor Summary'}
           </span>
         </div>
@@ -94,30 +95,30 @@ export default function SummaryCard({ summary, urgency, language = 'en' }) {
 
       {/* Summary Content */}
       <div className="px-4 py-3">
-        <pre className="text-xs text-surface-300 whitespace-pre-wrap font-sans leading-relaxed">
+        <pre className="text-xs text-on-surface whitespace-pre-wrap font-sans leading-relaxed">
           {summaryText}
         </pre>
       </div>
 
       {/* Actions */}
-      <div className="px-4 py-2.5 border-t border-surface-700/30 flex items-center gap-2">
+      <div className="px-4 py-2.5 border-t border-outline-variant/20 flex items-center gap-2">
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-800/60 text-surface-300 hover:text-white text-[11px] transition-all hover:bg-surface-700"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical bg-surface-container-low text-on-surface-variant hover:text-primary text-[11px] transition-all hover:bg-primary-fixed/30 border border-outline-variant/20"
         >
           {copied ? <FiCheck className="w-3 h-3 text-green-400" /> : <FiCopy className="w-3 h-3" />}
           {language === 'hi' ? 'कॉपी' : 'Copy'}
         </button>
         <button
           onClick={handleShare}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-800/60 text-surface-300 hover:text-white text-[11px] transition-all hover:bg-surface-700"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical bg-surface-container-low text-on-surface-variant hover:text-primary text-[11px] transition-all hover:bg-primary-fixed/30 border border-outline-variant/20"
         >
           <FiShare2 className="w-3 h-3" />
           {language === 'hi' ? 'शेयर' : 'Share'}
         </button>
         <button
           onClick={handlePrint}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-800/60 text-surface-300 hover:text-white text-[11px] transition-all hover:bg-surface-700"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical bg-surface-container-low text-on-surface-variant hover:text-primary text-[11px] transition-all hover:bg-primary-fixed/30 border border-outline-variant/20"
         >
           <FiPrinter className="w-3 h-3" />
           {language === 'hi' ? 'प्रिंट' : 'Print'}

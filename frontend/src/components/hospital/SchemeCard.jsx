@@ -1,6 +1,7 @@
 /**
  * MediGuide AI — SchemeCard
  * Government scheme eligibility card with AI explanation button.
+ * Uses Clinical Intelligence Design System (light theme).
  */
 
 import { useState } from 'react'
@@ -56,22 +57,22 @@ export default function SchemeCard({ scheme, language = 'en' }) {
   const isEligible = scheme.is_eligible !== false
 
   return (
-    <div className="glass-card overflow-hidden animate-slide-up">
+    <div className="clinical-card overflow-hidden animate-slide-up ghost-border">
       <div className="p-4 space-y-2">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-2.5 min-w-0">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-              isEligible ? 'bg-green-500/20' : 'bg-surface-800/60'
+              isEligible ? 'bg-mild-light' : 'bg-surface-container'
             }`}>
-              <FiShield className={`w-4 h-4 ${isEligible ? 'text-green-400' : 'text-surface-500'}`} />
+              <FiShield className={`w-4 h-4 ${isEligible ? 'text-mild' : 'text-outline'}`} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-white truncate">
+              <h3 className="text-sm font-semibold text-on-surface truncate">
                 {(language === 'hi' && scheme.name_hi) || scheme.name}
               </h3>
               {scheme.type && (
-                <span className="text-[10px] text-surface-400 uppercase tracking-wider">
+                <span className="text-[10px] text-on-surface-variant uppercase tracking-wider">
                   {scheme.type === 'central' ? '🇮🇳 Central' : '🏛️ State'}
                 </span>
               )}
@@ -80,8 +81,8 @@ export default function SchemeCard({ scheme, language = 'en' }) {
 
           <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${
             isEligible
-              ? 'bg-green-500/20 text-green-400'
-              : 'bg-red-500/20 text-red-400'
+              ? 'bg-mild-light text-mild'
+              : 'bg-error-container text-error'
           }`}>
             {isEligible
               ? (language === 'hi' ? 'पात्र' : 'Eligible')
@@ -92,14 +93,14 @@ export default function SchemeCard({ scheme, language = 'en' }) {
 
         {/* Description */}
         {scheme.description && (
-          <p className="text-xs text-surface-300 leading-relaxed line-clamp-2">
+          <p className="text-xs text-on-surface-variant leading-relaxed line-clamp-2">
             {scheme.description}
           </p>
         )}
 
         {/* Benefits */}
         {scheme.max_benefit && (
-          <p className="text-xs text-primary-400 font-semibold">
+          <p className="text-xs text-primary font-semibold">
             💰 {language === 'hi' ? 'लाभ:' : 'Benefit:'} ₹{Number(scheme.max_benefit).toLocaleString('en-IN')}
           </p>
         )}
@@ -107,7 +108,7 @@ export default function SchemeCard({ scheme, language = 'en' }) {
         {/* Explain Button */}
         <button
           onClick={handleExplain}
-          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-primary-600/15 text-primary-400 text-xs font-medium hover:bg-primary-600/25 transition-all"
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-clinical bg-primary-fixed/40 text-primary text-xs font-medium hover:bg-primary-fixed/60 transition-all"
         >
           {loading ? (
             <FiLoader className="w-3.5 h-3.5 animate-spin" />
@@ -122,8 +123,8 @@ export default function SchemeCard({ scheme, language = 'en' }) {
 
       {/* AI Explanation */}
       {expanded && explanation && (
-        <div className="px-4 py-3 bg-primary-600/5 border-t border-surface-700/30 space-y-2 animate-fade-in">
-          <pre className="text-xs text-surface-300 whitespace-pre-wrap font-sans leading-relaxed">
+        <div className="px-4 py-3 bg-primary-fixed/20 border-t border-outline-variant/20 space-y-2 animate-fade-in">
+          <pre className="text-xs text-on-surface whitespace-pre-wrap font-sans leading-relaxed">
             {typeof explanation === 'string' ? explanation : JSON.stringify(explanation, null, 2)}
           </pre>
           <button
@@ -131,8 +132,8 @@ export default function SchemeCard({ scheme, language = 'en' }) {
             disabled={speaking}
             className={`flex items-center gap-1.5 text-[10px] transition-colors ${
               speaking
-                ? 'text-primary-400 animate-pulse'
-                : 'text-surface-400 hover:text-primary-400'
+                ? 'text-primary animate-pulse'
+                : 'text-on-surface-variant hover:text-primary'
             }`}
           >
             <FiVolume2 className="w-3 h-3" />

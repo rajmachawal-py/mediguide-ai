@@ -3,6 +3,7 @@
  * Searchable dropdown for selecting a department within a hospital.
  * Fetches departments from /api/hospitals/{id}/departments.
  * Supports Hindi/Marathi/English labels.
+ * Uses Clinical Intelligence Design System (light theme).
  */
 
 import { useState, useEffect, useRef } from 'react'
@@ -68,34 +69,34 @@ export default function DepartmentSearch({ hospitalId, language = 'en', onSelect
       {/* Selected / Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-xl bg-surface-800/80 border border-surface-700/50 text-sm transition-all hover:border-primary-500/30 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+        className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-clinical-lg bg-white border border-outline-variant/50 text-sm transition-all hover:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-clinical"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <FiMapPin className="w-4 h-4 text-primary-400 flex-shrink-0" />
-          <span className={`truncate ${selectedDept ? 'text-white' : 'text-surface-400'}`}>
+          <FiMapPin className="w-4 h-4 text-primary flex-shrink-0" />
+          <span className={`truncate ${selectedDept ? 'text-on-surface font-medium' : 'text-outline'}`}>
             {selectedDept
               ? getDeptName(selectedDept)
               : language === 'hi' ? 'गंतव्य विभाग चुनें' : language === 'mr' ? 'गंतव्य विभाग निवडा' : 'Select destination department'
             }
           </span>
         </div>
-        <FiChevronDown className={`w-4 h-4 text-surface-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <FiChevronDown className={`w-4 h-4 text-outline flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute z-50 mt-2 w-full rounded-xl bg-surface-900/95 backdrop-blur-xl border border-surface-700/50 shadow-2xl overflow-hidden animate-slide-down">
+        <div className="absolute z-50 mt-2 w-full rounded-clinical-lg bg-white border border-outline-variant/40 shadow-clinical-lg overflow-hidden animate-slide-down">
           {/* Search Input */}
-          <div className="p-3 border-b border-surface-700/30">
+          <div className="p-3 border-b border-outline-variant/20">
             <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-surface-400" />
+              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-outline" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={placeholder[language] || placeholder.en}
                 autoFocus
-                className="w-full bg-surface-800/80 text-white placeholder-surface-500 rounded-lg pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary-500/50 border border-surface-700/30"
+                className="w-full bg-surface-container-low text-on-surface placeholder-outline rounded-clinical pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary/40 border border-outline-variant/30"
               />
             </div>
           </div>
@@ -103,11 +104,11 @@ export default function DepartmentSearch({ hospitalId, language = 'en', onSelect
           {/* Department List */}
           <div className="max-h-52 overflow-y-auto">
             {loading ? (
-              <div className="py-6 text-center text-xs text-surface-400">
+              <div className="py-6 text-center text-xs text-outline">
                 {language === 'hi' ? 'लोड हो रहा है...' : 'Loading...'}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="py-6 text-center text-xs text-surface-400">
+              <div className="py-6 text-center text-xs text-outline">
                 {language === 'hi' ? 'कोई विभाग नहीं मिला' : 'No departments found'}
               </div>
             ) : (
@@ -119,25 +120,25 @@ export default function DepartmentSearch({ hospitalId, language = 'en', onSelect
                     setIsOpen(false)
                     setQuery('')
                   }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary-600/10 transition-colors border-b border-surface-800/50 last:border-0 ${
-                    selectedDeptId === dept.id ? 'bg-primary-600/15 text-primary-300' : 'text-surface-200'
+                  className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary-fixed/40 transition-colors border-b border-outline-variant/15 last:border-0 ${
+                    selectedDeptId === dept.id ? 'bg-primary-fixed/30 text-primary' : 'text-on-surface'
                   }`}
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-medium truncate">{getDeptName(dept)}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       {dept.floor_number != null && (
-                        <span className="text-[10px] text-surface-400">
+                        <span className="text-[10px] text-on-surface-variant">
                           {language === 'hi' ? `मंजिल ${dept.floor_number}` : `Floor ${dept.floor_number}`}
                         </span>
                       )}
                       {dept.room_number && (
-                        <span className="text-[10px] text-surface-400">• {dept.room_number}</span>
+                        <span className="text-[10px] text-on-surface-variant">• {dept.room_number}</span>
                       )}
                     </div>
                   </div>
                   {!dept.is_available && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-bold">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-error-container text-error font-bold">
                       {language === 'hi' ? 'बंद' : 'Closed'}
                     </span>
                   )}

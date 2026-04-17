@@ -18,8 +18,8 @@ export default function LanguageBadge({ selected, onChange }) {
           onClick={() => onChange(lang.code)}
           className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
             selected === lang.code
-              ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20'
-              : 'bg-surface-800/60 text-surface-400 hover:text-white hover:bg-surface-700'
+              ? 'bg-primary-container text-white shadow-md shadow-primary-container/20'
+              : 'bg-surface-container-low text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 border border-outline-variant/30'
           }`}
         >
           {lang.flag} {lang.label}
