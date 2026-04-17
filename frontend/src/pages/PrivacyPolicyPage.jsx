@@ -111,7 +111,7 @@ export default function PrivacyPolicyPage() {
         className="relative px-6 py-8 text-center bg-primary-fixed/30"
       >
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/chat')}
           className="absolute left-4 top-6 w-9 h-9 rounded-clinical bg-white/80 flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-white transition-all shadow-clinical"
         >
           <FiArrowLeft className="w-4 h-4" />

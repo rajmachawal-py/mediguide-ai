@@ -6,6 +6,7 @@
  */
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FiShield, FiCheck, FiFileText, FiLock, FiDatabase, FiAlertTriangle } from 'react-icons/fi'
 
 const CONSENT_KEY = 'mediguide_consent_given'
@@ -62,6 +63,7 @@ const TEXTS = {
       { icon: 'alert', text: 'यह चिकित्सा निदान नहीं है। कृपया डॉक्टर से परामर्श करें।' },
     ],
     privacyLink: 'गोपनीयता नीति पढ़ें',
+    checkboxLabel: 'मैंने गोपनीयता नीति पढ़ ली है और सभी शर्तों से सहमत हूँ',
     acceptBtn: 'मैं सहमत हूँ और जारी रखना चाहता/चाहती हूँ',
     declineBtn: 'अस्वीकार करें',
     declineMsg: 'सहमति के बिना आप MediGuide AI का उपयोग नहीं कर सकते।',
@@ -77,6 +79,7 @@ const TEXTS = {
       { icon: 'alert', text: 'हे वैद्यकीय निदान नाही. कृपया डॉक्टरांचा सल्ला घ्या.' },
     ],
     privacyLink: 'गोपनीयता धोरण वाचा',
+    checkboxLabel: 'मी गोपनीयता धोरण वाचले आहे आणि सर्व अटींशी सहमत आहे',
     acceptBtn: 'मी सहमत आहे आणि पुढे जाऊ इच्छितो/इच्छिते',
     declineBtn: 'नकार द्या',
     declineMsg: 'संमतीशिवाय तुम्ही MediGuide AI वापरू शकत नाही.',
@@ -92,6 +95,7 @@ const TEXTS = {
       { icon: 'alert', text: 'This is NOT a medical diagnosis. Always consult a qualified doctor.' },
     ],
     privacyLink: 'Read Privacy Policy',
+    checkboxLabel: 'I have read the Privacy Policy and agree to all terms',
     acceptBtn: 'I Agree & Continue',
     declineBtn: 'Decline',
     declineMsg: 'You cannot use MediGuide AI without providing consent.',
@@ -107,10 +111,13 @@ const ICONS = {
 
 export default function ConsentModal({ language = 'en', onAccept }) {
   const [declined, setDeclined] = useState(false)
+  const [agreed, setAgreed] = useState(false)
+  const navigate = useNavigate()
   const lang = language in TEXTS ? language : 'en'
   const t = TEXTS[lang]
 
   const handleAccept = () => {
+    if (!agreed) return
     giveConsent()
     onAccept?.()
   }
@@ -155,12 +162,42 @@ export default function ConsentModal({ language = 'en', onAccept }) {
           {/* Privacy Policy Link */}
           <button
             type="button"
-            onClick={() => window.open('/privacy', '_blank')}
+            onClick={() => navigate('/privacy')}
             className="inline-flex items-center gap-1.5 text-xs text-primary font-medium hover:text-primary-container transition-colors cursor-pointer"
           >
             <FiFileText className="w-3 h-3" />
             {t.privacyLink}
           </button>
+
+          {/* Consent Checkbox */}
+          <label
+            className="flex items-start gap-3 cursor-pointer group select-none"
+            htmlFor="consent-agree-checkbox"
+          >
+            <div className="relative flex-shrink-0 mt-0.5">
+              <input
+                id="consent-agree-checkbox"
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => { setAgreed(e.target.checked); if (e.target.checked) setDeclined(false) }}
+                className="sr-only peer"
+              />
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                agreed
+                  ? 'bg-primary border-primary shadow-sm'
+                  : 'border-outline/40 bg-white group-hover:border-primary/50'
+              }`}>
+                {agreed && (
+                  <FiCheck className="w-3 h-3 text-white animate-fade-in" />
+                )}
+              </div>
+            </div>
+            <span className={`text-xs leading-relaxed transition-colors duration-200 ${
+              agreed ? 'text-on-surface font-medium' : 'text-on-surface-variant'
+            }`}>
+              {t.checkboxLabel}
+            </span>
+          </label>
 
           {/* Decline warning */}
           {declined && (
@@ -174,7 +211,12 @@ export default function ConsentModal({ language = 'en', onAccept }) {
         <div className="px-6 pb-6 space-y-2">
           <button
             onClick={handleAccept}
-            className="btn-primary w-full flex items-center justify-center gap-2 text-sm py-3"
+            disabled={!agreed}
+            className={`w-full flex items-center justify-center gap-2 text-sm py-3 rounded-clinical-lg font-semibold transition-all duration-300 ${
+              agreed
+                ? 'btn-primary cursor-pointer'
+                : 'bg-outline/15 text-on-surface-variant/50 cursor-not-allowed'
+            }`}
           >
             <FiCheck className="w-4 h-4" />
             {t.acceptBtn}
