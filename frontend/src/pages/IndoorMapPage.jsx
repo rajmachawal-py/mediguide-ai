@@ -1,396 +1,469 @@
 /**
  * MediGuide AI — IndoorMapPage
- * Interactive indoor hospital navigation page with offline support.
+ * Complete interactive indoor navigation for Ruby Hall Clinic.
  *
  * Features:
- * - Loads map graph from API → caches in IndexedDB for offline use
- * - QR code scanner for room-level navigation
- * - Department search → triggers BFS route from entrance
- * - SVG floor plan with animated route overlay
- * - Floor switcher for multi-floor hospitals
- * - Step-by-step directions panel
- * - Accessibility toggle (wheelchair-only paths)
- * - Voice-guided navigation instructions (via TTS)
- * - Fully functional offline (cached map + client-side BFS)
+ * - From/To room dropdowns grouped by floor
+ * - Dijkstra shortest-path routing (client-side, no API)
+ * - Multi-floor navigation via lift/staircase
+ * - Animated route on PNG floor plans
+ * - Step-by-step directions with floor pills & distance
+ * - Voice navigation (TTS)
+ * - Accessibility toggle (lift-only, no stairs)
+ * - Critical department warnings (Emergency, ICU)
+ * - Sterile zone avoidance (OTs)
  */
 
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { getIndoorMap, getIndoorRoute } from '../services/api'
-import { saveMapToCache, getMapFromCache, findRouteOffline } from '../services/offlineMapCache'
-import SVGFloorPlan from '../components/map/SVGFloorPlan'
-import FloorSelector from '../components/map/FloorSelector'
-import DepartmentSearch from '../components/map/DepartmentSearch'
-import RouteOverlay from '../components/map/RouteOverlay'
-import QRScanner from '../components/map/QRScanner'
-import Spinner from '../components/shared/Spinner'
-import { FiArrowLeft, FiMap, FiVolume2, FiWifi, FiWifiOff, FiMaximize } from 'react-icons/fi'
-import { textToSpeech } from '../services/api'
+import { useState, useCallback, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  FiArrowLeft, FiNavigation, FiX, FiVolume2, FiVolumeX,
+  FiAlertTriangle, FiCheckCircle, FiMapPin, FiCrosshair,
+} from 'react-icons/fi'
 import { useLanguage } from '../contexts/LanguageContext'
+import SVGFloorPlan from '../components/map/SVGFloorPlan'
+import { findShortestPath, generateVoiceNarration } from '../services/dijkstra'
+import { ROOMS, FLOOR_LABELS, FLOOR_PLAN_IMAGES } from '../data/navigationGraph'
 import toast from 'react-hot-toast'
 
+// ── Translations ─────────────────────────────────────────────
+
+const T = {
+  en: {
+    title: 'Indoor Navigation',
+    subtitle: 'Ruby Hall Clinic, Pune',
+    from: 'From',
+    to: 'To',
+    selectRoom: '— Select Room —',
+    navigate: 'Navigate',
+    clear: 'Clear',
+    accessible: 'Accessible route (lift only)',
+    directions: 'Step-by-Step Directions',
+    totalDist: 'Total distance',
+    meters: 'm',
+    contFloor: 'Route continues on',
+    viewFloor: 'View',
+    criticalWarn: '⚠️ This is a critical department. Please inform security at the entrance.',
+    sterileWarn: '⚠️ This destination is a sterile zone (OT). Only authorized personnel may enter.',
+    noRoute: 'No route found. Try a different path.',
+    sameRoom: 'Start and destination cannot be the same.',
+    arrived: 'You have arrived!',
+    voiceOn: 'Reading directions...',
+    voiceOff: 'Voice stopped',
+    floor: 'Floor',
+  },
+  hi: {
+    title: 'इनडोर नेविगेशन',
+    subtitle: 'रूबी हॉल क्लिनिक, पुणे',
+    from: 'कहाँ से',
+    to: 'कहाँ जाना है',
+    selectRoom: '— कमरा चुनें —',
+    navigate: 'रास्ता दिखाएं',
+    clear: 'साफ़ करें',
+    accessible: 'सुगम्य मार्ग (केवल लिफ्ट)',
+    directions: 'चरण-दर-चरण निर्देश',
+    totalDist: 'कुल दूरी',
+    meters: 'मी',
+    contFloor: 'रास्ता जारी है',
+    viewFloor: 'देखें',
+    criticalWarn: '⚠️ यह एक गंभीर विभाग है। कृपया प्रवेश द्वार पर सुरक्षा को सूचित करें।',
+    sterileWarn: '⚠️ यह गंतव्य स्टैराइल ज़ोन (ओटी) है। केवल अधिकृत कर्मचारी प्रवेश कर सकते हैं।',
+    noRoute: 'कोई रास्ता नहीं मिला। अलग रास्ता आज़माएं।',
+    sameRoom: 'शुरुआत और गंतव्य एक ही नहीं हो सकते।',
+    arrived: 'आप पहुँच गए हैं!',
+    voiceOn: 'निर्देश पढ़ रहे हैं...',
+    voiceOff: 'आवाज़ बंद',
+    floor: 'मंज़िल',
+  },
+  mr: {
+    title: 'इनडोअर नेव्हिगेशन',
+    subtitle: 'रुबी हॉल क्लिनिक, पुणे',
+    from: 'कुठून',
+    to: 'कुठे जायचे',
+    selectRoom: '— खोली निवडा —',
+    navigate: 'मार्ग दाखवा',
+    clear: 'साफ करा',
+    accessible: 'सुलभ मार्ग (फक्त लिफ्ट)',
+    directions: 'चरण-दर-चरण दिशानिर्देश',
+    totalDist: 'एकूण अंतर',
+    meters: 'मी',
+    contFloor: 'मार्ग पुढे चालू आहे',
+    viewFloor: 'पहा',
+    criticalWarn: '⚠️ हा एक गंभीर विभाग आहे. कृपया प्रवेशद्वारावर सुरक्षा रक्षकांना कळवा.',
+    sterileWarn: '⚠️ हे गंतव्य स्टेराइल झोन (ओटी) आहे. फक्त अधिकृत कर्मचारी प्रवेश करू शकतात.',
+    noRoute: 'कोणताही मार्ग सापडला नाही. वेगळा मार्ग वापरून पहा.',
+    sameRoom: 'सुरुवात आणि गंतव्य एकच असू शकत नाही.',
+    arrived: 'तुम्ही पोहोचलात!',
+    voiceOn: 'दिशानिर्देश वाचत आहे...',
+    voiceOff: 'आवाज बंद',
+    floor: 'मजला',
+  },
+}
+
+// ── Floor tab colors ─────────────────────────────────────────
+
+const FLOOR_COLORS = {
+  0: { bg: 'bg-emerald-500', text: 'text-emerald-700', pill: 'bg-emerald-100 text-emerald-800' },
+  1: { bg: 'bg-blue-500', text: 'text-blue-700', pill: 'bg-blue-100 text-blue-800' },
+  2: { bg: 'bg-purple-500', text: 'text-purple-700', pill: 'bg-purple-100 text-purple-800' },
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPONENT
+// ═══════════════════════════════════════════════════════════════
+
 export default function IndoorMapPage() {
-  const { hospitalId } = useParams()
   const navigate = useNavigate()
   const { language } = useLanguage()
+  const t = T[language] || T.en
+  const speechRef = useRef(null)
 
-  // Map data
-  const [hospitalName, setHospitalName] = useState('')
-  const [mapData, setMapData] = useState(null)  // { nodes, edges, floors, ... }
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [isOffline, setIsOffline] = useState(false) // true = using cached data
-
-  // Navigation state
-  const [activeFloor, setActiveFloor] = useState(0)
-  const [selectedDept, setSelectedDept] = useState(null)
-  const [route, setRoute] = useState(null)
-  const [routeLoading, setRouteLoading] = useState(false)
+  // Form state
+  const [fromRoom, setFromRoom] = useState('')
+  const [toRoom, setToRoom] = useState('')
   const [accessibleOnly, setAccessibleOnly] = useState(false)
-  const [speakingStep, setSpeakingStep] = useState(false)
 
-  // QR Scanner
-  const [showQR, setShowQR] = useState(false)
+  // Route state
+  const [route, setRoute] = useState(null)
+  const [activeFloor, setActiveFloor] = useState(0)
+  const [isSpeaking, setIsSpeaking] = useState(false)
 
-  // Load map graph on mount: try API first → fallback to cache
-  useEffect(() => {
-    if (!hospitalId) return
+  // Group rooms by floor for dropdown
+  const roomsByFloor = {}
+  ROOMS.forEach(r => {
+    if (!roomsByFloor[r.floor]) roomsByFloor[r.floor] = []
+    roomsByFloor[r.floor].push(r)
+  })
 
-    const fetchMap = async () => {
-      setLoading(true)
-      setError(null)
-      setIsOffline(false)
+  // ── Navigate handler ─────────────────────────────────────────
 
-      try {
-        // Try API first
-        const data = await getIndoorMap(hospitalId)
-        setMapData(data)
-        setHospitalName(data.hospital_name || '')
-        if (data.floors?.length > 0) {
-          setActiveFloor(data.floors[0])
-        }
-
-        // Cache for offline use
-        await saveMapToCache(hospitalId, data)
-      } catch (err) {
-        console.warn('[IndoorMap] API failed, trying offline cache:', err.message)
-
-        // Fallback to IndexedDB cache
-        const cached = await getMapFromCache(hospitalId)
-        if (cached) {
-          setMapData(cached)
-          setHospitalName(cached.hospital_name || '')
-          setIsOffline(true)
-          if (cached.floors?.length > 0) {
-            setActiveFloor(cached.floors[0])
-          }
-          toast(
-            language === 'hi' ? '📡 ऑफ़लाइन मोड — कैश्ड नक्शा' :
-            language === 'mr' ? '📡 ऑफलाइन मोड — कॅश केलेला नकाशा' :
-            '📡 Offline mode — using cached map',
-            { icon: '📡', duration: 3000 }
-          )
-        } else {
-          setError(
-            language === 'hi' ? 'अंदरूनी नक्शा लोड नहीं हो पाया' :
-            language === 'mr' ? 'अंतर्गत नकाशा लोड होऊ शकला नाही' :
-            'Failed to load indoor map'
-          )
-        }
-      } finally {
-        setLoading(false)
-      }
+  const handleNavigate = useCallback(() => {
+    if (!fromRoom || !toRoom) {
+      toast.error(t.selectRoom)
+      return
     }
-
-    fetchMap()
-  }, [hospitalId, language])
-
-  // Fetch route: try API → fallback to offline BFS
-  const fetchRoute = useCallback(async (targetNodeId) => {
-    if (!targetNodeId || !hospitalId || !mapData) return
-
-    setRouteLoading(true)
-    setRoute(null)
-
-    // Find entrance node
-    const entranceNode = mapData.nodes?.find(n => n.node_type === 'entrance')
-    if (!entranceNode) {
-      setRouteLoading(false)
+    if (fromRoom === toRoom) {
+      toast.error(t.sameRoom)
       return
     }
 
-    try {
-      if (!isOffline) {
-        // Online: use API
-        const routeData = await getIndoorRoute(hospitalId, entranceNode.id, targetNodeId, accessibleOnly)
-        setRoute(routeData)
-
-        // Auto-switch to destination floor
-        if (routeData.steps?.length > 0) {
-          const lastStep = routeData.steps[routeData.steps.length - 1]
-          if (lastStep.floor != null) setActiveFloor(lastStep.floor)
-        }
-      } else {
-        throw new Error('offline')
-      }
-    } catch {
-      // Offline: client-side BFS
-      const offlineRoute = findRouteOffline(mapData, entranceNode.id, targetNodeId, accessibleOnly)
-      if (offlineRoute) {
-        setRoute(offlineRoute)
-        if (offlineRoute.steps?.length > 0) {
-          const lastStep = offlineRoute.steps[offlineRoute.steps.length - 1]
-          if (lastStep.floor != null) setActiveFloor(lastStep.floor)
-        }
-      }
-    } finally {
-      setRouteLoading(false)
-    }
-  }, [hospitalId, mapData, accessibleOnly, isOffline])
-
-  // Handle department selection
-  const handleDeptSelect = useCallback((dept) => {
-    setSelectedDept(dept)
-    // Find the node for this department
-    const node = mapData?.nodes?.find(n => n.department_id === dept.id)
-    if (node) {
-      fetchRoute(node.id)
-    }
-  }, [fetchRoute, mapData])
-
-  // Handle tapping a node on the SVG map
-  const handleNodeTap = useCallback((node) => {
-    if (node.department_id) {
-      setSelectedDept({ id: node.department_id, name: node.label })
-    }
-    fetchRoute(node.id)
-  }, [fetchRoute])
-
-  // Toggle accessible route
-  const handleToggleAccessible = useCallback(() => {
-    setAccessibleOnly(prev => {
-      const newVal = !prev
-      if (selectedDept) {
-        const node = mapData?.nodes?.find(n => n.department_id === selectedDept.id)
-        if (node) {
-          setTimeout(() => fetchRoute(node.id), 0)
-        }
-      }
-      return newVal
+    const result = findShortestPath(fromRoom, toRoom, {
+      accessibleOnly,
+      avoidSterile: false, // Don't avoid sterile as destination — user specifically chose it
     })
-  }, [selectedDept, fetchRoute, mapData])
 
-  // QR scan result handler
-  const handleQRScan = useCallback((result) => {
-    setShowQR(false)
-    if (result.departmentId) {
-      setSelectedDept({ id: result.departmentId, name: result.label })
+    if (!result) {
+      toast.error(t.noRoute)
+      return
     }
-    fetchRoute(result.nodeId)
+
+    setRoute(result)
+    // Auto-switch to the floor where the route starts
+    setActiveFloor(result.startNode.floor)
+
     toast.success(
-      language === 'hi' ? `📍 ${result.label} पर नेविगेट कर रहे हैं` :
-      language === 'mr' ? `📍 ${result.label} कडे नेव्हिगेट करत आहे` :
-      `📍 Navigating to ${result.label}`
+      `${result.totalDistance}${t.meters} • ${result.steps.length} ${language === 'en' ? 'steps' : language === 'hi' ? 'चरण' : 'चरणे'}`,
+      { icon: '🧭', duration: 3000 }
     )
-  }, [fetchRoute, language])
+  }, [fromRoom, toRoom, accessibleOnly, t, language])
 
-  // Voice navigation: read out directions
-  const handleVoiceNavigation = useCallback(async () => {
-    if (!route?.steps?.length || speakingStep) return
-    setSpeakingStep(true)
+  // ── Clear handler ────────────────────────────────────────────
 
-    const directions = route.steps.map(s => s.direction).join('. ')
-    try {
-      const audioBlob = await textToSpeech(directions, language)
-      const url = URL.createObjectURL(audioBlob)
-      const audio = new Audio(url)
-      audio.onended = () => {
-        URL.revokeObjectURL(url)
-        setSpeakingStep(false)
-      }
-      audio.play()
-    } catch (err) {
-      console.error('Voice navigation error:', err)
-      // Fallback to browser TTS
-      if (window.speechSynthesis) {
-        const utterance = new SpeechSynthesisUtterance(directions)
-        utterance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN'
-        utterance.onend = () => setSpeakingStep(false)
-        window.speechSynthesis.speak(utterance)
-      } else {
-        setSpeakingStep(false)
-      }
+  const handleClear = useCallback(() => {
+    setFromRoom('')
+    setToRoom('')
+    setRoute(null)
+    setActiveFloor(0)
+    stopSpeech()
+  }, [])
+
+  // ── Voice navigation ─────────────────────────────────────────
+
+  const speakDirections = useCallback(() => {
+    if (!route?.steps?.length) return
+
+    // Stop if already speaking
+    if (isSpeaking) {
+      stopSpeech()
+      return
     }
-  }, [route, language, speakingStep])
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[80vh]">
-        <Spinner
-          size="lg"
-          text={language === 'hi' ? 'नक्शा लोड हो रहा है...' : language === 'mr' ? 'नकाशा लोड होत आहे...' : 'Loading indoor map...'}
-        />
-      </div>
-    )
-  }
+    const narration = generateVoiceNarration(route.steps, language)
+    if (!narration) return
 
-  // Error state
-  if (error) {
-    return (
-      <div className="max-w-lg mx-auto px-4 py-12 text-center">
-        <div className="clinical-card p-8 space-y-4">
-          <FiMap className="w-12 h-12 text-outline mx-auto" />
-          <p className="text-sm text-on-surface-variant">{error}</p>
-          <button onClick={() => navigate(-1)} className="btn-primary text-sm">
-            {language === 'hi' ? '← वापस जाएं' : language === 'mr' ? '← मागे जा' : '← Go Back'}
-          </button>
-        </div>
-      </div>
-    )
-  }
+    // Use Web Speech API
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+      const utterance = new SpeechSynthesisUtterance(narration)
+      utterance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN'
+      utterance.rate = 0.9
+      utterance.pitch = 1
+      utterance.onend = () => setIsSpeaking(false)
+      utterance.onerror = () => setIsSpeaking(false)
+      speechRef.current = utterance
+      window.speechSynthesis.speak(utterance)
+      setIsSpeaking(true)
+      toast.success(t.voiceOn, { icon: '🔊', duration: 2000 })
+    }
+  }, [route, language, isSpeaking, t])
+
+  const stopSpeech = useCallback(() => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel()
+    }
+    setIsSpeaking(false)
+  }, [])
+
+  // ── Check if route continues on another floor ────────────────
+
+  const nextFloorForRoute = route?.floorsUsed?.find(f => f !== activeFloor && f > activeFloor)
+  const prevFloorForRoute = route?.floorsUsed?.find(f => f !== activeFloor && f < activeFloor)
+  const otherFloor = nextFloorForRoute ?? prevFloorForRoute
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-4 pb-20 space-y-4 font-sans">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="w-9 h-9 rounded-clinical bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30 transition-all"
-        >
-          <FiArrowLeft className="w-4 h-4" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-bold font-display text-on-surface truncate flex items-center gap-2">
-            <FiMap className="w-4 h-4 text-primary flex-shrink-0" />
-            {language === 'hi' ? 'अंदरूनी नक्शा' : language === 'mr' ? 'अंतर्गत नकाशा' : 'Indoor Map'}
-          </h1>
-          <div className="flex items-center gap-2">
-            <p className="text-[10px] text-on-surface-variant truncate">{hospitalName}</p>
-            {/* Offline badge */}
-            {isOffline && (
-              <span className="triage-badge triage-badge-moderate">
-                <FiWifiOff className="w-2.5 h-2.5" />
-                {language === 'hi' ? 'ऑफ़लाइन' : language === 'mr' ? 'ऑफलाइन' : 'Offline'}
-              </span>
-            )}
-            {!isOffline && mapData && (
-              <span className="triage-badge triage-badge-mild">
-                <FiWifi className="w-2.5 h-2.5" />
-                {language === 'hi' ? 'लाइव' : language === 'mr' ? 'लाइव्ह' : 'Live'}
-              </span>
-            )}
+    <div className="min-h-screen bg-surface pb-24">
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-outline-variant/30 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-clinical hover:bg-surface-container-low transition-all"
+          >
+            <FiArrowLeft className="w-5 h-5 text-on-surface" />
+          </button>
+          <div className="flex-1">
+            <h1 className="text-base font-bold font-display text-on-surface">{t.title}</h1>
+            <p className="text-xs text-on-surface-variant">{t.subtitle}</p>
           </div>
+          <FiCrosshair className="w-5 h-5 text-primary" />
+        </div>
+      </header>
+
+      <div className="px-4 py-3 space-y-3">
+        {/* ── From / To Selection ── */}
+        <div className="bg-white rounded-clinical-lg border border-outline-variant/30 p-4 shadow-clinical-sm space-y-3">
+          {/* From dropdown */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
+              <FiMapPin className="w-3.5 h-3.5 text-green-600" />
+              {t.from}
+            </label>
+            <select
+              value={fromRoom}
+              onChange={e => setFromRoom(e.target.value)}
+              className="clinical-input text-sm"
+            >
+              <option value="">{t.selectRoom}</option>
+              {Object.entries(roomsByFloor).map(([floor, rooms]) => (
+                <optgroup key={floor} label={FLOOR_LABELS[floor]}>
+                  {rooms.map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.label} {r.isCritical ? '🔴' : ''} {r.isSterile ? '🟢' : ''}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          {/* To dropdown */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-on-surface-variant flex items-center gap-1.5">
+              <FiMapPin className="w-3.5 h-3.5 text-red-500" />
+              {t.to}
+            </label>
+            <select
+              value={toRoom}
+              onChange={e => setToRoom(e.target.value)}
+              className="clinical-input text-sm"
+            >
+              <option value="">{t.selectRoom}</option>
+              {Object.entries(roomsByFloor).map(([floor, rooms]) => (
+                <optgroup key={floor} label={FLOOR_LABELS[floor]}>
+                  {rooms.map(r => (
+                    <option key={r.id} value={r.id}>
+                      {r.label} {r.isCritical ? '🔴' : ''} {r.isSterile ? '🟢' : ''}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          {/* Buttons row */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleNavigate}
+              disabled={!fromRoom || !toRoom}
+              className="flex-1 btn-primary flex items-center justify-center gap-2 text-sm py-2.5 disabled:opacity-40"
+            >
+              <FiNavigation className="w-4 h-4" />
+              {t.navigate}
+            </button>
+            <button
+              onClick={handleClear}
+              className="px-4 py-2.5 rounded-clinical text-sm font-medium text-on-surface-variant bg-surface-container-low hover:bg-surface-container transition-all"
+            >
+              <FiX className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Accessibility toggle */}
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={accessibleOnly}
+              onChange={e => setAccessibleOnly(e.target.checked)}
+              className="w-4 h-4 rounded text-primary accent-primary"
+            />
+            <span className="text-xs text-on-surface-variant">♿ {t.accessible}</span>
+          </label>
         </div>
 
-        {/* QR Scanner Button */}
-        <button
-          onClick={() => setShowQR(true)}
-          className="w-9 h-9 rounded-clinical bg-secondary/10 hover:bg-secondary/18 flex items-center justify-center text-secondary transition-all"
-          title={language === 'hi' ? 'QR कोड स्कैन करें' : language === 'mr' ? 'QR कोड स्कॅन करा' : 'Scan QR Code'}
-        >
-          <FiMaximize className="w-4 h-4" />
-        </button>
+        {/* ── Floor Tabs ── */}
+        <div className="flex gap-1.5 bg-surface-container-low rounded-clinical-lg p-1">
+          {[0, 1, 2].map(floor => {
+            const isActive = activeFloor === floor
+            const hasRoute = route?.floorsUsed?.includes(floor)
+            return (
+              <button
+                key={floor}
+                onClick={() => setActiveFloor(floor)}
+                className={`flex-1 py-2 px-2 rounded-clinical text-xs font-semibold transition-all ${
+                  isActive
+                    ? `${FLOOR_COLORS[floor].bg} text-white shadow-sm`
+                    : hasRoute
+                      ? `${FLOOR_COLORS[floor].pill} hover:opacity-80`
+                      : 'text-on-surface-variant hover:bg-surface-container'
+                }`}
+              >
+                {FLOOR_LABELS[floor]}
+                {hasRoute && !isActive && <span className="ml-1">•</span>}
+              </button>
+            )
+          })}
+        </div>
 
-        {/* Voice Navigation Button */}
-        {route && (
-          <button
-            onClick={handleVoiceNavigation}
-            disabled={speakingStep}
-            className={`w-9 h-9 rounded-clinical flex items-center justify-center transition-all ${
-              speakingStep
-                ? 'bg-primary/15 text-primary animate-pulse'
-                : 'bg-surface-container text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30'
-            }`}
-            title={language === 'hi' ? 'आवाज़ निर्देश' : language === 'mr' ? 'आवाज मार्गदर्शन' : 'Voice directions'}
-          >
-            <FiVolume2 className="w-4 h-4" />
-          </button>
+        {/* ── Floor Plan Map ── */}
+        <SVGFloorPlan
+          activeFloor={activeFloor}
+          routePath={route?.path || []}
+          startNodeId={route?.path?.[0] || null}
+          endNodeId={route?.path?.[route?.path?.length - 1] || null}
+        />
+
+        {/* ── Cross-floor banner ── */}
+        {route && route.isMultiFloor && otherFloor !== undefined && (
+          <div className="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-clinical-lg px-4 py-3">
+            <span className="text-lg">🛗</span>
+            <p className="text-xs text-purple-800 font-medium flex-1">
+              {t.contFloor} {FLOOR_LABELS[otherFloor]}
+            </p>
+            <button
+              onClick={() => setActiveFloor(otherFloor)}
+              className="px-3 py-1.5 text-xs font-semibold text-white bg-purple-500 rounded-clinical hover:bg-purple-600 transition-all"
+            >
+              {t.viewFloor} →
+            </button>
+          </div>
+        )}
+
+        {/* ── Critical department warning ── */}
+        {route?.isCritical && (
+          <div className="flex items-start gap-3 bg-red-50 border border-red-300 rounded-clinical-lg px-4 py-3 animate-slide-up">
+            <FiAlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-red-800 font-medium leading-relaxed">
+              {t.criticalWarn}
+            </p>
+          </div>
+        )}
+
+        {/* ── Sterile zone warning ── */}
+        {route?.isSterile && (
+          <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-300 rounded-clinical-lg px-4 py-3 animate-slide-up">
+            <FiAlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-yellow-800 font-medium leading-relaxed">
+              {t.sterileWarn}
+            </p>
+          </div>
+        )}
+
+        {/* ── Step-by-Step Directions ── */}
+        {route?.steps?.length > 0 && (
+          <div className="bg-white rounded-clinical-lg border border-outline-variant/30 shadow-clinical-sm overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/20 bg-surface-container-low/50">
+              <h3 className="text-sm font-bold text-on-surface">{t.directions}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-on-surface-variant">
+                  {t.totalDist}: <strong>{route.totalDistance}{t.meters}</strong>
+                </span>
+                <button
+                  onClick={speakDirections}
+                  className={`p-2 rounded-clinical transition-all ${
+                    isSpeaking
+                      ? 'bg-primary text-white'
+                      : 'hover:bg-surface-container text-on-surface-variant'
+                  }`}
+                  title={isSpeaking ? t.voiceOff : t.voiceOn}
+                >
+                  {isSpeaking ? (
+                    <FiVolumeX className="w-4 h-4" />
+                  ) : (
+                    <FiVolume2 className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Steps */}
+            <div className="divide-y divide-outline-variant/10">
+              {route.steps.map((step, i) => {
+                const isLast = i === route.steps.length - 1
+                const floorColor = FLOOR_COLORS[step.floor] || FLOOR_COLORS[0]
+
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-start gap-3 px-4 py-3 transition-all hover:bg-surface-container-low/30 ${
+                      isLast ? 'bg-green-50/50' : ''
+                    }`}
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    {/* Step number badge */}
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                      isLast
+                        ? 'bg-green-500 text-white'
+                        : step.isCrossFloor
+                          ? 'bg-purple-500 text-white'
+                          : 'bg-primary/10 text-primary'
+                    }`}>
+                      {isLast ? <FiCheckCircle className="w-4 h-4" /> : step.stepNumber}
+                    </div>
+
+                    {/* Instruction */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm ${isLast ? 'font-bold text-green-700' : 'text-on-surface'}`}>
+                        {step.instruction}
+                      </p>
+                      {step.distance > 0 && !isLast && (
+                        <p className="text-xs text-on-surface-variant mt-0.5">
+                          ~{step.distance}{t.meters}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Floor pill */}
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${floorColor.pill}`}>
+                      {step.floorLabel?.split(' ').map(w => w[0]).join('') || `F${step.floor}`}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         )}
       </div>
-
-      {/* Department Search */}
-      <DepartmentSearch
-        hospitalId={hospitalId}
-        language={language}
-        onSelect={handleDeptSelect}
-        selectedDeptId={selectedDept?.id}
-      />
-
-      {/* Floor Selector */}
-      {mapData?.floors && (
-        <FloorSelector
-          floors={mapData.floors}
-          activeFloor={activeFloor}
-          onChange={setActiveFloor}
-          language={language}
-        />
-      )}
-
-      {/* SVG Floor Plan */}
-      {mapData && (
-        <div className="clinical-card overflow-hidden">
-          <SVGFloorPlan
-            hospitalId={hospitalId}
-            nodes={mapData.nodes || []}
-            edges={mapData.edges || []}
-            routeSteps={route?.steps || []}
-            activeFloor={activeFloor}
-            onNodeTap={handleNodeTap}
-            selectedNodeId={
-              selectedDept
-                ? (mapData.nodes || []).find(n => n.department_id === selectedDept.id)?.id
-                : null
-            }
-          />
-        </div>
-      )}
-
-      {/* Route Directions Panel */}
-      <RouteOverlay
-        route={route}
-        loading={routeLoading}
-        accessibleOnly={accessibleOnly}
-        onToggleAccessible={handleToggleAccessible}
-        language={language}
-      />
-
-      {/* Offline route indicator */}
-      {route?.is_offline && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-clinical urgency-moderate">
-          <FiWifiOff className="w-3.5 h-3.5 flex-shrink-0" />
-          <p className="text-[10px] font-medium">
-            {language === 'hi' ? 'यह रूट ऑफ़लाइन (कैश्ड) डेटा से बनाया गया है' :
-             language === 'mr' ? 'हा मार्ग ऑफलाइन (कॅश) डेटावरून तयार केला आहे' :
-             'This route was calculated offline using cached map data'}
-          </p>
-        </div>
-      )}
-
-      {/* No Map Data */}
-      {mapData && (!mapData.nodes || mapData.nodes.length === 0) && (
-        <div className="clinical-card p-8 text-center space-y-3">
-          <FiMap className="w-10 h-10 text-outline mx-auto" />
-          <p className="text-sm text-on-surface-variant">
-            {language === 'hi'
-              ? 'इस अस्पताल का अंदरूनी नक्शा अभी उपलब्ध नहीं है'
-              : language === 'mr'
-              ? 'या हॉस्पिटलचा अंतर्गत नकाशा अद्याप उपलब्ध नाही'
-              : 'Indoor map data is not yet available for this hospital'}
-          </p>
-        </div>
-      )}
-
-      {/* QR Scanner Overlay */}
-      {showQR && (
-        <QRScanner
-          hospitalId={hospitalId}
-          nodes={mapData?.nodes || []}
-          language={language}
-          onScanResult={handleQRScan}
-          onClose={() => setShowQR(false)}
-        />
-      )}
     </div>
   )
 }

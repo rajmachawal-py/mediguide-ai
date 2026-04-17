@@ -141,6 +141,14 @@ function AppContent() {
           }
         />
         <Route
+          path="/map"
+          element={
+            <ProtectedRoute>
+              <AppLayout><IndoorMapPage /></AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/caregiver"
           element={
             <ProtectedRoute>

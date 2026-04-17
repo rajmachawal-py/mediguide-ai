@@ -245,8 +245,8 @@ async def ask_triage(
                 logger.warning(f"Failed to decode image, sending text-only: {img_err}")
                 # Fall through — text-only if image parsing fails
         else:
-            # Text-only message with RAG context
-            parts = [p for p in [language_hint, rag_context, symptom_text] if p]
+            # Text-only message with RAG context + patient preamble
+            parts = [p for p in [language_hint, patient_preamble, rag_context, symptom_text] if p]
             text_content = "\n\n".join(parts)
             message_parts.append(text_content)
 

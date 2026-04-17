@@ -294,9 +294,9 @@ Last Updated: April 15, 2026`,
 }
 
 const HEADER_TEXT = {
-  en: { title: 'Privacy Policy', subtitle: 'गोपनीयता नीति · गोपनीयता धोरण', dpdpa: 'MediGuide AI — Digital Personal Data Protection Act, 2023 Compliant' },
-  hi: { title: 'गोपनीयता नीति', subtitle: 'Privacy Policy · गोपनीयता धोरण', dpdpa: 'MediGuide AI — डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023 अनुपालित' },
-  mr: { title: 'गोपनीयता धोरण', subtitle: 'Privacy Policy · गोपनीयता नीति', dpdpa: 'MediGuide AI — डिजिटल वैयक्तिक डेटा संरक्षण कायदा, 2023 अनुपालित' },
+  en: { title: 'Privacy Policy', subtitle: 'Digital Personal Data Protection Act, 2023', dpdpa: 'MediGuide AI — DPDPA 2023 Compliant' },
+  hi: { title: 'गोपनीयता नीति', subtitle: 'डिजिटल व्यक्तिगत डेटा संरक्षण अधिनियम, 2023', dpdpa: 'MediGuide AI — DPDPA 2023 अनुपालित' },
+  mr: { title: 'गोपनीयता धोरण', subtitle: 'डिजिटल वैयक्तिक डेटा संरक्षण कायदा, 2023', dpdpa: 'MediGuide AI — DPDPA 2023 अनुपालित' },
 }
 
 const BADGE_TEXT = {

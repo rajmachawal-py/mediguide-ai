@@ -5,6 +5,17 @@
  * AI: white card with Clinical Bloom shadow.
  */
 
+/** Strip any leaked JSON blocks/objects from AI messages */
+function cleanContent(text) {
+  if (!text || typeof text !== 'string') return text
+  return text
+    .replace(/```(?:json)?\s*\{[\s\S]*?\}\s*```/g, '')      // ```json{...}```
+    .replace(/\{\s*"type"\s*:\s*"result"[\s\S]*?\}/g, '')    // raw result JSON
+    .replace(/\{\s*"chief_complaint"[\s\S]*?\}/g, '')         // raw summary JSON
+    .replace(/\n{3,}/g, '\n\n')                               // collapse whitespace
+    .trim()
+}
+
 export default function ChatBubble({ message }) {
   const isUser = message.role === 'user'
   const isError = message.isError
@@ -50,7 +61,7 @@ export default function ChatBubble({ message }) {
         )}
 
         <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isError ? 'text-error' : ''}`}>
-          {message.content}
+          {cleanContent(message.content)}
         </p>
 
         <span className={`block text-[10px] mt-1.5 ${isUser ? 'text-white/50' : 'text-outline'}`}>
