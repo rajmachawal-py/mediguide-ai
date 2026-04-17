@@ -26,12 +26,13 @@ import QRScanner from '../components/map/QRScanner'
 import Spinner from '../components/shared/Spinner'
 import { FiArrowLeft, FiMap, FiVolume2, FiWifi, FiWifiOff, FiMaximize } from 'react-icons/fi'
 import { textToSpeech } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 import toast from 'react-hot-toast'
 
 export default function IndoorMapPage() {
   const { hospitalId } = useParams()
   const navigate = useNavigate()
-  const language = localStorage.getItem('mediguide_lang') || 'en'
+  const { language } = useLanguage()
 
   // Map data
   const [hospitalName, setHospitalName] = useState('')
@@ -242,7 +243,7 @@ export default function IndoorMapPage() {
           <FiMap className="w-12 h-12 text-outline mx-auto" />
           <p className="text-sm text-on-surface-variant">{error}</p>
           <button onClick={() => navigate(-1)} className="btn-primary text-sm">
-            {language === 'hi' ? '← वापस जाएं' : '← Go Back'}
+            {language === 'hi' ? '← वापस जाएं' : language === 'mr' ? '← मागे जा' : '← Go Back'}
           </button>
         </div>
       </div>
@@ -270,13 +271,13 @@ export default function IndoorMapPage() {
             {isOffline && (
               <span className="triage-badge triage-badge-moderate">
                 <FiWifiOff className="w-2.5 h-2.5" />
-                Offline
+                {language === 'hi' ? 'ऑफ़लाइन' : language === 'mr' ? 'ऑफलाइन' : 'Offline'}
               </span>
             )}
             {!isOffline && mapData && (
               <span className="triage-badge triage-badge-mild">
                 <FiWifi className="w-2.5 h-2.5" />
-                Live
+                {language === 'hi' ? 'लाइव' : language === 'mr' ? 'लाइव्ह' : 'Live'}
               </span>
             )}
           </div>
@@ -301,7 +302,7 @@ export default function IndoorMapPage() {
                 ? 'bg-primary/15 text-primary animate-pulse'
                 : 'bg-surface-container text-on-surface-variant hover:text-primary hover:bg-primary-fixed/30'
             }`}
-            title={language === 'hi' ? 'आवाज़ निर्देश' : 'Voice directions'}
+            title={language === 'hi' ? 'आवाज़ निर्देश' : language === 'mr' ? 'आवाज मार्गदर्शन' : 'Voice directions'}
           >
             <FiVolume2 className="w-4 h-4" />
           </button>

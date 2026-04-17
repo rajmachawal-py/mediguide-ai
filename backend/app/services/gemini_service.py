@@ -273,6 +273,7 @@ async def ask_triage(
         if result_json and result_json.get("type") == "result":
             patient_msg = result_json.get("patient_message", raw_text)
             patient_msg = _strip_language_tags(patient_msg)
+            patient_msg = _strip_json_blocks(patient_msg)
             # Final triage result
             return {
                 "message": patient_msg,
@@ -285,9 +286,10 @@ async def ask_triage(
                 "raw_response": raw_text,
             }
         else:
-            # Still in follow-up question phase
+            # Still in follow-up question phase — strip any leaked JSON
+            clean_msg = _strip_json_blocks(raw_text)
             return {
-                "message": raw_text,
+                "message": clean_msg,
                 "is_final": False,
                 "urgency": None,
                 "recommend_specialty": None,
@@ -332,8 +334,12 @@ async def generate_summary(conversation_history: list[dict]) -> dict:
 
         result = _extract_json_block(raw_text)
         if not result:
-            # Fallback: return raw text as summary
-            return {"full_summary": raw_text, "urgency": "mild"}
+            # Fallback: return raw text as summary, stripped of JSON
+            return {"full_summary": _strip_json_blocks(raw_text), "urgency": "mild"}
+
+        # Strip any JSON artifacts from the full_summary field
+        if result.get("full_summary"):
+            result["full_summary"] = _strip_json_blocks(result["full_summary"]).strip()
 
         return result
 
@@ -398,6 +404,21 @@ def _strip_language_tags(text: str) -> str:
     text = re.sub(r"\[User's language:.*?\]\s*", "", text, flags=re.IGNORECASE)
     # Remove [User has uploaded an image...] tags
     text = re.sub(r"\[User has uploaded.*?\]\s*", "", text, flags=re.IGNORECASE | re.DOTALL)
+    return text.strip()
+
+
+def _strip_json_blocks(text: str) -> str:
+    """
+    Remove all ```json ... ``` code blocks and any standalone JSON objects
+    from user-facing text. This prevents JSON artifacts from appearing in
+    chat messages or health card reports.
+    """
+    # Remove ```json ... ``` blocks
+    text = re.sub(r"```(?:json)?\s*\{.*?\}\s*```", "", text, flags=re.DOTALL)
+    # Remove standalone JSON objects that look like triage results
+    text = re.sub(r'\{\s*"type"\s*:\s*"result".*?\}', "", text, flags=re.DOTALL)
+    # Clean up excess whitespace left behind
+    text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 
 

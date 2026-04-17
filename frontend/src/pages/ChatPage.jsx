@@ -12,7 +12,8 @@
  */
 
 import { useRef, useEffect, useState } from 'react'
-import useChat from '../hooks/useChat'
+import { useSearchParams } from 'react-router-dom'
+import useChat, { markSessionDownloaded } from '../hooks/useChat'
 import useGeolocation from '../hooks/useGeolocation'
 import useVoiceAutoMode from '../hooks/useVoiceAutoMode'
 import ChatBubble from '../components/chat/ChatBubble'
@@ -37,10 +38,25 @@ const welcomeMessage = {
 }
 
 export default function ChatPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialSessionId = searchParams.get('session')
+
   const {
     messages, urgency, urgencyData, isLoading, isFinal, summary,
     language, changeLanguage, sendMessage, getSummary, resetChat,
-  } = useChat()
+    sessionId, loadSession,
+  } = useChat(initialSessionId)
+
+  // Load session from URL params on mount
+  useEffect(() => {
+    if (initialSessionId) {
+      const loaded = loadSession(initialSessionId)
+      if (loaded) {
+        // Clear the URL param after loading
+        setSearchParams({}, { replace: true })
+      }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { lat, lng } = useGeolocation()
   const messagesEndRef = useRef(null)
@@ -111,6 +127,8 @@ export default function ChatPage() {
         messages,
         summary,
       })
+      // Mark session as downloaded in storage
+      markSessionDownloaded(sessionId)
       toast.success(
         language === 'hi' ? 'हेल्थ कार्ड डाउनलोड हो गया!' :
         language === 'mr' ? 'आरोग्य कार्ड डाउनलोड झाले!' :
@@ -345,6 +363,7 @@ export default function ChatPage() {
         <EmergencyAlert
           hospital={nearestHospital}
           onDismiss={() => setShowEmergency(false)}
+          language={language}
         />
       )}
     </div>

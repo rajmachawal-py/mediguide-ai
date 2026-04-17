@@ -403,35 +403,42 @@ export default function ProfileOnboarding({ onComplete }) {
 
     async function prefillName() {
       try {
+        // Small delay to let Supabase auth state settle after redirect/signup
+        await new Promise(resolve => setTimeout(resolve, 500))
+
         const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          // Detect sign-in provider — only trust metadata from OAuth providers like Google
-          const provider = user.app_metadata?.provider
-          const isOAuth = provider && provider !== 'email'
+        if (!user) return
 
-          const metaName = user.user_metadata?.full_name || user.user_metadata?.name
+        // Detect sign-in provider — only trust metadata from OAuth providers like Google
+        const provider = user.app_metadata?.provider
+        const isOAuth = provider && provider !== 'email'
 
-          if (isOAuth && metaName && metaName.trim()) {
-            // Google/OAuth sign-in — the name comes from the identity provider, trust it
-            setName(metaName.trim())
-            return
-          }
+        const metaName = user.user_metadata?.full_name || user.user_metadata?.name
 
-          if (!isOAuth && metaName && metaName.trim()) {
-            // Email/password sign-up — Supabase often auto-fills metadata.name
-            // from the email local-part (e.g. "mujhepechano"), so we MUST validate
-            const validated = validateName(metaName)
-            if (validated) {
-              setName(validated)
-              return
-            }
-          }
+        // ── Strategy 1: Google/OAuth — trust provider name ──
+        if (isOAuth && metaName && metaName.trim()) {
+          setName(metaName.trim())
+          return
+        }
 
-          // Fallback: try to extract name from email
-          const email = user.email
+        // ── Strategy 2: For email signups — try email extraction FIRST ──
+        // This is more reliable than metadata because Supabase auto-fills
+        // metadata.name from the email local-part (gibberish like "mujhepechano")
+        const email = user.email
+        if (email) {
           const extracted = extractNameFromEmail(email)
           if (extracted) {
             setName(extracted)
+            return
+          }
+        }
+
+        // ── Strategy 3: Validate metadata name as fallback ──
+        if (metaName && metaName.trim()) {
+          const validated = validateName(metaName)
+          if (validated) {
+            setName(validated)
+            return
           }
         }
       } catch (err) {

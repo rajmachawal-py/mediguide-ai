@@ -29,7 +29,11 @@ export default function SchemeCard({ scheme, language = 'en' }) {
       setExplanation(result.explanation || result)
     } catch (err) {
       console.error('Scheme explain error:', err)
-      setExplanation(language === 'hi' ? 'समझाने में विफल' : 'Failed to load explanation')
+      setExplanation(
+        language === 'hi' ? 'समझाने में विफल' :
+        language === 'mr' ? 'स्पष्टीकरण लोड करण्यात अयशस्वी' :
+        'Failed to load explanation'
+      )
     } finally {
       setLoading(false)
     }
@@ -73,7 +77,10 @@ export default function SchemeCard({ scheme, language = 'en' }) {
               </h3>
               {scheme.type && (
                 <span className="text-[10px] text-on-surface-variant uppercase tracking-wider">
-                  {scheme.type === 'central' ? '🇮🇳 Central' : '🏛️ State'}
+                  {scheme.type === 'central'
+                    ? (language === 'hi' ? '🇮🇳 केंद्रीय' : language === 'mr' ? '🇮🇳 केंद्रीय' : '🇮🇳 Central')
+                    : (language === 'hi' ? '🏛️ राज्य' : language === 'mr' ? '🏛️ राज्य' : '🏛️ State')
+                  }
                 </span>
               )}
             </div>
@@ -85,8 +92,8 @@ export default function SchemeCard({ scheme, language = 'en' }) {
               : 'bg-error-container text-error'
           }`}>
             {isEligible
-              ? (language === 'hi' ? 'पात्र' : 'Eligible')
-              : (language === 'hi' ? 'अपात्र' : 'Not Eligible')
+              ? (language === 'hi' ? 'पात्र' : language === 'mr' ? 'पात्र' : 'Eligible')
+              : (language === 'hi' ? 'अपात्र' : language === 'mr' ? 'अपात्र' : 'Not Eligible')
             }
           </span>
         </div>
@@ -101,7 +108,7 @@ export default function SchemeCard({ scheme, language = 'en' }) {
         {/* Benefits */}
         {scheme.max_benefit && (
           <p className="text-xs text-primary font-semibold">
-            💰 {language === 'hi' ? 'लाभ:' : 'Benefit:'} ₹{Number(scheme.max_benefit).toLocaleString('en-IN')}
+            💰 {language === 'hi' ? 'लाभ:' : language === 'mr' ? 'लाभ:' : 'Benefit:'} ₹{Number(scheme.max_benefit).toLocaleString('en-IN')}
           </p>
         )}
 
@@ -117,7 +124,7 @@ export default function SchemeCard({ scheme, language = 'en' }) {
           ) : (
             <FiChevronDown className="w-3.5 h-3.5" />
           )}
-          {language === 'hi' ? 'मेरी भाषा में समझाएं' : 'Explain in my language'}
+          {language === 'hi' ? 'मेरी भाषा में समझाएं' : language === 'mr' ? 'माझ्या भाषेत स्पष्ट करा' : 'Explain in my language'}
         </button>
       </div>
 
@@ -138,8 +145,8 @@ export default function SchemeCard({ scheme, language = 'en' }) {
           >
             <FiVolume2 className="w-3 h-3" />
             {speaking
-              ? (language === 'hi' ? 'सुना रहे हैं...' : 'Speaking...')
-              : (language === 'hi' ? '🔊 सुनें' : '🔊 Listen')
+              ? (language === 'hi' ? 'सुना रहे हैं...' : language === 'mr' ? 'ऐकत आहे...' : 'Speaking...')
+              : (language === 'hi' ? '🔊 सुनें' : language === 'mr' ? '🔊 ऐका' : '🔊 Listen')
             }
           </button>
         </div>

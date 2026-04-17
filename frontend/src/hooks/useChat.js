@@ -1,22 +1,140 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { sendTriage, generateSummary } from '../services/api'
 import { useLanguage } from '../contexts/LanguageContext'
 
 const MAX_HISTORY = 50
+const SESSIONS_KEY = 'mediguide_chat_sessions'
+const MAX_SESSIONS = 50
 
-export default function useChat() {
+/* ─── Session persistence helpers ─────────────────────────── */
+
+/** Generate a unique session ID */
+function generateSessionId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+}
+
+/** Get all stored sessions from localStorage */
+export function getAllSessions() {
+  try {
+    const raw = localStorage.getItem(SESSIONS_KEY)
+    if (!raw) return []
+    const sessions = JSON.parse(raw)
+    // Sort newest first
+    return sessions.sort((a, b) => b.timestamp - a.timestamp)
+  } catch {
+    return []
+  }
+}
+
+/** Get a single session by ID */
+export function getSession(sessionId) {
+  const sessions = getAllSessions()
+  return sessions.find(s => s.id === sessionId) || null
+}
+
+/** Save a session to localStorage */
+function saveSessionToStorage(session) {
+  try {
+    let sessions = getAllSessions()
+    const existingIndex = sessions.findIndex(s => s.id === session.id)
+    if (existingIndex >= 0) {
+      sessions[existingIndex] = session
+    } else {
+      sessions.unshift(session)
+    }
+    // Keep only the latest N sessions
+    sessions = sessions.slice(0, MAX_SESSIONS)
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions))
+  } catch (err) {
+    console.warn('[useChat] Failed to save session:', err)
+  }
+}
+
+/** Delete a session from localStorage */
+export function deleteSession(sessionId) {
+  try {
+    let sessions = getAllSessions()
+    sessions = sessions.filter(s => s.id !== sessionId)
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions))
+  } catch (err) {
+    console.warn('[useChat] Failed to delete session:', err)
+  }
+}
+
+/** Mark a session as report downloaded */
+export function markSessionDownloaded(sessionId) {
+  try {
+    let sessions = getAllSessions()
+    const session = sessions.find(s => s.id === sessionId)
+    if (session) {
+      session.downloaded = true
+      localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions))
+    }
+  } catch {
+    // ignore
+  }
+}
+
+/* ─── Main hook ───────────────────────────────────────────── */
+
+export default function useChat(initialSessionId = null) {
   const [messages, setMessages] = useState([])
   const [urgency, setUrgency] = useState(null)       // null | 'mild' | 'moderate' | 'emergency'
   const [urgencyData, setUrgencyData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isFinal, setIsFinal] = useState(false)
   const [summary, setSummary] = useState(null)
+  const [sessionId, setSessionId] = useState(() => initialSessionId || generateSessionId())
 
   // Language from centralized context — changes here update the entire app
   const { language, changeLanguage } = useLanguage()
 
   const abortRef = useRef(null)
   const loadingRef = useRef(false) // ref to avoid stale closure
+
+  /** Load a previous session by ID */
+  const loadSession = useCallback((id) => {
+    const session = getSession(id)
+    if (session) {
+      setMessages(session.messages || [])
+      setUrgency(session.urgency || null)
+      setUrgencyData(session.urgencyData || null)
+      setIsFinal(session.isFinal || false)
+      setSummary(session.summary || null)
+      setSessionId(session.id)
+      return true
+    }
+    return false
+  }, [])
+
+  /** Auto-save session whenever messages change (debounced) */
+  useEffect(() => {
+    if (messages.length === 0) return
+
+    const timer = setTimeout(() => {
+      const firstUserMsg = messages.find(m => m.role === 'user')
+      const preview = firstUserMsg
+        ? firstUserMsg.content.slice(0, 80)
+        : 'Chat session'
+
+      saveSessionToStorage({
+        id: sessionId,
+        timestamp: messages[0]?.timestamp || Date.now(),
+        lastUpdated: Date.now(),
+        preview,
+        messageCount: messages.length,
+        messages,
+        urgency,
+        urgencyData,
+        isFinal,
+        summary,
+        downloaded: false,
+        language,
+      })
+    }, 500) // debounce 500ms
+
+    return () => clearTimeout(timer)
+  }, [messages, urgency, urgencyData, isFinal, summary, sessionId, language])
 
   /** Build conversation history for the API from messages state. */
   const buildHistory = useCallback((msgs) => {
@@ -132,6 +250,8 @@ export default function useChat() {
     setIsLoading(false)
     setIsFinal(false)
     setSummary(null)
+    // Generate new session ID for the next chat
+    setSessionId(generateSessionId())
   }, [])
 
   return {
@@ -146,6 +266,8 @@ export default function useChat() {
     sendMessage,
     getSummary,
     resetChat,
+    sessionId,
+    loadSession,
   }
 }
 

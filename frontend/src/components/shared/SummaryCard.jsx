@@ -21,7 +21,7 @@ export default function SummaryCard({ summary, urgency, language = 'en' }) {
       await navigator.clipboard.writeText(summaryText)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-      toast.success(language === 'hi' ? 'कॉपी हो गया' : 'Copied to clipboard')
+      toast.success(language === 'hi' ? 'कॉपी हो गया' : language === 'mr' ? 'कॉपी झाले' : 'Copied to clipboard')
     } catch {
       toast.error('Copy failed')
     }
@@ -83,7 +83,7 @@ export default function SummaryCard({ summary, urgency, language = 'en' }) {
         <div className="flex items-center gap-2">
           <FiFileText className="w-4 h-4 text-primary" />
           <span className="text-sm font-bold text-on-surface">
-            {language === 'hi' ? 'डॉक्टर रिपोर्ट' : 'Doctor Summary'}
+            {language === 'hi' ? 'डॉक्टर रिपोर्ट' : language === 'mr' ? 'डॉक्टर अहवाल' : 'Doctor Summary'}
           </span>
         </div>
         {badge && (
@@ -107,21 +107,21 @@ export default function SummaryCard({ summary, urgency, language = 'en' }) {
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical bg-surface-container-low text-on-surface-variant hover:text-primary text-[11px] transition-all hover:bg-primary-fixed/30 border border-outline-variant/20"
         >
           {copied ? <FiCheck className="w-3 h-3 text-green-400" /> : <FiCopy className="w-3 h-3" />}
-          {language === 'hi' ? 'कॉपी' : 'Copy'}
+          {language === 'hi' ? 'कॉपी' : language === 'mr' ? 'कॉपी' : 'Copy'}
         </button>
         <button
           onClick={handleShare}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical bg-surface-container-low text-on-surface-variant hover:text-primary text-[11px] transition-all hover:bg-primary-fixed/30 border border-outline-variant/20"
         >
           <FiShare2 className="w-3 h-3" />
-          {language === 'hi' ? 'शेयर' : 'Share'}
+          {language === 'hi' ? 'शेयर' : language === 'mr' ? 'शेअर' : 'Share'}
         </button>
         <button
           onClick={handlePrint}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-clinical bg-surface-container-low text-on-surface-variant hover:text-primary text-[11px] transition-all hover:bg-primary-fixed/30 border border-outline-variant/20"
         >
           <FiPrinter className="w-3 h-3" />
-          {language === 'hi' ? 'प्रिंट' : 'Print'}
+          {language === 'hi' ? 'प्रिंट' : language === 'mr' ? 'प्रिंट' : 'Print'}
         </button>
       </div>
     </div>

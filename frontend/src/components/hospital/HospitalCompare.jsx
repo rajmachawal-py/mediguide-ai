@@ -13,7 +13,7 @@ export default function HospitalCompare({ hospitals = [], onRemove, language = '
 
   const rows = [
     {
-      label: language === 'hi' ? 'प्रकार' : 'Type',
+      label: language === 'hi' ? 'प्रकार' : language === 'mr' ? 'प्रकार' : 'Type',
       key: 'hospital_type',
       render: (h) => (
         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
@@ -26,7 +26,7 @@ export default function HospitalCompare({ hospitals = [], onRemove, language = '
       ),
     },
     {
-      label: language === 'hi' ? 'दूरी' : 'Distance',
+      label: language === 'hi' ? 'दूरी' : language === 'mr' ? 'अंतर' : 'Distance',
       key: 'distance_km',
       render: (h) => (
         <span className="flex items-center gap-1 text-xs text-on-surface-variant">
@@ -36,7 +36,7 @@ export default function HospitalCompare({ hospitals = [], onRemove, language = '
       ),
     },
     {
-      label: language === 'hi' ? 'रेटिंग' : 'Rating',
+      label: language === 'hi' ? 'रेटिंग' : language === 'mr' ? 'रेटिंग' : 'Rating',
       key: 'rating',
       render: (h) => (
         <span className="flex items-center gap-1 text-xs text-on-surface-variant">
@@ -50,28 +50,32 @@ export default function HospitalCompare({ hospitals = [], onRemove, language = '
       key: 'is_24x7',
       render: (h) => (
         <span className={`text-xs ${h.is_24x7 ? 'text-mild' : 'text-outline'}`}>
-          {h.is_24x7 ? '✓ Yes' : '✗ No'}
+          {h.is_24x7
+            ? (language === 'hi' ? '✓ हाँ' : language === 'mr' ? '✓ होय' : '✓ Yes')
+            : (language === 'hi' ? '✗ नहीं' : language === 'mr' ? '✗ नाही' : '✗ No')}
         </span>
       ),
     },
     {
-      label: language === 'hi' ? 'आपातकालीन' : 'Emergency',
+      label: language === 'hi' ? 'आपातकालीन' : language === 'mr' ? 'आणीबाणी' : 'Emergency',
       key: 'has_emergency',
       render: (h) => (
         <span className={`text-xs ${h.has_emergency ? 'text-error' : 'text-outline'}`}>
-          {h.has_emergency ? '🚨 Yes' : '✗ No'}
+          {h.has_emergency
+            ? (language === 'hi' ? '🚨 हाँ' : language === 'mr' ? '🚨 होय' : '🚨 Yes')
+            : (language === 'hi' ? '✗ नहीं' : language === 'mr' ? '✗ नाही' : '✗ No')}
         </span>
       ),
     },
     {
-      label: language === 'hi' ? 'बेड' : 'Beds',
+      label: language === 'hi' ? 'बेड' : language === 'mr' ? 'बेड' : 'Beds',
       key: 'bed_count',
       render: (h) => (
         <span className="text-xs text-on-surface-variant">{h.bed_count || '—'}</span>
       ),
     },
     {
-      label: language === 'hi' ? 'विशेषताएं' : 'Specialties',
+      label: language === 'hi' ? 'विशेषताएं' : language === 'mr' ? 'विशेषता' : 'Specialties',
       key: 'specialties',
       render: (h) => (
         <div className="flex flex-wrap gap-1">
@@ -94,7 +98,7 @@ export default function HospitalCompare({ hospitals = [], onRemove, language = '
       <div className="grid border-b border-outline-variant/20" style={{ gridTemplateColumns: `100px repeat(${hospitals.length}, 1fr)` }}>
         <div className="p-3 bg-surface-container-low">
           <span className="text-[10px] text-on-surface-variant uppercase tracking-wider">
-            {language === 'hi' ? 'तुलना' : 'Compare'}
+            {language === 'hi' ? 'तुलना' : language === 'mr' ? 'तुलना' : 'Compare'}
           </span>
         </div>
         {hospitals.map((h, i) => (
@@ -142,7 +146,7 @@ export default function HospitalCompare({ hospitals = [], onRemove, language = '
               className="flex items-center justify-center gap-1 px-2 py-1.5 rounded-clinical bg-primary-fixed/40 text-primary text-[10px] font-medium hover:bg-primary-fixed/60 transition-all"
             >
               <FiNavigation className="w-3 h-3" />
-              {language === 'hi' ? 'दिशा' : 'Directions'}
+              {language === 'hi' ? 'दिशा' : language === 'mr' ? 'दिशा' : 'Directions'}
             </a>
           </div>
         ))}

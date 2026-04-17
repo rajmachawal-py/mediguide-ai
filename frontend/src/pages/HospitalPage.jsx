@@ -39,7 +39,11 @@ export default function HospitalPage() {
         const data = await getNearbyHospitals(lat, lng, 30)
         setHospitals(data.hospitals || [])
       } catch (err) {
-        setError('Failed to load hospitals')
+        setError(
+          language === 'hi' ? 'अस्पताल लोड करने में विफल' :
+          language === 'mr' ? 'रुग्णालये लोड करण्यात अयशस्वी' :
+          'Failed to load hospitals'
+        )
         console.error(err)
       } finally {
         setLoading(false)
@@ -56,7 +60,11 @@ export default function HospitalPage() {
   if (geoLoading || loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <Spinner size="lg" text={language === 'hi' ? 'अस्पताल खोज रहे हैं...' : 'Finding hospitals...'} />
+        <Spinner size="lg" text={
+          language === 'hi' ? 'अस्पताल खोज रहे हैं...' :
+          language === 'mr' ? 'रुग्णालये शोधत आहे...' :
+          'Finding hospitals...'
+        } />
       </div>
     )
   }
@@ -126,7 +134,7 @@ export default function HospitalPage() {
 
           {filtered.length === 0 && !loading && (
             <div className="clinical-card-flat p-8 text-center text-on-surface-variant text-sm">
-              {language === 'hi' ? 'कोई अस्पताल नहीं मिला' : 'No hospitals found in this category'}
+              {language === 'hi' ? 'कोई अस्पताल नहीं मिला' : language === 'mr' ? 'या श्रेणीत कोणतेही रुग्णालय सापडले नाही' : 'No hospitals found in this category'}
             </div>
           )}
         </div>

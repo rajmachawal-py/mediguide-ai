@@ -27,12 +27,12 @@ import { useLanguage } from '../contexts/LanguageContext'
 import toast from 'react-hot-toast'
 
 const RELATIONSHIPS = [
-  { value: 'family',  label: { hi: 'परिवार',  en: 'Family' }},
-  { value: 'spouse',  label: { hi: 'पत्नी/पति', en: 'Spouse' }},
-  { value: 'parent',  label: { hi: 'माता/पिता', en: 'Parent' }},
-  { value: 'child',   label: { hi: 'बच्चा',    en: 'Child' }},
-  { value: 'friend',  label: { hi: 'मित्र',     en: 'Friend' }},
-  { value: 'doctor',  label: { hi: 'डॉक्टर',   en: 'Doctor' }},
+  { value: 'family',  label: { hi: 'परिवार',  mr: 'कुटुंब',  en: 'Family' }},
+  { value: 'spouse',  label: { hi: 'पत्नी/पति', mr: 'पत्नी/पती', en: 'Spouse' }},
+  { value: 'parent',  label: { hi: 'माता/पिता', mr: 'आई/वडील', en: 'Parent' }},
+  { value: 'child',   label: { hi: 'बच्चा',    mr: 'मूल',    en: 'Child' }},
+  { value: 'friend',  label: { hi: 'मित्र',     mr: 'मित्र',   en: 'Friend' }},
+  { value: 'doctor',  label: { hi: 'डॉक्टर',   mr: 'डॉक्टर', en: 'Doctor' }},
 ]
 
 export default function CaregiverDashboard() {
@@ -107,7 +107,7 @@ export default function CaregiverDashboard() {
           // Show toast
           const emoji = newAlert.urgency === 'emergency' ? '🔴' :
                         newAlert.urgency === 'moderate' ? '🟡' : '🟢'
-          toast(`${emoji} New caregiver alert: ${newAlert.urgency}`, { icon: '🏥' })
+          toast(`${emoji} ${language === 'hi' ? 'नया केयरगिवर अलर्ट' : language === 'mr' ? 'नवीन केयरगिव्हर अलर्ट' : 'New caregiver alert'}: ${newAlert.urgency}`, { icon: '🏥' })
         }
       )
       .subscribe()
@@ -121,7 +121,7 @@ export default function CaregiverDashboard() {
   const handleAddCaregiver = useCallback(async () => {
     const phone = formPhone.replace(/\s/g, '')
     if (phone.length < 10 || !formName.trim()) {
-      toast.error(language === 'hi' ? 'सभी फ़ील्ड भरें' : 'Fill all fields')
+      toast.error(language === 'hi' ? 'सभी फ़ील्ड भरें' : language === 'mr' ? 'सर्व फील्ड भरा' : 'Fill all fields')
       return
     }
 
@@ -140,9 +140,9 @@ export default function CaregiverDashboard() {
       setFormName('')
       setFormRelation('family')
 
-      toast.success(language === 'hi' ? 'केयरगिवर जोड़ा गया ✅' : 'Caregiver linked ✅')
+      toast.success(language === 'hi' ? 'केयरगिवर जोड़ा गया ✅' : language === 'mr' ? 'केयरगिव्हर जोडला ✅' : 'Caregiver linked ✅')
     } catch (err) {
-      toast.error(language === 'hi' ? 'जोड़ने में विफल' : 'Failed to link caregiver')
+      toast.error(language === 'hi' ? 'जोड़ने में विफल' : language === 'mr' ? 'जोडण्यात अयशस्वी' : 'Failed to link caregiver')
       console.error(err)
     } finally {
       setFormLoading(false)
@@ -151,15 +151,15 @@ export default function CaregiverDashboard() {
 
   // Revoke link
   const handleRevoke = useCallback(async (linkId) => {
-    if (!confirm(language === 'hi' ? 'क्या आप वाकई हटाना चाहते हैं?' : 'Are you sure you want to remove this link?')) return
+    if (!confirm(language === 'hi' ? 'क्या आप वाकई हटाना चाहते हैं?' : language === 'mr' ? 'तुम्हाला खरोखर हटवायचे आहे का?' : 'Are you sure you want to remove this link?')) return
 
     try {
       await revokeCaregiver(linkId)
       const data = await getCaregiverLinks()
       setLinks(data)
-      toast.success(language === 'hi' ? 'लिंक हटाया गया' : 'Link removed')
+      toast.success(language === 'hi' ? 'लिंक हटाया गया' : language === 'mr' ? 'लिंक हटवला' : 'Link removed')
     } catch (err) {
-      toast.error('Failed to remove link')
+      toast.error(language === 'hi' ? 'हटाने में विफल' : language === 'mr' ? 'हटवण्यात अयशस्वी' : 'Failed to remove link')
     }
   }, [language])
 
@@ -229,7 +229,7 @@ export default function CaregiverDashboard() {
           <h2 className="text-lg font-bold font-display text-on-surface">{text.title}</h2>
           <p className="text-sm text-on-surface-variant">{text.loginRequired}</p>
           <button onClick={() => navigate('/login')} className="btn-primary text-sm">
-            {language === 'hi' ? 'लॉगिन करें' : 'Sign In'}
+            {language === 'hi' ? 'लॉगिन करें' : language === 'mr' ? 'साइन इन करा' : 'Sign In'}
           </button>
         </div>
       </div>
@@ -246,7 +246,7 @@ export default function CaregiverDashboard() {
         <div>
           <h1 className="text-lg font-bold font-display text-on-surface">{text.title}</h1>
           <p className="text-clinical-meta">
-            {links.as_patient.length + links.as_caregiver.length} {language === 'hi' ? 'लिंक' : 'links'}
+            {links.as_patient.length + links.as_caregiver.length} {language === 'hi' ? 'लिंक' : language === 'mr' ? 'लिंक्स' : 'links'}
           </p>
         </div>
       </div>
@@ -377,7 +377,9 @@ export default function CaregiverDashboard() {
               <FiHeart className="w-8 h-8 mx-auto mb-2 opacity-40" />
               {language === 'hi'
                 ? 'कोई मरीज़ नहीं जुड़ा — जब कोई आपको केयरगिवर के रूप में जोड़ेगा तो यहाँ दिखेगा'
-                : 'No patients linked — they\'ll appear here when someone adds you as a caregiver'}
+                : language === 'mr'
+                ? 'कोणीही रुग्ण जोडलेले नाहीत — कोणी तुम्हाला केयरगिव्हर म्हणून जोडल्यावर इथे दिसतील'
+                : "No patients linked \u2014 they'll appear here when someone adds you as a caregiver"}
             </div>
           ) : (
             links.as_caregiver.map(link => (
@@ -437,7 +439,7 @@ function CaregiverLinkCard({ link, language, onRevoke, role }) {
         <button
           onClick={onRevoke}
           className="p-2 rounded-clinical text-outline hover:text-error hover:bg-error/8 transition-all"
-          title={language === 'hi' ? 'हटाएं' : 'Remove'}
+          title={language === 'hi' ? 'हटाएं' : language === 'mr' ? 'हटवा' : 'Remove'}
         >
           <FiTrash2 className="w-3.5 h-3.5" />
         </button>
@@ -474,7 +476,7 @@ function AlertCard({ alert, language }) {
     if (!dateStr) return ''
     const diff = Date.now() - new Date(dateStr).getTime()
     const mins = Math.floor(diff / 60000)
-    if (mins < 1) return language === 'hi' ? 'अभी' : 'Just now'
+    if (mins < 1) return language === 'hi' ? 'अभी' : language === 'mr' ? 'आत्ताच' : 'Just now'
     if (mins < 60) return `${mins}m`
     const hrs = Math.floor(mins / 60)
     if (hrs < 24) return `${hrs}h`
