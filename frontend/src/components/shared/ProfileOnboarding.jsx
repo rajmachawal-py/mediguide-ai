@@ -2,13 +2,80 @@
  * MediGuide AI — Profile Onboarding
  * Full-screen modal shown after signup when user hasn't filled required profile fields.
  * Cannot be dismissed — user MUST fill name, age, gender before using the app.
+ *
+ * Auto-fills the name field from the user's email when possible.
+ * Edge cases (gibberish emails, numbers-only, etc.) leave the field empty.
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FiUser, FiLoader, FiArrowRight, FiGlobe } from 'react-icons/fi'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { updateProfile } from '../../services/api'
+import { supabase } from '../../services/supabase'
 import toast from 'react-hot-toast'
+
+/**
+ * Attempt to extract a human-readable name from an email address.
+ * Returns a properly capitalised name string, or '' if the email
+ * doesn't contain a valid-looking name.
+ *
+ * Examples:
+ *   "john.doe@gmail.com"   → "John Doe"
+ *   "jane_smith@yahoo.com" → "Jane Smith"
+ *   "rajesh@company.in"    → "Rajesh"
+ *   "abc@gmail.com"        → ""  (too short / not a real name)
+ *   "12345@gmail.com"      → ""  (numbers only)
+ *   "info@company.com"     → ""  (generic prefix)
+ */
+function extractNameFromEmail(email) {
+  if (!email || typeof email !== 'string') return ''
+
+  const localPart = email.split('@')[0]
+  if (!localPart) return ''
+
+  // Reject if the local part is purely numeric (e.g. "12345@gmail.com")
+  if (/^\d+$/.test(localPart)) return ''
+
+  // Split by common separators: dots, underscores, hyphens
+  const parts = localPart
+    .split(/[._-]+/)
+    .map(p => p.replace(/\d+/g, '').trim())  // strip digits from each part
+    .filter(p => p.length > 0)
+
+  if (parts.length === 0) return ''
+
+  // Generic / non-name prefixes to reject
+  const genericPrefixes = new Set([
+    'info', 'admin', 'contact', 'support', 'hello', 'hi', 'hey',
+    'mail', 'email', 'test', 'user', 'noreply', 'no-reply',
+    'sales', 'help', 'office', 'team', 'service', 'webmaster',
+  ])
+
+  // If entire local part (joined) is a generic prefix, reject
+  if (genericPrefixes.has(localPart.toLowerCase())) return ''
+  // Also reject if the first part alone is generic and it's the only part
+  if (parts.length === 1 && genericPrefixes.has(parts[0].toLowerCase())) return ''
+
+  // Each part must be at least 2 characters to be considered a name
+  const validParts = parts.filter(p => p.length >= 2)
+  if (validParts.length === 0) return ''
+
+  // Heuristic: a name-like string should contain at least one vowel
+  const hasVowel = (str) => /[aeiouy]/i.test(str)
+  const namePartsWithVowels = validParts.filter(hasVowel)
+  if (namePartsWithVowels.length === 0) return ''
+
+  // Capitalise each part
+  const capitalise = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+
+  // Use only the vowel-containing parts (avoids initials like "j" or consonant clusters)
+  const finalName = namePartsWithVowels.map(capitalise).join(' ')
+
+  // Final sanity: name should be at least 3 characters total
+  if (finalName.replace(/\s/g, '').length < 3) return ''
+
+  return finalName
+}
 
 const t = {
   hi: {
@@ -82,6 +149,35 @@ export default function ProfileOnboarding({ onComplete }) {
   const [selectedLang, setSelectedLang] = useState(language)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // Auto-fill name from the user's email (if it contains a valid name)
+  useEffect(() => {
+    async function prefillName() {
+      try {
+        // First check Google OAuth — user_metadata.full_name is already the real name
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          // Google sign-in provides full_name in user_metadata
+          const metaName = user.user_metadata?.full_name || user.user_metadata?.name
+          if (metaName && metaName.trim()) {
+            setName(metaName.trim())
+            return
+          }
+
+          // Fallback: try to extract name from email
+          const email = user.email
+          const extracted = extractNameFromEmail(email)
+          if (extracted) {
+            setName(extracted)
+          }
+        }
+      } catch (err) {
+        // Silently fail — user can still type their name manually
+        console.warn('Could not prefill name from email:', err)
+      }
+    }
+    prefillName()
+  }, [])
 
   // When user picks a language in the form, update the UI language immediately
   const handleLangChange = (code) => {
