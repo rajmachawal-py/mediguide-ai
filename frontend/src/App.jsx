@@ -23,6 +23,7 @@ import ProfilePage from './pages/ProfilePage'
 import IndoorMapPage from './pages/IndoorMapPage'
 import CaregiverDashboard from './pages/CaregiverDashboard'
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import LandingPage from './pages/LandingPage'
 
 /** Layout wrapper with Navbar for authenticated routes. */
 function AppLayout({ children }) {
@@ -97,13 +98,14 @@ function AppContent() {
     setProfileComplete(isProfileComplete())
   }, [location.pathname])
 
-  // Only show modals on protected pages, NOT on /login or /privacy
-  const isProtectedPage = location.pathname !== '/login' && location.pathname !== '/privacy'
+  // Only show modals on protected pages, NOT on public pages
+  const isProtectedPage = location.pathname !== '/' && location.pathname !== '/login' && location.pathname !== '/privacy'
 
   return (
     <>
       <Routes>
-        {/* Public Route */}
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
@@ -158,7 +160,7 @@ function AppContent() {
         />
 
         {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       {/* Step 1: DPDPA Consent Modal — shown on protected pages for new users */}
