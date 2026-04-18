@@ -40,9 +40,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        # Skip non-API and health check paths
+        # Skip non-API, health checks, and CORS preflight requests
         path = request.url.path
-        if path in SKIP_PATHS or not path.startswith("/api"):
+        if path in SKIP_PATHS or not path.startswith("/api") or request.method == "OPTIONS":
             return await call_next(request)
 
         start_time = time.time()

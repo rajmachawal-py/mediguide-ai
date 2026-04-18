@@ -238,12 +238,13 @@ async def notify_caregivers(
                     },
                 )
 
-            # Record alert in database
+            # Record alert in database — columns match schema.sql:
+            # id, link_id, session_id, urgency, message, sent_at, delivered
             alert_data = {
                 "link_id": link["id"],
                 "urgency": urgency,
-                "summary": summary[:500],
-                "sent_via": "push" if push_sent else "pending",
+                "message": summary[:500],
+                "delivered": push_sent,
             }
 
             alert_result = await asyncio.to_thread(
@@ -293,12 +294,12 @@ async def get_alert_history(
 
         link_ids = [link["id"] for link in links.data]
 
-        # Fetch alerts for these links
+        # Fetch alerts for these links — column is 'sent_at' per schema.sql
         alerts = await asyncio.to_thread(
             lambda: supabase.table("caregiver_alerts")
             .select("*")
             .in_("link_id", link_ids)
-            .order("created_at", desc=True)
+            .order("sent_at", desc=True)
             .limit(limit)
             .execute()
         )
@@ -307,4 +308,5 @@ async def get_alert_history(
 
     except Exception as e:
         logger.error(f"Alert history error: {e}", exc_info=True)
-        raise
+        return []  # Return empty list instead of crashing the page
+

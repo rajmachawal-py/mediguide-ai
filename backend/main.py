@@ -36,10 +36,15 @@ app = FastAPI(
 )
 
 
-# ── CORS ─────────────────────────────────────────────────────
-# Allows the React frontend (Vite dev server) to call the API.
-# In production, replace with your actual deployed frontend URL.
+# ── Middleware ───────────────────────────────────────────────
+# IMPORTANT: In Starlette, the LAST middleware added is the OUTERMOST.
+# CORS must be outermost to handle OPTIONS preflight before anything else.
+# Order of add_middleware calls:  first = inner,  last = outer.
 
+# 1. Audit middleware (INNER — runs after CORS has handled preflight)
+app.add_middleware(AuditMiddleware)
+
+# 2. CORS middleware (OUTER — must intercept OPTIONS before audit)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -53,10 +58,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# ── Audit Trail Middleware ────────────────────────────────────
-# Logs every API request to the audit_logs table (Architecture Req 5.3)
-app.add_middleware(AuditMiddleware)
 
 
 # ── Routers ──────────────────────────────────────────────────
