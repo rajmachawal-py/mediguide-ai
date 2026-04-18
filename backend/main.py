@@ -46,7 +46,9 @@ app.add_middleware(
         settings.FRONTEND_URL,          # e.g. http://localhost:5173
         "https://mediguide-ai.vercel.app",
         "https://mediguide-ai-b2sg.vercel.app",
+        "https://mediguide-ai-b2sg-git-main-mediguideai13-3382s-projects.vercel.app",
     ],
+    allow_origin_regex=r"https://mediguide-ai.*\.vercel\.app",  # all preview deploys
     allow_credentials=True,             # needed for Supabase JWT cookies
     allow_methods=["*"],
     allow_headers=["*"],

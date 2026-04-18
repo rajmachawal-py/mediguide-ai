@@ -6,6 +6,10 @@
  *
  * Uses Web Speech API for real-time transcription.
  * Falls back to MediaRecorder + Sarvam API if Web Speech isn't available.
+ *
+ * FIX: Properly accumulates final transcripts without duplication.
+ * The old code re-iterated all results from index 0 on every onresult event,
+ * causing word duplication when Chrome restarts recognition in continuous mode.
  */
 
 import { FiMic, FiMicOff, FiLoader } from 'react-icons/fi'
@@ -25,12 +29,11 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
   const [isProcessing, setIsProcessing] = useState(false)
   const recognitionRef = useRef(null)
   const transcriptRef = useRef('')
+  const finalPartsRef = useRef([])    // Accumulated final transcript segments
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
   const useWebSpeech = useRef(true)
   // ── Ref mirrors isRecording state so recognition callbacks are never stale ──
-  // React state captured in useCallback closures goes stale; refs always read
-  // the latest value, which is critical for the no-speech restart logic.
   const isRecordingRef = useRef(false)
   useEffect(() => { isRecordingRef.current = isRecording }, [isRecording])
 
@@ -41,6 +44,7 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
   const startWebSpeech = useCallback(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
     transcriptRef.current = ''
+    finalPartsRef.current = []
 
     const recognition = new SpeechRecognition()
     recognition.lang = SPEECH_LANG_MAP[language] || 'en-IN'
@@ -49,16 +53,30 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
     recognition.maxAlternatives = 1
 
     recognition.onresult = (event) => {
-      let final = ''
-      let interim = ''
-      for (let i = 0; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-          final += event.results[i][0].transcript
+      // Only process NEW results starting from event.resultIndex
+      // This prevents duplication when Chrome restarts recognition
+      let newFinals = ''
+      let currentInterim = ''
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i]
+        if (result.isFinal) {
+          newFinals += result[0].transcript
         } else {
-          interim += event.results[i][0].transcript
+          currentInterim += result[0].transcript
         }
       }
-      transcriptRef.current = final || interim
+
+      // Append new final segments (don't re-process old ones)
+      if (newFinals) {
+        finalPartsRef.current.push(newFinals)
+      }
+
+      // Full transcript = all accumulated finals + current interim
+      const allFinals = finalPartsRef.current.join(' ').trim()
+      transcriptRef.current = currentInterim
+        ? `${allFinals} ${currentInterim}`.trim()
+        : allFinals
     }
 
     recognition.onerror = (event) => {
@@ -152,7 +170,11 @@ export default function VoiceButton({ language, onTranscript, disabled }) {
       recognitionRef.current.stop()
       recognitionRef.current = null
 
-      const transcript = transcriptRef.current.trim()
+      // Build final transcript from accumulated parts
+      const transcript = finalPartsRef.current.join(' ').trim() || transcriptRef.current.trim()
+      finalPartsRef.current = []
+      transcriptRef.current = ''
+
       if (transcript) {
         toast.success(`🎤 "${transcript}"`, { duration: 2000 })
         onTranscript(transcript)

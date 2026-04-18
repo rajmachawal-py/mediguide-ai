@@ -6,10 +6,15 @@
 
 import axios from 'axios'
 import { getSession } from './supabase'
+// In production (Vercel), call Render backend directly to bypass Vercel's
+// 10-second proxy timeout limit on Hobby plan.
+// In dev, /api is proxied by Vite to localhost:8000.
+const API_BASE = import.meta.env.VITE_API_BASE_URL
+  || (import.meta.env.PROD ? 'https://mediguide-ai-i3yv.onrender.com/api' : '/api')
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 30000,
+  baseURL: API_BASE,
+  timeout: 60000,  // 60s — Render free tier has cold-start delays + Gemini latency
   headers: { 'Content-Type': 'application/json' },
 })
 
@@ -23,15 +28,33 @@ api.interceptors.request.use(async (config) => {
   } catch {
     // No session — continue without auth header
   }
+  // Tag for retry tracking
+  config._retryCount = config._retryCount || 0
   return config
 })
 
-// ── Response interceptor: handle errors ─────────────────────
+// ── Response interceptor: handle errors + auto-retry ─────────
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config
+
+    // Auto-retry on 5xx or network errors (up to 2 retries)
+    const is5xx = error.response?.status >= 500
+    const isNetwork = !error.response && error.code !== 'ECONNABORTED'
+    const isTimeout = error.code === 'ECONNABORTED'
+    const maxRetries = 2
+
+    if ((is5xx || isNetwork || isTimeout) && config && config._retryCount < maxRetries) {
+      config._retryCount += 1
+      console.warn(`[API] Retry ${config._retryCount}/${maxRetries} for ${config.url}`)
+      // Exponential backoff: 1s, 3s
+      const delay = config._retryCount === 1 ? 1000 : 3000
+      await new Promise(r => setTimeout(r, delay))
+      return api(config)
+    }
+
     if (error.response?.status === 401) {
-      // Session expired — could redirect to login
       window.dispatchEvent(new CustomEvent('auth:expired'))
     }
     return Promise.reject(error)
