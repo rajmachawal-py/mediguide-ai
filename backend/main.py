@@ -44,7 +44,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         settings.FRONTEND_URL,          # e.g. http://localhost:5173
-        "https://mediguide-ai.vercel.app",  # production frontend (update when deployed)
+        "https://mediguide-ai.vercel.app",
+        "https://mediguide-ai-b2sg.vercel.app",
     ],
     allow_credentials=True,             # needed for Supabase JWT cookies
     allow_methods=["*"],
