@@ -2,18 +2,14 @@
  * MediGuide AI — API Service
  * Axios instance configured for FastAPI backend.
  * In dev, Vite proxy forwards /api/* to localhost:8000.
+ * In production, Vercel rewrites /api/* to Render (server-side, no CORS).
  */
 
 import axios from 'axios'
 import { getSession } from './supabase'
-// In production (Vercel), call Render backend directly to bypass Vercel's
-// 10-second proxy timeout limit on Hobby plan.
-// In dev, /api is proxied by Vite to localhost:8000.
-const API_BASE = import.meta.env.VITE_API_BASE_URL
-  || (import.meta.env.PROD ? 'https://mediguide-ai-i3yv.onrender.com/api' : '/api')
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 60000,  // 60s — Render free tier has cold-start delays + Gemini latency
   headers: { 'Content-Type': 'application/json' },
 })
